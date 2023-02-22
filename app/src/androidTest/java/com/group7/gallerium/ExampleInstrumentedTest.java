@@ -1,4 +1,4 @@
-package com.group7.photoviewer;
+package com.group7.gallerium;
 
 import android.content.Context;
 
@@ -21,6 +21,6 @@ public class ExampleInstrumentedTest {
     public void useAppContext() {
         // Context of the app under test.
         Context appContext = InstrumentationRegistry.getInstrumentation().getTargetContext();
-        assertEquals("com.group7.photoviewer", appContext.getPackageName());
+        assertEquals("com.group7.gallerium", appContext.getPackageName());
     }
 }

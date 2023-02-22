@@ -3,11 +3,11 @@ plugins {
 }
 
 android {
-    namespace 'com.group7.photoviewer'
+    namespace 'com.group7.gallerium'
     compileSdk 33
 
     defaultConfig {
-        applicationId "com.group7.photoviewer"
+        applicationId "com.group7.gallerium"
         minSdk 28
         targetSdk 33
         versionCode 1

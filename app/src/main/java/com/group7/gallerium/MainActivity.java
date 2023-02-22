@@ -1,4 +1,4 @@
-package com.group7.photoviewer;
+package com.group7.gallerium;
 
 import androidx.appcompat.app.AppCompatActivity;
 
