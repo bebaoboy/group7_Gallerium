@@ -1,9 +1,9 @@
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
-    <style name="Theme.Group7_PhotoViewer" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Group7_PhotoViewer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryVariant">@color/primary_color_light</item>
+        <item name="colorPrimary">@color/primary_color_light</item>
+        <item name="colorPrimaryVariant">@color/title_light</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/primary_color_light_20a</item>
@@ -12,5 +12,22 @@
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+    </style>
+
+    <style name="Toolbar">
+        <item name="android:background">@color/white</item>
+        <item name="android:subtitleTextColor">@color/title_light</item>
+        <item name="android:subtitleTextAppearance">@style/ToolbarFont</item>
+    </style>
+
+    <style name="ToolbarTitle">
+        <item name="android:textColor">@color/title_light</item>
+        <item name="android:fontFamily">@font/primary_font_extrabold</item>
+        <item name="android:textSize">30sp</item>
+    </style>
+
+    <style name="ToolbarFont">
+        <item name="android:fontFamily">@font/primary_font_extrabold</item>
+        <item name="android:textSize">30sp</item>
     </style>
 </resources>

@@ -33,8 +33,9 @@ public class PhotoFragment extends Fragment {
         view = inflater.inflate(R.layout.fragment_photo, container, false);
         toolbar = view.findViewById(R.id.toolbar_photo);
 
-        toolbar.inflateMenu(R.menu.menu_photo);
+        toolbar.inflateMenu(R.menu.main_bottom_nav);
         toolbar.setTitle(R.string.app_name);
+        toolbar.setTitleTextAppearance(this.getContext(), R.style.ToolbarTitle);
 
         return view;
     }
