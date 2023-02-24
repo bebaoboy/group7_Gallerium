@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/photo_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_photo"
+        android:title="@string/photo"/>
+    <item
+        android:id="@+id/album_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_photogallery"
+        android:title="@string/album"/>
+    <item
+        android:id="@+id/secured_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_secure"
+        android:title="@string/secured"/>
+    <item
+        android:id="@+id/fav_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_fav"
+        android:title="@string/fav"/>
+</menu>
