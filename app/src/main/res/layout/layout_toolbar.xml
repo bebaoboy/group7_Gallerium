@@ -4,10 +4,10 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/white"
+    android:paddingVertical="10dp"
     android:elevation="20sp"
     android:minHeight="?attr/actionBarSize"
-    android:theme="?attr/actionBarTheme"
+    android:theme="@style/Toolbar"
     app:layout_constraintEnd_toEndOf="parent"
     app:layout_constraintStart_toStartOf="parent"
     app:layout_constraintTop_toTopOf="parent" >

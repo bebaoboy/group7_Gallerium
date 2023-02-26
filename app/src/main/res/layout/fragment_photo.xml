@@ -9,13 +9,18 @@
     <!-- TODO: Update blank fragment layout -->
     <include
         layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_photo"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
+    <TextView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:text="@string/hello_blank_fragment" />
+     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/photo_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
