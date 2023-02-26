@@ -1,4 +1,4 @@
-package com.group7.gallerium;
+package com.group7.gallerium.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
