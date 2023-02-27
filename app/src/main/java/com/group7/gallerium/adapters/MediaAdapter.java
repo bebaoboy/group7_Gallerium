@@ -17,6 +17,7 @@ import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewPhoto;
+import com.group7.gallerium.activities.WatchVideo;
 import com.group7.gallerium.models.Category;
 import com.group7.gallerium.models.Media;
 import com.squareup.picasso.Picasso;
@@ -25,7 +26,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHolder> {
+public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
 
     public static final int PHOTOVIEW = 0, VIDEOVIEW = 1;
     private List<Media> listMedia;
@@ -57,40 +58,46 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHol
 
     @NonNull
     @Override
-    public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        return new PhotoViewHolder(layoutInflater.inflate(R.layout.photo_item, parent, false));
+        if(viewType == PHOTOVIEW){
+            return new PhotoViewHolder(layoutInflater.inflate(R.layout.photo_item, parent, false));
+        }else{
+            return new VideoViewHolder(layoutInflater.inflate(R.layout.video_item, parent, false));
+        }
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Media media = listMedia.get(position);
         if (media == null) {
             return;
         }
-        Glide.with(context).load("file://"+ media.getThumbnail())
-                .into(holder.image);
-        holder.image.setOnClickListener((view -> {
-            intent = new Intent(context, ViewPhoto.class);
-            MyAsyncTask myAsyncTask = new MyAsyncTask();
-            myAsyncTask.setPos(position);
-            myAsyncTask.execute();
-        }));
 
+        if (holder instanceof PhotoViewHolder) {
+            Log.d("photo-type", "1");
+            PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
+            Glide.with(context).load("file://"+ media.getThumbnail())
+                    .into(photoViewHolder.image);
+            photoViewHolder.image.setOnClickListener((view -> {
+                intent = new Intent(context, ViewPhoto.class);
+                MyAsyncTask myAsyncTask = new MyAsyncTask();
+                myAsyncTask.setPos(position);
+                myAsyncTask.execute();
+            }));
 
-//
-//        if (holder instanceof PhotoViewHolder) {
-//            Log.d("photo-type", "1");
-//            PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
-//            // Glide.with(context).load(media.getThumb()).into(photoViewHolder.image);
-//
-//        } else {
-//            Log.d("video-type", "2");
-//            VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
-//
-//            Glide.with(context).load(media.getThumbnail()).into(videoViewHolder.videoThumbnail);
-
-//        }
+        } else {
+            Log.d("video-type", "2");
+            VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
+            Glide.with(context).load("file://"+ media.getThumbnail())
+                    .into(videoViewHolder.videoThumbnail);
+            videoViewHolder.videoThumbnail.setOnClickListener((view -> {
+                intent = new Intent(context, WatchVideo.class);
+                MyAsyncTask myAsyncTask = new MyAsyncTask();
+                myAsyncTask.setPos(position);
+                myAsyncTask.execute();
+            }));
+        }
 
 
     }
@@ -102,27 +109,27 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHol
         }
         return 0;
     }
-//
-//    @Override
-//    public int getItemViewType(int position) {
-//        if(listMedia.get(position).getType().equals("photo")){
-//            return PHOTOVIEW;
-//        }else if(listMedia.get(position).getType().equals("video")){
-//            return VIDEOVIEW;
-//        }
-//        return -1;
-//    }
 
-//
-//    class VideoViewHolder extends RecyclerView.ViewHolder  {
-//        private ImageView videoThumbnail;
-//        private ImageView fav_icon;
-//
-//        private VideoViewHolder(View itemView) {
-//            super(itemView);
-//            videoThumbnail = itemView.findViewById(R.id.video_item);
-//        }
-//    }
+    @Override
+    public int getItemViewType(int position) {
+        if(listMedia.get(position).getType() == 1){
+            return PHOTOVIEW;
+        }else if(listMedia.get(position).getType() == 3){
+            return VIDEOVIEW;
+        }
+        return -1;
+    }
+
+
+    class VideoViewHolder extends RecyclerView.ViewHolder  {
+        private ImageView videoThumbnail;
+        private ImageView fav_icon;
+
+        private VideoViewHolder(View itemView) {
+            super(itemView);
+            videoThumbnail = itemView.findViewById(R.id.video_item);
+        }
+    }
 
     class PhotoViewHolder extends RecyclerView.ViewHolder  {
         private ImageView image;

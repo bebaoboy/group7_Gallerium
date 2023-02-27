@@ -223,7 +223,7 @@ public class AccessMediaFile {
                 } else {
                     listMedia.add(media);
                 }
-                if (listMedia.size() >= 100) {
+                if (listMedia.size() >= 500) {
                     break;
                 }
 
