@@ -1,0 +1,34 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/share_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_share"
+        android:title=""
+        android:tooltipText="@string/share"/>
+    <item
+        android:id="@+id/edit_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_edit"
+        android:title=""
+        android:tooltipText="@string/edit"/>
+    <item
+        android:id="@+id/delete_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_delete"
+        android:title=""
+        android:tooltipText="@string/delete"/>
+    <item
+        android:id="@+id/view_photo_secured_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_secure"
+        android:title=""
+        android:tooltipText="@string/secured"/>
+
+    <item
+        android:id="@+id/more_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_more"
+        android:title=""
+        android:tooltipText="@string/more"/>
+</menu>

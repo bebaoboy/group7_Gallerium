@@ -5,10 +5,27 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.ViewPhoto">
-    <TextView
+    <include
+        layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_view_photo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+<!--    <TextView-->
+<!--        android:layout_width="wrap_content"-->
+<!--        android:layout_height="wrap_content"-->
+<!--        android:text="view photo"-->
+<!--        />-->
+    <com.google.android.material.bottomnavigation.BottomNavigationView
+        android:id="@+id/view_photo_bottom_navigation"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="view photo"
-        />
+        app:elevation="12dp"
+        app:labelVisibilityMode="unlabeled"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:menu="@menu/view_photo_nav" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

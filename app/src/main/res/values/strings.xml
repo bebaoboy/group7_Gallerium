@@ -9,4 +9,8 @@
     <string name="appbar">Thanh công cụ</string>
     <string name="video">video</string>
     <string name="photo_item">photo</string>
+    <string name="share">Chia sẻ</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="delete">Xóa</string>
+    <string name="more">Xem thêm</string>
 </resources>
