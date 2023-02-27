@@ -75,8 +75,9 @@ public class PhotoFragment extends Fragment{
     void toolbarSetting(){
         toolbar = view.findViewById(R.id.toolbar_photo);
 
-        //toolbar.inflateMenu(R.menu.menu_photo);
-        //toolbar.setTitle(R.string.app_name);
+        toolbar.inflateMenu(R.menu.menu_photo);
+        toolbar.setTitle(R.string.app_name);
+        toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
     }
 
     ArrayList<String> getListMedia(){
