@@ -2,6 +2,8 @@ package com.group7.gallerium.utilities;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.provider.MediaStore;
 import android.util.Log;
@@ -14,7 +16,9 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Calendar;
+import java.util.Date;
 import java.util.List;
+import java.util.Objects;
 
 public class AccessMediaFile {
 
@@ -44,12 +48,11 @@ public class AccessMediaFile {
         }
     }
 
-    public static final List<Media> getAllMediaFromGallery(Context context) {
-        if(!allMediaPresent) { // Do not fetch photos between Activity switching.
-            // MASSIVE performance improvement. Like over 9000.
+    public static final List<Media> getAllMediaFromGallery1(Context context) {
+        if(!allMediaPresent) {
             Uri uri;
             int columnIndexData, thumb, dateIndex, typeIndex;
-            List<Media> listImage = new ArrayList<>();
+            List<Media> listMedia = new ArrayList<>();
             Cursor cursor;
             String type= null;
 
@@ -70,8 +73,8 @@ public class AccessMediaFile {
             columnIndexData = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
             thumb = cursor.getColumnIndexOrThrow(MediaStore.Images.Thumbnails.DATA);
             dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
-//            int mimeindex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE);
-//            int titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
+            int mimeindex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE);
+            int titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
             Calendar myCal = Calendar.getInstance();
             SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
             while (cursor.moveToNext()) {
@@ -96,7 +99,6 @@ public class AccessMediaFile {
               
                 media.setThumbnail(thumbnail);
                 media.setDateTaken(dateText);
-                media.setType("photo");
                 if (media.getPath() == "") {
                     continue;
                 }
@@ -125,20 +127,113 @@ public class AccessMediaFile {
                         allMedia.add(0, media);
                     }
                 } else {
-                    listImage.add(media);
+                    listMedia.add(media);
                 }
 
-                if(listImage.size()>1000) { // Just for testing.
+                if(listMedia.size()>1000) { // Just for testing.
                     break;                  // I don't want to load 10 000 photos at once.
                 }
             }
             cursor.close(); // Android Studio suggestion
-            allMedia = listImage;
+            allMedia = listMedia;
             addNewestMediaOnly = false;
             allMediaPresent = true;
-            return listImage;
+            return listMedia;
         }
         else{
+            return allMedia;
+        }
+    }
+
+    public static final List<Media> getAllMediaFromGallery(Context context) {
+
+        int count;
+        String absolutePath;
+        Long dateTaken;
+        List<Media> listMedia = new ArrayList<>();
+        if (!allMediaPresent) {
+            String[] columns = {MediaStore.Files.FileColumns._ID,
+                    MediaStore.Files.FileColumns.DATA,
+                    MediaStore.Files.FileColumns.DATE_ADDED,
+                    MediaStore.Files.FileColumns.MEDIA_TYPE,
+                    MediaStore.Files.FileColumns.MIME_TYPE,
+                    MediaStore.Files.FileColumns.TITLE,
+            };
+            String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+                    + " OR "
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+                    + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+            final String orderBy = MediaStore.Files.FileColumns.DATE_ADDED;
+            Uri queryUri = MediaStore.Files.getContentUri("external");
+            Cursor cursor = context.getApplicationContext().getContentResolver().query(queryUri,
+                    columns,
+                    selection,
+                    null, // Selection args (none).
+                    orderBy + " DESC" // Sort order.
+            );
+            count = cursor.getCount();
+            Log.d("Amount-pic", String.valueOf(count));
+            int column_index = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+
+            Calendar myCal = Calendar.getInstance();
+            SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
+            while (cursor.moveToNext()) {
+                Log.d("gallerium", "reading");
+                absolutePath = cursor.getString(column_index);
+                int type = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
+                int t = cursor.getInt(type);
+                int dateIndex = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
+
+                dateTaken = cursor.getLong(dateIndex);
+
+                String dateText = formatter.format(dateTaken*1000);
+                Log.d("Date in long", String.valueOf(dateTaken));
+                Log.d("Date string", dateText);
+                Media media = new Media();
+                media.setPath(absolutePath);
+                media.setThumbnail(absolutePath);
+                media.setDateTaken(dateText);
+                media.setType(t);
+                if (media.getPath().equals("")) {
+                    continue;
+                }
+                if (addNewestMediaOnly) {
+                    boolean iscontained = false; // in the "all media database"
+                    for (Media i : allMedia) {
+                        if (i.getPath().equals(media.getPath())) {
+                            iscontained = true;
+                            break;
+                        }
+                    }
+                    if (iscontained) {
+                        addNewestMediaOnly = false;
+                        allMediaPresent = true;
+                        cursor.close();
+                        return allMedia;
+                    } else {
+                        if (allMedia.size() > 1000) {
+                            addNewestMediaOnly = false;
+                            allMediaPresent = true;
+                            cursor.close();
+                            return allMedia;
+                        }
+                        allMedia.add(0, media);
+                    }
+                } else {
+                    listMedia.add(media);
+                }
+                if (listMedia.size() >= 100) {
+                    break;
+                }
+
+            }
+            cursor.close(); // Android Studio suggestion
+            allMedia = listMedia;
+            addNewestMediaOnly = false;
+            allMediaPresent = true;
+            return listMedia;
+        } else {
             return allMedia;
         }
     }

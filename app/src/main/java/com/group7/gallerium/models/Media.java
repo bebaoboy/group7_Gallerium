@@ -1,11 +1,11 @@
 package com.group7.gallerium.models;
 
 public class Media {
-    private String type;
     private String path;
+
+    private int type; // 1 is image 3 is video
     private String thumbnail;
     private String dateTaken;
-    private String placeTaken;
 
     public Media() {
 
@@ -30,7 +30,6 @@ public class Media {
     public Media(String path, String thumb, String type) {
         this.path = path;
         this.thumbnail = thumb;
-        this.type = type;
     }
 
     public String getDateTaken() {
@@ -41,10 +40,7 @@ public class Media {
         this.dateTaken = dateTaken;
     }
 
-    public void setType(String type) {
-        this.type = type;
-    }
-    public String getType(){
-        return this.type;
+    public void setType(int t) {
+        this.type = t;
     }
 }
