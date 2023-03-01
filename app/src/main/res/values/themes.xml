@@ -20,10 +20,16 @@
         <item name="android:subtitleTextAppearance">@style/ToolbarFont</item>
     </style>
 
-    <style name="ToolbarTitle">
+    <style name="ToolbarTitleCommon">
         <item name="android:textColor">@color/title_light</item>
         <item name="android:fontFamily">@font/primary_font_extrabold</item>
         <item name="android:textSize">30sp</item>
+    </style>
+
+    <style name="ToolbarTitleMediaView">
+        <item name="android:textColor">@color/title_light</item>
+        <item name="android:fontFamily">@font/primary_font</item>
+        <item name="android:textSize">10sp</item>
     </style>
 
     <style name="ToolbarFont">

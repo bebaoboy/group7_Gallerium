@@ -1,5 +1,6 @@
 package com.group7.gallerium.activities;
 
+import android.app.Activity;
 import android.os.Bundle;
 
 import androidx.appcompat.app.AppCompatActivity;
@@ -8,7 +9,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
-import com.group7.gallerium.fragments.PhotoFragment;
 import com.karan.churi.PermissionManager.PermissionManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -29,7 +29,10 @@ public class MainActivity extends AppCompatActivity {
         initializeViewPager();
 
         permission=new PermissionManager() {
-
+            @Override
+            public void ifCancelledAndCanRequest(Activity activity) {
+                super.ifCancelledAndCanRequest(activity);
+            }
         };
         permission.checkAndRequestPermissions(this);
 
@@ -81,6 +84,4 @@ public class MainActivity extends AppCompatActivity {
         super.onRequestPermissionsResult(requestCode, permissions, grantResults);
         permission.checkResult(requestCode, permissions, grantResults);
     }
-
-
 }

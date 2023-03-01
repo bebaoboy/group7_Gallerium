@@ -68,6 +68,11 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+
+    @Override
     public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
         Media media = listMedia.get(position);
         if (media == null) {
@@ -75,7 +80,6 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
 
         if (holder instanceof PhotoViewHolder) {
-            Log.d("photo-type", "1");
             PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
             Glide.with(context).load("file://"+ media.getThumbnail())
                     .into(photoViewHolder.image);
@@ -87,7 +91,6 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
             }));
 
         } else {
-            Log.d("video-type", "2");
             VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
             Glide.with(context).load("file://"+ media.getThumbnail())
                     .into(videoViewHolder.videoThumbnail);
@@ -121,7 +124,7 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
 
-    class VideoViewHolder extends RecyclerView.ViewHolder  {
+    static class VideoViewHolder extends RecyclerView.ViewHolder  {
         private ImageView videoThumbnail;
         private ImageView fav_icon;
 
@@ -131,13 +134,17 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         }
     }
 
-    class PhotoViewHolder extends RecyclerView.ViewHolder  {
+    static class PhotoViewHolder extends RecyclerView.ViewHolder  {
         private ImageView image;
         private ImageView fav_icon;
         private PhotoViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
+        }
+
+        public void bind(int position){
+
         }
     }
 
@@ -152,12 +159,10 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         @Override
         protected Void doInBackground(Void... voids) {
             listPath = new ArrayList<>();
-            listThumb = new ArrayList<>();
             for(int i = 0;i<listCategory.size();i++) {
                 List<Media> listCat = listCategory.get(i).getList();
                 for (int j = 0; j < listCat.size(); j++) {
                     listPath.add(listCat.get(j).getPath());
-                    listThumb.add(listCat.get(j).getThumbnail());
                 }
             }
             return null;

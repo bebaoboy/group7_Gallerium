@@ -1,17 +1,13 @@
 package com.group7.gallerium.fragments;
 
 import android.content.Context;
-import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
-import androidx.loader.app.LoaderManager;
-import androidx.loader.content.Loader;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
@@ -21,7 +17,6 @@ import android.view.ViewGroup;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.CategoryAdapter;
-import com.group7.gallerium.adapters.MediaAdapter;
 import com.group7.gallerium.models.Category;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -31,14 +26,13 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
-import java.util.logging.Logger;
 
 /**
  * A simple {@link Fragment} subclass.
- * Use the {@link PhotoFragment#} factory method to
+ * Use the {@link MediaFragment#} factory method to
  * create an instance of this fragment.
  */
-public class PhotoFragment extends Fragment{
+public class MediaFragment extends Fragment{
     private View view;
     private Toolbar toolbar;
     private Context context;
@@ -47,7 +41,7 @@ public class PhotoFragment extends Fragment{
 
     private CategoryAdapter adapter;
     private RecyclerView recyclerView;
-    public PhotoFragment(Context context) {
+    public MediaFragment(Context context) {
         this.context = context;
     }
 
@@ -71,10 +65,11 @@ public class PhotoFragment extends Fragment{
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);
+        recyclerView.setItemViewCacheSize(20);
     }
+
     void toolbarSetting(){
         toolbar = view.findViewById(R.id.toolbar_photo);
-
         toolbar.inflateMenu(R.menu.menu_photo);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);

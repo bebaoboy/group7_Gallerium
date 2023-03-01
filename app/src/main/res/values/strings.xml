@@ -4,7 +4,7 @@
     <string name="album">Album</string>
     <string name="secured">Riêng tư</string>
     <string name="fav">Yêu thích</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="appbar">Thanh công cụ</string>
     <string name="video">video</string>
@@ -13,4 +13,5 @@
     <string name="edit">Chỉnh sửa</string>
     <string name="delete">Xóa</string>
     <string name="more">Xem thêm</string>
+    <string name="camera">camera</string>
 </resources>

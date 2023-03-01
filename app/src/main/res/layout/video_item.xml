@@ -4,11 +4,11 @@
         xmlns:tools="http://schemas.android.com/tools"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-    app:cardCornerRadius="6dp"
-    app:cardElevation="2dp"
+        app:cardCornerRadius="6dp"
+        app:cardElevation="2dp"
 
-    app:strokeWidth="1dp"
-    app:strokeColor="@color/black">
+        app:strokeWidth="1dp"
+        app:strokeColor="@color/black">
 
         <ImageView
             android:id="@+id/video_item"
@@ -24,12 +24,13 @@
             android:layout_width="40dp"
             android:layout_height="40dp"
             android:layout_gravity="center"
-            android:src="@drawable/ic_play"/>
+            android:src="@drawable/ic_play"
+            android:contentDescription="play icon" />
         <ImageView
             android:id="@+id/fav_icon"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:layout_gravity="bottom|right"
+            android:layout_gravity="bottom|end"
             android:src="@drawable/ic_fav_solid"
             android:visibility="invisible"
             app:tint="@color/red" />

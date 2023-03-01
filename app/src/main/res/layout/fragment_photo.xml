@@ -4,9 +4,8 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".fragments.PhotoFragment">
+    tools:context=".fragments.MediaFragment">
 
-    <!-- TODO: Update blank fragment layout -->
     <include
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_photo"

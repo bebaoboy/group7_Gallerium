@@ -7,6 +7,10 @@ public class Media {
     private String thumbnail;
     private String dateTaken;
 
+
+
+    private String title;
+
     public Media() {
 
     }
@@ -46,5 +50,12 @@ public class Media {
 
     public int getType() {
         return this.type;
+    }
+    public String getTitle() {
+        return title;
+    }
+
+    public void setTitle(String title) {
+        this.title = title;
     }
 }
