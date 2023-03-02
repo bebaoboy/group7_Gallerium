@@ -15,6 +15,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Toast;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.CategoryAdapter;
@@ -53,6 +54,13 @@ public class MediaFragment extends Fragment{
     }
 
     @Override
+    public void onResume() {
+        super.onResume();
+        //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
+        recyclerViewSetting();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
@@ -85,6 +93,7 @@ public class MediaFragment extends Fragment{
     }
 
     ArrayList<String> getListMedia(){
+        AccessMediaFile.refreshAllMedia();
         List<Media> mediaList = AccessMediaFile.getAllMediaFromGallery(getContext());
         Log.d("List-Media", mediaList.toString());
         long hash = 0;
@@ -124,6 +133,7 @@ public class MediaFragment extends Fragment{
 
     @NonNull
     private List<Category> getListCategory() {
+        AccessMediaFile.refreshAllMedia();
         List<Category> categoryList = new ArrayList<>();
         int categoryCount = 0;
         listMedia = (ArrayList<Media>) AccessMediaFile.getAllMediaFromGallery(getContext());

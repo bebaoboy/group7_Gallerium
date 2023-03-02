@@ -1,14 +1,19 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
+import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
+import com.group7.gallerium.fragments.MediaFragment;
 import com.karan.churi.PermissionManager.PermissionManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -50,6 +55,29 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+        if(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            Log.d("orientation-changing", "landscape");
+            if(view_pager.getCurrentItem() == 0){
+                var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(6);
+            }
+
+        }else {
+            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            Log.d("orientation-changing", "portrait");
+            if(view_pager.getCurrentItem() == 0){
+                var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(3);
+            }
+        }
     }
 
     private void initializeViewPager() {

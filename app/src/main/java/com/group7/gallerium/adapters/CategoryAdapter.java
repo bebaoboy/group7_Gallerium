@@ -26,7 +26,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     public CategoryAdapter(Context context, int count) {
         this.context = context;
-        spanCount = count;
+        this.spanCount = count;
     }
 
     public void setData(List<Category> listCategory){
