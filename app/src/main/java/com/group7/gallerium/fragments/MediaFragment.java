@@ -1,6 +1,7 @@
 package com.group7.gallerium.fragments;
 
 import android.content.Context;
+import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.os.Bundle;
@@ -41,6 +42,7 @@ public class MediaFragment extends Fragment{
 
     private CategoryAdapter adapter;
     private RecyclerView recyclerView;
+    private int spanCount = 3;
     public MediaFragment() {
 
     }
@@ -61,8 +63,14 @@ public class MediaFragment extends Fragment{
         return view;
     }
 
+    public void changeOrientation(int spanCount) {
+        adapter = new CategoryAdapter(getContext(), spanCount);
+        adapter.setData(getListCategory());
+        recyclerView.setAdapter(adapter);
+    }
+
     void recyclerViewSetting(){
-        adapter = new CategoryAdapter(getContext());
+        adapter = new CategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);

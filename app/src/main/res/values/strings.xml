@@ -1,7 +1,7 @@
 <resources>
     <string name="app_name">Gallerium</string>
     <string name="photo">Ảnh</string>
-    <string name="album">Album</string>
+    <string name="album">Album ảnh</string>
     <string name="secured">Riêng tư</string>
     <string name="fav">Yêu thích</string>
 
@@ -14,8 +14,13 @@
     <string name="delete">Xóa</string>
     <string name="more">Xem thêm</string>
     <string name="camera">Camera</string>
-    <string name="multiselect">Chọn nhiều ảnh</string>
+    <string name="multiselect">Chọn nhiều mục</string>
     <string name="set_display_type">Đổi hiển thị</string>
     <string name="sort">Sắp xếp</string>
     <string name="setting">Cài đặt</string>
+    <string name="add_album">Thêm album</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="change_pass">Đổi mật khẩu</string>
+    <string name="remove_pass">Xóa riêng tư</string>
+    <string name="forget_pass">Quên mật khẩu</string>
 </resources>

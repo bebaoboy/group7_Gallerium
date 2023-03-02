@@ -20,11 +20,13 @@ import java.util.ArrayList;
 import java.util.List;
 
 public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>{
+    private int spanCount = 3;
     private Context context;
     private List<Category> listCategory;
 
-    public CategoryAdapter(Context context) {
+    public CategoryAdapter(Context context, int count) {
         this.context = context;
+        spanCount = count;
     }
 
     public void setData(List<Category> listCategory){
@@ -47,7 +49,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
         holder.tvNameCategory.setText(category.getNameCategory());
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, 3);
+        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
 
         MediaAdapter mediaAdapter = new MediaAdapter(context.getApplicationContext());
