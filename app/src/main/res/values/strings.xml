@@ -13,5 +13,9 @@
     <string name="edit">Chỉnh sửa</string>
     <string name="delete">Xóa</string>
     <string name="more">Xem thêm</string>
-    <string name="camera">camera</string>
+    <string name="camera">Camera</string>
+    <string name="multiselect">Chọn nhiều ảnh</string>
+    <string name="set_display_type">Đổi hiển thị</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="setting">Cài đặt</string>
 </resources>

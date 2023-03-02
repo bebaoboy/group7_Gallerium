@@ -41,8 +41,8 @@ public class MediaFragment extends Fragment{
 
     private CategoryAdapter adapter;
     private RecyclerView recyclerView;
-    public MediaFragment(Context context) {
-        this.context = context;
+    public MediaFragment() {
+
     }
 
     @Override
@@ -55,9 +55,10 @@ public class MediaFragment extends Fragment{
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_photo, container, false);
-       toolbarSetting();
-       recyclerViewSetting();
-       return view;
+        context = getContext();
+        toolbarSetting();
+        recyclerViewSetting();
+        return view;
     }
 
     void recyclerViewSetting(){

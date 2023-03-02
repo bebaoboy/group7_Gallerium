@@ -88,7 +88,6 @@ public class ViewPhoto extends AppCompatActivity {
 
     private void toolbarSetting() {
         // Toolbar events
-        // TODO add menu
         toolbar.inflateMenu(R.menu.menu_photo);
         toolbar.setTitle("hello");
         toolbar.setTitleTextAppearance(getApplicationContext(), R.style.ToolbarTitleMediaView);

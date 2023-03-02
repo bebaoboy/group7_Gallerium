@@ -16,11 +16,26 @@
         android:title=""
         app:showAsAction="ifRoom|collapseActionView"
         android:tooltipText="@string/share"/>
+
     <item
-        android:id="@+id/more_tb_item"
+        android:id="@+id/multiselect_menu_item"
         android:enabled="true"
-        android:icon="@drawable/ic_more_vertical"
-        android:title=""
-        android:tooltipText="@string/delete"/>
+        android:title="@string/multiselect"
+        android:tooltipText=""/>
+    <item
+        android:id="@+id/set_wallapaper_menu_item"
+        android:enabled="true"
+        android:title="@string/set_display_type"
+        android:tooltipText=""/>
+    <item
+        android:id="@+id/sort_menu_item"
+        android:enabled="true"
+        android:title="@string/sort"
+        android:tooltipText=""/>
+    <item
+        android:id="@+id/setting_menu_item"
+        android:enabled="true"
+        android:title="@string/setting"
+        android:tooltipText=""/>
 
 </menu>

@@ -19,11 +19,10 @@
         android:id="@+id/photo_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-         android:layout_marginTop="60dp"
-         android:layout_marginStart="5dp"
-         android:layout_marginEnd="5dp"
-         android:layout_marginBottom="50dp"
-        />
+        android:layout_marginStart="5dp"
+        android:layout_marginTop="60dp"
+        android:layout_marginEnd="5dp"
+        android:layout_marginBottom="20dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
 </FrameLayout>

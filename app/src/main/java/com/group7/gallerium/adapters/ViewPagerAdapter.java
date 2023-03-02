@@ -34,7 +34,7 @@ public class ViewPagerAdapter extends FragmentStateAdapter  {
     public Fragment createFragment(int position) {
         switch (position) {
             case 0:
-                return new MediaFragment(context);
+                return new MediaFragment();
             case 1:
                 return new AlbumFragment();
             case 2:
