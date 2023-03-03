@@ -2,6 +2,7 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
@@ -14,6 +15,8 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewPhoto;
@@ -45,17 +48,16 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     public void setListImages(ArrayList<Media> media){
         this.listMedia = media;
 
-        for (Media media1: media
-             ) {
-            Log.d("Thumbnail-d", media1.getThumbnail());
-        }
+//        for (Media media1: media
+//             ) {
+//            Log.d("Thumbnail-d", media1.getThumbnail());
+//        }
         notifyDataSetChanged();
     }
 
     public  void setListCategory(ArrayList<Category> categories){
         this.listCategory = categories;
     }
-
 
     @NonNull
     @Override
@@ -83,6 +85,8 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         if (holder instanceof PhotoViewHolder) {
             PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
             Glide.with(context).load("file://"+ media.getThumbnail())
+                    .dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(photoViewHolder.image);
             photoViewHolder.image.setOnClickListener((view -> {
                 intent = new Intent(context, ViewPhoto.class);
@@ -93,7 +97,10 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
 
         } else {
             VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
+
             Glide.with(context).load("file://"+ media.getThumbnail())
+                    .dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(videoViewHolder.videoThumbnail);
             videoViewHolder.videoThumbnail.setOnClickListener((view -> {
                 intent = new Intent(context, WatchVideo.class);

@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".activities.MainActivity"
-    android:configChanges="orientation|keyboardHidden|screenSize">
+    android:configChanges="orientation|screenSize">
 
     <FrameLayout
         android:id="@+id/frame_layout"

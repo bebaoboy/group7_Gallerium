@@ -24,13 +24,28 @@ import java.util.Objects;
 public class AccessMediaFile {
 
     public static List<Media> allMedia;
-    public static HashMap<String, String> paths;
+    public static HashMap<String, Boolean> paths = new HashMap<>();
 
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
     // is used when an user deletes or takes a new media file from within
     // the app. Since the app is the only one open, we just have to check which media file has been deleted
     // or which media file has been created
+
+    static String[] columns = {MediaStore.Files.FileColumns._ID,
+            MediaStore.Files.FileColumns.DATA,
+            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.MEDIA_TYPE,
+            MediaStore.Files.FileColumns.MIME_TYPE,
+            MediaStore.Files.FileColumns.TITLE,
+    };
+    static String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+            + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+            + " OR "
+            + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+            + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+    static final String orderBy = MediaStore.Files.FileColumns.DATE_ADDED;
+    static Uri queryUri = MediaStore.Files.getContentUri("external");
 
     public static List<Media> getAllMedia() {
         return allMedia;
@@ -51,6 +66,7 @@ public class AccessMediaFile {
     }
 
     public static List<Media> getAllMediaFromGallery(Context context) {
+
         if (!allMediaPresent) {
             int typeColumn, titleColumn, dateColumn, pathColumn, idColumn;
             int count, type;
@@ -58,20 +74,7 @@ public class AccessMediaFile {
             long dateTaken;
             List<Media> listMedia = new ArrayList<>();
 
-            String[] columns = {MediaStore.Files.FileColumns._ID,
-                    MediaStore.Files.FileColumns.DATA,
-                    MediaStore.Files.FileColumns.DATE_ADDED,
-                    MediaStore.Files.FileColumns.MEDIA_TYPE,
-                    MediaStore.Files.FileColumns.MIME_TYPE,
-                    MediaStore.Files.FileColumns.TITLE,
-            };
-            String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                    + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
-                    + " OR "
-                    + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
-                    + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-            final String orderBy = MediaStore.Files.FileColumns.DATE_ADDED;
-            Uri queryUri = MediaStore.Files.getContentUri("external");
+
             Cursor cursor = context.getApplicationContext().getContentResolver().query(queryUri,
                     columns,
                     selection,
@@ -88,14 +91,20 @@ public class AccessMediaFile {
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
             while (cursor.moveToNext()) {
-                Log.d("gallerium", "reading");
-
                 id = cursor.getString(idColumn);
                 absolutePath = cursor.getString(pathColumn);
+                if (paths.containsKey(absolutePath)) {
+                    addNewestMediaOnly = false;
+                    allMediaPresent = true;
+                    cursor.close();
+                    return allMedia;
+                }
+
                 type = cursor.getInt(typeColumn);
                 dateTaken = cursor.getLong(dateColumn);
                 dateText = formatter.format(dateTaken*1000);
                 title = cursor.getString(titleColumn);
+                Log.d("gallerium", "reading");
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -108,13 +117,13 @@ public class AccessMediaFile {
                     continue;
                 }
                 if (addNewestMediaOnly) {
-                    boolean iscontained = false; // in the "all media database"
-                    for(Media m: allMedia){
-                        if(m.getPath().equals(media.getPath())){
-                            iscontained = true;
-                            break;
-                        }
-                    }
+                    boolean iscontained = paths.containsKey(media.getPath()); // in the "all media database"
+//                    for(Media m: allMedia){
+//                        if(m.getPath().equals(media.getPath())){
+//                            iscontained = true;
+//                            break;
+//                        }
+//                    }
                     if (iscontained) {
                         addNewestMediaOnly = false;
                         allMediaPresent = true;
@@ -128,13 +137,15 @@ public class AccessMediaFile {
                             return allMedia;
                         }
                         allMedia.add(0, media);
+                        paths.put(media.getPath(), true);
                     }
                 } else {
                     listMedia.add(media);
+                    paths.put(media.getPath(), true);
                 }
-                if (listMedia.size() >= 2000) {
-                    break;
-                }
+//                if (listMedia.size() >= 2000) {
+//                    break;
+//                }
 
             }
             cursor.close(); // Android Studio suggestion

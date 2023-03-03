@@ -56,8 +56,8 @@ public class MediaFragment extends Fragment{
     @Override
     public void onResume() {
         super.onResume();
-        //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
-        recyclerViewSetting();
+        Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
+        adapter.setData(getListCategory());
     }
 
     @Override
@@ -71,9 +71,15 @@ public class MediaFragment extends Fragment{
         return view;
     }
 
+    @Override
+    public void onConfigurationChanged(@NonNull Configuration newConfig) {
+        super.onConfigurationChanged(newConfig);
+    }
+
     public void changeOrientation(int spanCount) {
         adapter = new CategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
+        adapter.setHasStableIds(true);
         recyclerView.setAdapter(adapter);
     }
 

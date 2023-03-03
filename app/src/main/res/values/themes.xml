@@ -27,13 +27,13 @@
     <style name="ToolbarTitleCommon">
         <item name="android:textColor">@color/title_light</item>
         <item name="android:fontFamily">@font/primary_font_extrabold</item>
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">25sp</item>
     </style>
 
     <style name="ToolbarTitle">
         <item name="android:textColor">@color/title_dark</item>
         <item name="android:fontFamily">@font/primary_font_extrabold</item>
-        <item name="android:textSize">30sp</item>
+        <item name="android:textSize">25sp</item>
     </style>
 
     <style name="ToolbarTitleMediaView">
