@@ -2,10 +2,7 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.drawable.Drawable;
-import android.net.Uri;
 import android.os.AsyncTask;
-import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,37 +12,28 @@ import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
-import com.group7.gallerium.activities.ViewPhoto;
-import com.group7.gallerium.activities.WatchVideo;
+import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.Category;
 import com.group7.gallerium.models.Media;
-import com.squareup.picasso.Picasso;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.List;
 
-public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> {
+public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHolder> {
 
-    public static final int PHOTOVIEW = 0, VIDEOVIEW = 1;
     private List<Media> listMedia;
     private Context context;
     private List<Category> listCategory;
     private Intent intent;
-    private ArrayList<String> listPath ;
-    private ArrayList<String> listThumb ;
+    private ArrayList<String> listPath;
 
-    public MediaAdapter(){}
-
-    public MediaAdapter(Context context){
+    public MediaAdapter(Context context) {
         this.context = context;
     }
 
-    public void setListImages(ArrayList<Media> media){
+    public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
 
 //        for (Media media1: media
@@ -55,19 +43,16 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         notifyDataSetChanged();
     }
 
-    public  void setListCategory(ArrayList<Category> categories){
+    public void setListCategory(ArrayList<Category> categories) {
         this.listCategory = categories;
     }
 
     @NonNull
     @Override
-    public RecyclerView.ViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        if(viewType == PHOTOVIEW){
-            return new PhotoViewHolder(layoutInflater.inflate(R.layout.photo_item, parent, false));
-        }else{
-            return new VideoViewHolder(layoutInflater.inflate(R.layout.video_item, parent, false));
-        }
+
+        return new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
     }
 
     @Override
@@ -76,40 +61,24 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
     }
 
     @Override
-    public void onBindViewHolder(@NonNull RecyclerView.ViewHolder holder, int position) {
+    public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         Media media = listMedia.get(position);
         if (media == null) {
             return;
         }
+        Glide.with(context).load("file://" + media.getThumbnail())
+                .dontAnimate()
+                .diskCacheStrategy(DiskCacheStrategy.ALL)
+                .into(holder.image);
 
-        if (holder instanceof PhotoViewHolder) {
-            PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
-            Glide.with(context).load("file://"+ media.getThumbnail())
-                    .dontAnimate()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(photoViewHolder.image);
-            photoViewHolder.image.setOnClickListener((view -> {
-                intent = new Intent(context, ViewPhoto.class);
-                MyAsyncTask myAsyncTask = new MyAsyncTask();
-                myAsyncTask.setPos(position);
-                myAsyncTask.execute();
-            }));
+        if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
 
-        } else {
-            VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
-
-            Glide.with(context).load("file://"+ media.getThumbnail())
-                    .dontAnimate()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(videoViewHolder.videoThumbnail);
-            videoViewHolder.videoThumbnail.setOnClickListener((view -> {
-                intent = new Intent(context, WatchVideo.class);
-                MyAsyncTask myAsyncTask = new MyAsyncTask();
-                myAsyncTask.setPos(position);
-                myAsyncTask.execute();
-            }));
-        }
-
+        holder.image.setOnClickListener((view -> {
+            intent = new Intent(context, ViewMedia.class);
+            navAsyncTask navAsyncTask = new navAsyncTask();
+            navAsyncTask.setPos(position);
+            navAsyncTask.execute();
+        }));
 
     }
 
@@ -121,43 +90,20 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         return 0;
     }
 
-    @Override
-    public int getItemViewType(int position) {
-        if(listMedia.get(position).getType() == 1){
-            return PHOTOVIEW;
-        }else if(listMedia.get(position).getType() == 3){
-            return VIDEOVIEW;
-        }
-        return -1;
-    }
-
-
-    static class VideoViewHolder extends RecyclerView.ViewHolder  {
-        private ImageView videoThumbnail;
-        private ImageView fav_icon;
-
-        private VideoViewHolder(View itemView) {
-            super(itemView);
-            videoThumbnail = itemView.findViewById(R.id.video_item);
-        }
-    }
-
-    static class PhotoViewHolder extends RecyclerView.ViewHolder  {
-        private ImageView image;
-        private ImageView fav_icon;
-        private PhotoViewHolder(View itemView) {
+    static class MediaViewHolder extends RecyclerView.ViewHolder  {
+        ImageView image;
+        ImageView fav_icon;
+        ImageView play_icon;
+        MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
-        }
-
-        public void bind(int position){
-
+            play_icon = itemView.findViewById(R.id.play_video_button_child);
         }
     }
 
 
-    public class MyAsyncTask extends AsyncTask<Void, Integer, Void> {
+    class navAsyncTask extends AsyncTask<Void, Integer, Void> {
         public int pos;
 
         public void setPos(int pos) {
@@ -180,7 +126,6 @@ public class MediaAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolder> 
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             intent.putStringArrayListExtra("data_list_path", listPath);
-            intent.putStringArrayListExtra("data_list_thumb", listThumb);
             intent.putExtra("pos", listPath.indexOf(listMedia.get(pos).getPath()));
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);

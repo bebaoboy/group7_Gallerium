@@ -21,7 +21,7 @@
         android:maxSdkVersion="32" />
 
     <uses-permission android:name="android.permission.WRITE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="29" />
+        android:maxSdkVersion="29" tools:replace="android:maxSdkVersion"/>
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SET_WALLPAPER"  />
     <uses-permission
@@ -40,12 +40,10 @@
         android:supportsRtl="true"
         android:theme="@style/Theme.Group7_PhotoViewer"
         tools:targetApi="33"
+        android:largeHeap="true"
         >
         <activity
-            android:name=".activities.WatchVideo"
-            android:exported="false" />
-        <activity
-            android:name=".activities.ViewPhoto"
+            android:name=".activities.ViewMedia"
             android:exported="false" />
         <activity
             android:name=".activities.MainActivity"
@@ -57,6 +55,48 @@
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
         </activity>
+
+        <activity
+
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity"
+
+            android:screenOrientation="fullSensor"
+
+            android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+        <activity
+
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorStickerActivity"
+
+            android:screenOrientation="fullSensor"
+
+            android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+        <activity
+
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorTextActivity"
+
+            android:screenOrientation="fullSensor"
+
+            android:theme="@android:style/Theme.Holo.NoActionBar"
+
+            android:windowSoftInputMode="adjustPan" />
+
+        <activity
+
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorCropActivity"
+
+            android:screenOrientation="fullSensor"
+
+            android:theme="@android:style/Theme.Holo.NoActionBar" />
+
+        <activity
+
+            android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorDrawActivity"
+
+            android:screenOrientation="fullSensor"
+
+            android:theme="@android:style/Theme.Holo.NoActionBar" />
     </application>
 
 </manifest>
