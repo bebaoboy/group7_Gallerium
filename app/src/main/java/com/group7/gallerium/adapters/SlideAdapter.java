@@ -13,6 +13,7 @@ import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
 import com.bumptech.glide.Glide;
+import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
@@ -21,7 +22,7 @@ import java.util.ArrayList;
 public class SlideAdapter extends PagerAdapter {
     ArrayList<String> paths;
     Context context;
-    private ImageView img;
+    private PhotoView img;
     private ImageView playButton;
     private VideoView videoThumbnail;
     private boolean flag = false;

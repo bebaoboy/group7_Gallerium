@@ -47,6 +47,7 @@ dependencies {
 
     annotationProcessor 'androidx.annotation:annotation:1.6.0'
     annotationProcessor 'com.github.bumptech.glide:compiler:4.15.0'
+    implementation 'com.github.chrisbanes:PhotoView:2.3.0'
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation(name:'ds-photo-editor-sdk-v10', ext:'aar')
