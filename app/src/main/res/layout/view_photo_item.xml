@@ -7,8 +7,8 @@
 
     <com.github.chrisbanes.photoview.PhotoView
         android:id="@+id/imageView"
-        android:layout_width="407dp"
-        android:layout_height="411dp"
+        android:layout_width="412dp"
+        android:layout_height="match_parent"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"

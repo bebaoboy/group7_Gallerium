@@ -23,6 +23,7 @@ public class SlideAdapter extends PagerAdapter {
     ArrayList<String> paths;
     Context context;
     private PhotoView img;
+    private ImageView img2;
     private ImageView playButton;
     private VideoView videoThumbnail;
     private boolean flag = false;
@@ -55,6 +56,7 @@ public class SlideAdapter extends PagerAdapter {
         if (AccessMediaFile.getAllMedia().get(position).getType() == 1) {
             View view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
             img = view.findViewById(R.id.imageView);
+            img.setMaximumScale(10);
             Glide.with(context).load(path).into(img);
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);
@@ -62,8 +64,8 @@ public class SlideAdapter extends PagerAdapter {
 
         } else {
             View view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
-            img =  view.findViewById(R.id.preview_thumbnail);
-            Glide.with(context).load(path).into(img);
+            img2 =  view.findViewById(R.id.preview_thumbnail);
+            Glide.with(context).load(path).into(img2);
 
             videoThumbnail = view.findViewById(R.id.videoView);
             playButton = view.findViewById(R.id.play_video_button);
