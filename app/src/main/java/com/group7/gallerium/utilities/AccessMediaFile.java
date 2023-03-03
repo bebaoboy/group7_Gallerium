@@ -36,6 +36,8 @@ public class AccessMediaFile {
     static String[] columns = {MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DATA,
             MediaStore.Files.FileColumns.DATE_MODIFIED,
+            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.DATE_TAKEN,
             MediaStore.Files.FileColumns.MEDIA_TYPE,
             MediaStore.Files.FileColumns.MIME_TYPE,
             MediaStore.Files.FileColumns.TITLE,
@@ -89,11 +91,15 @@ public class AccessMediaFile {
             idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
             pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
             typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
-            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
-            }else{
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 multiplier = 1;
             }
             dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
+            int dt = 0;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                dt = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN);
+            }
+            var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
             while (cursor.moveToNext()) {
@@ -110,7 +116,8 @@ public class AccessMediaFile {
                 dateTaken = cursor.getLong(dateColumn);
                 dateText = formatter.format(dateTaken*multiplier);
                 title = cursor.getString(titleColumn);
-                Log.d("gallerium", "reading " + dateText + ", real date: " + dateTaken);
+                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
+                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
 
                 Media media = new Media();
                 media.setPath(absolutePath);

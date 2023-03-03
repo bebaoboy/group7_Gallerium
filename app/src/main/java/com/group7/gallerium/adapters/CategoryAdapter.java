@@ -47,7 +47,15 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         if (category == null)
             return;
 
-        holder.tvNameCategory.setText(category.getNameCategory());
+        if(category.getNameCategory().isEmpty()) {
+            holder.tvNameCategory.setVisibility(View.GONE);
+            holder.horizontalLine.setVisibility(View.GONE);
+        }
+        else {
+            holder.tvNameCategory.setVisibility(View.VISIBLE);
+            holder.horizontalLine.setVisibility(View.VISIBLE);
+            holder.tvNameCategory.setText(category.getNameCategory());
+        }
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
@@ -56,6 +64,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         mediaAdapter.setListImages((ArrayList<Media>) category.getList());
         mediaAdapter.setListCategory((ArrayList<Category>) listCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
+        holder.rcvPictures.setItemViewCacheSize(24);
     }
 
     @Override
@@ -69,12 +78,14 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
     public class CategoryViewHolder extends RecyclerView.ViewHolder{
         private TextView tvNameCategory;
         private RecyclerView rcvPictures;
+        private View horizontalLine;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);
 
             tvNameCategory = itemView.findViewById(R.id.txtDate);
             rcvPictures = itemView.findViewById(R.id.photos_recview);
+            horizontalLine = itemView.findViewById(R.id.category_horizontal_line);
         }
     }
 }

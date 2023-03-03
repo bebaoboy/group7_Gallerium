@@ -57,15 +57,6 @@ public class MediaFragment extends Fragment{
     public void onResume() {
         super.onResume();
         Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
-        adapter.setData(getListCategory());
-        recyclerView.setAdapter(adapter);
-    }
-
-    @Override
-    public void onStart() {
-        super.onStart();
-        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
-
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             changeOrientation(6);
         }
@@ -76,13 +67,22 @@ public class MediaFragment extends Fragment{
     }
 
     @Override
+    public void onStart() {
+        super.onStart();
+        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+    }
+
+    @Override
     public View onCreateView(LayoutInflater inflater, ViewGroup container,
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_photo, container, false);
         context = getContext();
         toolbarSetting();
-        recyclerViewSetting();
+        //recyclerViewSetting();
+        adapter = new CategoryAdapter(getContext(), spanCount);
+        recyclerView = view.findViewById(R.id.photo_recyclerview);
+        recyclerView.setItemViewCacheSize(4);
         return view;
     }
 
@@ -166,8 +166,17 @@ public class MediaFragment extends Fragment{
                     categoryList.add(new Category(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                     categoryCount++;
                 }
-                categoryList.get(categoryCount).addMediaToList(listMedia.get(i));
+                if(categoryList.get(categoryCount).getList().size() < 60)
+                {
+                    categoryList.get(categoryCount).addMediaToList(listMedia.get(i));
+                } else {
+                    categoryList.add(new Category("", new ArrayList<>()));
+                    categoryCount++;
+                }
             }
+            categoryList.forEach(x -> {
+                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
+            });
             return categoryList;
         } catch (Exception e) {
             return null;
