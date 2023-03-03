@@ -58,6 +58,21 @@ public class MediaFragment extends Fragment{
         super.onResume();
         Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         adapter.setData(getListCategory());
+        recyclerView.setAdapter(adapter);
+    }
+
+    @Override
+    public void onStart() {
+        super.onStart();
+        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+
+        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            changeOrientation(6);
+        }
+        else {
+            adapter.setData(getListCategory());
+            recyclerView.setAdapter(adapter);
+        }
     }
 
     @Override
@@ -79,7 +94,6 @@ public class MediaFragment extends Fragment{
     public void changeOrientation(int spanCount) {
         adapter = new CategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
-        adapter.setHasStableIds(true);
         recyclerView.setAdapter(adapter);
     }
 

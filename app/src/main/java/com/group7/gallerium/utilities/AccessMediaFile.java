@@ -5,6 +5,7 @@ import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
@@ -34,7 +35,7 @@ public class AccessMediaFile {
 
     static String[] columns = {MediaStore.Files.FileColumns._ID,
             MediaStore.Files.FileColumns.DATA,
-            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.DATE_MODIFIED,
             MediaStore.Files.FileColumns.MEDIA_TYPE,
             MediaStore.Files.FileColumns.MIME_TYPE,
             MediaStore.Files.FileColumns.TITLE,
@@ -44,7 +45,7 @@ public class AccessMediaFile {
             + " OR "
             + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
             + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
-    static final String orderBy = MediaStore.Files.FileColumns.DATE_ADDED;
+    static final String orderBy = MediaStore.Files.FileColumns.DATE_MODIFIED;
     static Uri queryUri = MediaStore.Files.getContentUri("external");
 
     public static List<Media> getAllMedia() {
@@ -72,6 +73,7 @@ public class AccessMediaFile {
             int count, type;
             String absolutePath, id, dateText, title;
             long dateTaken;
+            int multiplier = 1000;
             List<Media> listMedia = new ArrayList<>();
 
 
@@ -87,7 +89,11 @@ public class AccessMediaFile {
             idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
             pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
             typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
-            dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
+            if(Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q){
+            }else{
+                multiplier = 1;
+            }
+            dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
             SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
             while (cursor.moveToNext()) {
@@ -102,9 +108,9 @@ public class AccessMediaFile {
 
                 type = cursor.getInt(typeColumn);
                 dateTaken = cursor.getLong(dateColumn);
-                dateText = formatter.format(dateTaken*1000);
+                dateText = formatter.format(dateTaken*multiplier);
                 title = cursor.getString(titleColumn);
-                Log.d("gallerium", "reading");
+                Log.d("gallerium", "reading " + dateText + ", real date: " + dateTaken);
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -138,10 +144,12 @@ public class AccessMediaFile {
                         }
                         allMedia.add(0, media);
                         paths.put(media.getPath(), true);
+                        Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                     }
                 } else {
                     listMedia.add(media);
-                    paths.put(media.getPath(), true);
+//                    paths.put(media.getPath(), true);
+//                    Log.d("gallerium", "adding new pic" + dateTaken);
                 }
 //                if (listMedia.size() >= 2000) {
 //                    break;
