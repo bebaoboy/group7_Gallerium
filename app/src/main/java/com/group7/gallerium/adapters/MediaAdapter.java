@@ -3,6 +3,7 @@ package com.group7.gallerium.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -13,12 +14,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.request.RequestOptions;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.Category;
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
 public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHolder> {
@@ -66,10 +69,20 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
         if (media == null) {
             return;
         }
-        Glide.with(context).load("file://" + media.getThumbnail())
-                .dontAnimate()
-                .diskCacheStrategy(DiskCacheStrategy.ALL)
-                .into(holder.image);
+        Log.d("gallerium", media.getMimeType());
+        String[] gifList = {"image/gif"};
+        if (Arrays.asList(gifList).contains(media.getMimeType())) {
+            Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.image);
+        }
+       else {
+            Glide.with(context).load("file://" + media.getThumbnail())
+                    //.dontAnimate()
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.image);
+        }
+
 
         if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
 

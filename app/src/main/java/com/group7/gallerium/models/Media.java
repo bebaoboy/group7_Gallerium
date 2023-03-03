@@ -3,7 +3,8 @@ package com.group7.gallerium.models;
 public class Media {
     private String path;
 
-    private int type; // 1 is image 3 is video
+    private int type;
+    private String mimeType; // 1 is image 3 is video
     private String thumbnail;
     private String dateTaken;
 
@@ -50,6 +51,14 @@ public class Media {
 
     public int getType() {
         return this.type;
+    }
+
+    public void setMimeType(String t) {
+        this.mimeType = t;
+    }
+
+    public String getMimeType() {
+        return this.mimeType;
     }
     public String getTitle() {
         return title;

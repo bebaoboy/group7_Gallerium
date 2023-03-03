@@ -71,8 +71,9 @@ public class AccessMediaFile {
     public static List<Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
-            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn;
+            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn;
             int count, type;
+            String mimeType;
             String absolutePath, id, dateText, title;
             long dateTaken;
             int multiplier = 1000;
@@ -91,6 +92,7 @@ public class AccessMediaFile {
             idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
             pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
             typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
+            mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 multiplier = 1;
             }
@@ -113,6 +115,7 @@ public class AccessMediaFile {
                 }
 
                 type = cursor.getInt(typeColumn);
+                mimeType = cursor.getString(mimeTypeColumn);
                 dateTaken = cursor.getLong(dateColumn);
                 dateText = formatter.format(dateTaken*multiplier);
                 title = cursor.getString(titleColumn);
@@ -124,6 +127,7 @@ public class AccessMediaFile {
                 media.setThumbnail(absolutePath);
                 media.setDateTaken(dateText);
                 media.setType(type);
+                media.setMimeType(mimeType);
                 media.setTitle(title);
 
                 if (media.getPath().equals("")) {
