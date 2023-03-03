@@ -16,6 +16,7 @@ import android.os.Environment;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
+import android.widget.VideoView;
 
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
@@ -24,22 +25,26 @@ import com.google.android.material.navigation.NavigationBarView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.SlideAdapter;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.io.File;
 import java.util.ArrayList;
 
-public class ViewMedia extends AppCompatActivity {
+public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
+
+    private VideoView videoView;
     private int mediaPos;
     private String mediaPath;
     private String mediaName;
     private Intent intent;
     private ArrayList<String> listPath;
-
+    private MediaItemInterface mediaItemInterface;
     private ViewPager viewPager;
     private SlideAdapter slideAdapter;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -48,6 +53,7 @@ public class ViewMedia extends AppCompatActivity {
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
         viewPager = findViewById(R.id.viewPager_picture);
+        
 
         applyData();
         toolbarSetting();
@@ -59,6 +65,7 @@ public class ViewMedia extends AppCompatActivity {
         intent = getIntent();
         listPath = intent.getStringArrayListExtra("data_list_path");
         mediaPos = intent.getIntExtra("pos", 0);
+        mediaItemInterface = this;
     }
 
     private void toolbarSetting() {
@@ -71,11 +78,21 @@ public class ViewMedia extends AppCompatActivity {
         toolbar.setNavigationOnClickListener((view) -> finish());
     }
 
+    private void showNavigation(boolean flag) {
+        if (!flag) {
+            bottom_nav.setVisibility(View.INVISIBLE);
+            toolbar.setVisibility(View.INVISIBLE);
+        } else {
+            bottom_nav.setVisibility(View.VISIBLE);
+            toolbar.setVisibility(View.VISIBLE);
+        }
+    }
+
     private void setUpSlider() {
 
         slideAdapter = new SlideAdapter(getApplicationContext());
         slideAdapter.setData(listPath);
-        // slideAdapter.setPictureInterface(activityPicture);
+        slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
         viewPager.setCurrentItem(mediaPos);
 
@@ -210,5 +227,15 @@ public class ViewMedia extends AppCompatActivity {
             }
             return true;
         });
+    }
+
+    @Override
+    public void showActionBar(boolean trigger) {
+        showNavigation(trigger);
+    }
+
+    @Override
+    public void showVideoPlayer() {
+
     }
 }

@@ -16,6 +16,7 @@ import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.util.ArrayList;
 
@@ -26,6 +27,10 @@ public class SlideAdapter extends PagerAdapter {
     private ImageView img2;
     private ImageView playButton;
     private VideoView videoThumbnail;
+    private boolean trigger = false;
+
+    private MediaItemInterface mediaItemInterface;
+
     private boolean flag = false;
 
     public void setData(ArrayList<String> paths) {
@@ -58,6 +63,15 @@ public class SlideAdapter extends PagerAdapter {
             img = view.findViewById(R.id.imageView);
             img.setMaximumScale(10);
             Glide.with(context).load(path).into(img);
+
+            img.setOnClickListener((view1)->{
+                mediaItemInterface.showActionBar(trigger);
+                if(trigger){
+                    trigger = false;
+                }else{
+                    trigger = true;
+                }
+            });
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);
             return view;
@@ -88,5 +102,9 @@ public class SlideAdapter extends PagerAdapter {
         ViewPager viewPager = (ViewPager) container;
         View view = (View) object;
         viewPager.removeView(view);
+    }
+
+    public void setInterface(MediaItemInterface itemInterface) {
+        this.mediaItemInterface = itemInterface;
     }
 }
