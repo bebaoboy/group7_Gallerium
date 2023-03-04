@@ -1,11 +1,15 @@
 package com.group7.gallerium.adapters;
 
 import android.content.Context;
+import android.media.Image;
 import android.provider.ContactsContract;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.VideoView;
 
 import androidx.annotation.NonNull;
@@ -15,6 +19,7 @@ import androidx.viewpager.widget.ViewPager;
 import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
+import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
@@ -24,9 +29,8 @@ public class SlideAdapter extends PagerAdapter {
     ArrayList<String> paths;
     Context context;
     private PhotoView img;
-    private ImageView img2;
-    private ImageView playButton;
-    private VideoView videoThumbnail;
+
+    private TextView duration;
     private boolean trigger = false;
 
     private MediaItemInterface mediaItemInterface;
@@ -58,7 +62,11 @@ public class SlideAdapter extends PagerAdapter {
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         String path = paths.get(position);
-        if (AccessMediaFile.getAllMedia().get(position).getType() == 1) {
+        Log.d("gallerium", path + " " + position);
+        Media m = AccessMediaFile.getAllMedia().get(position);
+        mediaItemInterface.showActionBar(true);
+        trigger = true;
+        if (m.getType() == 1) {
             View view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
             img = view.findViewById(R.id.imageView);
             img.setMaximumScale(10);
@@ -66,11 +74,7 @@ public class SlideAdapter extends PagerAdapter {
 
             img.setOnClickListener((view1)->{
                 mediaItemInterface.showActionBar(trigger);
-                if(trigger){
-                    trigger = false;
-                }else{
-                    trigger = true;
-                }
+                trigger = !trigger;
             });
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);
@@ -78,23 +82,40 @@ public class SlideAdapter extends PagerAdapter {
 
         } else {
             View view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
+            ImageView img2;
+            ImageView playButton;
             img2 =  view.findViewById(R.id.preview_thumbnail);
-            Glide.with(context).load(path).into(img2);
-
-            videoThumbnail = view.findViewById(R.id.videoView);
+            Glide.with(context).load("file://" + m.getThumbnail()).into(img2);
+//            img2.setOnClickListener((view1)->{
+//                mediaItemInterface.showActionBar(trigger);
+//                trigger = !trigger;
+//            });
+            VideoView video = view.findViewById(R.id.videoView);
             playButton = view.findViewById(R.id.play_video_button);
+            duration = view.findViewById(R.id.videoLength);
+            duration.setText(m.getDuration());
 
             playButton.setOnClickListener((playbutton)->{
-                playVideo(path);
+                playVideo(video, img2, playButton);
+                mediaItemInterface.showActionBar(false);
+                trigger = false;
+
             });
+
+            ViewPager vp = (ViewPager) container;
+            vp.addView(view, 0);
             return view;
         }
     }
 
     //TODO add logic to play video
-    void playVideo(String path){
+    void playVideo(VideoView video, ImageView img2, ImageView playButton){
         // ẩn các image view tên img ở trên
         // làm hiện các videoThumbnail ở trên
+            img2.setVisibility(View.GONE);
+            video.setVisibility(View.VISIBLE);
+            playButton.setVisibility(View.GONE);
+            mediaItemInterface.showVideoPlayer(video, img2, playButton);
     }
 
     @Override

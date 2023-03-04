@@ -4,31 +4,31 @@
         android:id="@+id/share_nav_item"
         android:enabled="true"
         android:icon="@drawable/ic_share"
-        android:title=""
+        android:title="@string/share"
         android:tooltipText="@string/share"/>
     <item
         android:id="@+id/edit_nav_item"
         android:enabled="true"
         android:icon="@drawable/ic_edit"
-        android:title=""
+        android:title="@string/edit"
         android:tooltipText="@string/edit"/>
     <item
         android:id="@+id/delete_nav_item"
         android:enabled="true"
         android:icon="@drawable/ic_delete"
-        android:title=""
+        android:title="@string/delete"
         android:tooltipText="@string/delete"/>
     <item
         android:id="@+id/view_photo_secured_nav_item"
         android:enabled="true"
         android:icon="@drawable/ic_secure"
-        android:title=""
+        android:title="@string/secured"
         android:tooltipText="@string/secured"/>
 
     <item
         android:id="@+id/more_nav_item"
         android:enabled="true"
         android:icon="@drawable/ic_more"
-        android:title=""
+        android:title="@string/more"
         android:tooltipText="@string/more"/>
 </menu>

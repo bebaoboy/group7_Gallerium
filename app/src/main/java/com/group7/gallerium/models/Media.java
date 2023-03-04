@@ -1,5 +1,7 @@
 package com.group7.gallerium.models;
 
+import java.util.Locale;
+
 public class Media {
     private String path;
 
@@ -8,7 +10,8 @@ public class Media {
     private String thumbnail;
     private String dateTaken;
 
-
+    private long duration;
+    private long size;
 
     private String title;
 
@@ -66,5 +69,38 @@ public class Media {
 
     public void setTitle(String title) {
         this.title = title;
+    }
+
+    public void setDuration(long videoLength) {
+        duration = videoLength;
+    }
+
+    public String getDuration() {
+        String newDuration;
+        duration /= 1000.0;
+        var hours = duration / 3600;
+        var minutes = (duration % 3600) / 60;
+        var seconds = duration % 60;
+
+        newDuration = String.format(Locale.CHINA,"%02d:%02d:%02d", hours, minutes, seconds);
+        return newDuration;
+    }
+
+    public void setSize(long size) {
+        this.size = size;
+    }
+
+    public String getSize() {
+        String format = "%1$.2f ";
+        if (size < 1024) {
+            return String.format(Locale.CHINA, format + "B", (double)size);
+        }
+        if (size < Math.pow(1024, 2)) {
+            return String.format(Locale.CHINA, format + "KB", (double)size / Math.pow(1024, 1));
+        }
+        if (size < Math.pow(1024, 3)) {
+            return String.format(Locale.CHINA, format + "MB", (double)size / Math.pow(1024, 2));
+        }
+        return String.format(Locale.CHINA, format + "GB", (double)size / Math.pow(1024, 3));
     }
 }
