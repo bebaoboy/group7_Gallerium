@@ -12,7 +12,7 @@
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_above="@id/bottom_navigation"
-        android:layout_marginBottom="45dp"
+        android:layout_marginBottom="5dp"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
@@ -37,7 +37,6 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/frame_layout"
         app:layout_constraintVertical_bias="1.0"
-        app:menu="@menu/main_bottom_nav"
-        app:layout_behavior="@string/hide_bottom_view_on_scroll_behavior"/>
+        app:menu="@menu/main_bottom_nav" />
 
 </androidx.coordinatorlayout.widget.CoordinatorLayout>

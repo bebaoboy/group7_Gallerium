@@ -6,15 +6,20 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 
+import android.app.Activity;
 import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
+import android.media.MediaPlayer;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.Environment;
+import android.view.KeyEvent;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.ImageView;
+import android.widget.MediaController;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -35,7 +40,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
 
-    private VideoView videoView;
+    private MediaController videoController;
     private int mediaPos;
     private String mediaPath;
     private String mediaName;
@@ -53,7 +58,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
         viewPager = findViewById(R.id.viewPager_picture);
-        
+//        if (AccessMediaFile.getAllMedia().get(mediaPos).getType() == 3)
+//        {
+//            videoView = findViewById(R.id.videoView);
+//        }
 
         applyData();
         toolbarSetting();
@@ -95,12 +103,16 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
         viewPager.setCurrentItem(mediaPos);
+        viewPager.setOffscreenPageLimit(0);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
                 setTitleToolbar(mediaPath.substring(mediaPath.lastIndexOf('/') + 1));
+                if (videoController != null) {
+                    //videoController.setVisibility(View.GONE);
+                }
             }
 
             @Override
@@ -235,7 +247,49 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     @Override
-    public void showVideoPlayer() {
+    public void showVideoPlayer(VideoView videoView, ImageView img2, ImageView btn) {
+        Uri uri = Uri.parse(mediaPath);
 
+        // sets the resource from the
+        // videoUrl to the videoView
+        videoView.setVideoURI(uri);
+
+        // creating object of
+        // media controller class
+        MediaController mediaController = new MediaController(this){
+            public boolean dispatchKeyEvent(KeyEvent event)
+            {
+                if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+                    ((Activity) getContext()).finish();
+
+                return super.dispatchKeyEvent(event);
+            }
+        };
+        this.videoController = mediaController;
+
+        // sets the anchor view
+        // anchor view for the videoView
+        mediaController.setAnchorView(videoView);
+
+        // sets the media player to the videoView
+        mediaController.setMediaPlayer(videoView);
+
+        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
+            @Override
+            public void onCompletion(MediaPlayer mediaPlayer) {
+                showActionBar(true);
+                mediaController.setVisibility(View.GONE);
+                videoView.setMediaController(mediaController);
+                videoView.setVisibility(View.GONE);
+                btn.setVisibility(View.VISIBLE);
+                img2.setVisibility(View.VISIBLE);
+            }
+        });
+
+        // sets the media controller to the videoView
+        videoView.setMediaController(mediaController);
+
+        // starts the video
+        videoView.start();
     }
 }

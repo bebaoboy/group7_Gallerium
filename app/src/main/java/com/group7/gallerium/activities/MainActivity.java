@@ -8,12 +8,14 @@ import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
 import com.group7.gallerium.fragments.MediaFragment;
+import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
 
 public class MainActivity extends AppCompatActivity {
@@ -54,6 +56,9 @@ public class MainActivity extends AppCompatActivity {
             }
             return true;
         });
+
+        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
+        layoutParams.setBehavior(new BottomNavigationViewBehavior());
 
     }
 
@@ -119,3 +124,4 @@ public class MainActivity extends AppCompatActivity {
         permission.checkResult(requestCode, permissions, grantResults);
     }
 }
+

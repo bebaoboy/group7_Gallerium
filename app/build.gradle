@@ -51,4 +51,7 @@ dependencies {
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation(name:'ds-photo-editor-sdk-v10', ext:'aar')
+
+    implementation 'androidx.recyclerview:recyclerview:1.2.1'
+    implementation 'com.github.valkriaine:Bouncy:2.3'
 }

@@ -16,6 +16,14 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="PhotoCardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+    </style>
+
+    <style name="PhotoCardImageView" >
+        <item name="android:padding">0dp</item>
+    </style>
+
     <style name="Toolbar">
         <item name="android:background">@color/white</item>
         <item name="android:subtitleTextColor">@color/title_light</item>
