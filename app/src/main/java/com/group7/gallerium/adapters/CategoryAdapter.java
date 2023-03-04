@@ -62,7 +62,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         mediaAdapter.setListImages((ArrayList<Media>) category.getList());
         mediaAdapter.setListCategory((ArrayList<Category>) listCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(24);
+        holder.rcvPictures.setItemViewCacheSize(6);
     }
 
     @Override

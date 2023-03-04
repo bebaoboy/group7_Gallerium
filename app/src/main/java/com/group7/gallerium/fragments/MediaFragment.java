@@ -1,5 +1,6 @@
 package com.group7.gallerium.fragments;
 
+import android.animation.Animator;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -9,14 +10,19 @@ import android.os.Bundle;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.os.Handler;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.Toast;
 
+import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.CategoryAdapter;
 import com.group7.gallerium.models.Category;
@@ -27,6 +33,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 
 /**
@@ -44,6 +51,9 @@ public class MediaFragment extends Fragment{
     private CategoryAdapter adapter;
     private RecyclerView recyclerView;
     private int spanCount = 3;
+    private int firstVisiblePosition;
+    private int offset;
+
     public MediaFragment() {
 
     }
@@ -59,11 +69,30 @@ public class MediaFragment extends Fragment{
         Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             changeOrientation(6);
+            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            //recyclerView.scrollToPosition(firstVisiblePosition);
+//            new Handler().postDelayed(new Runnable() {
+//                @Override
+//                public void run() {
+//                    recyclerView.scrollBy(0, - offset);
+//                }
+//            }, 0);
         }
         else {
             adapter.setData(getListCategory());
             recyclerView.setAdapter(adapter);
+            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+
         }
+
+    }
+
+    @Override
+    public void onPause() {
+        super.onPause();
+        View firstChild = recyclerView.getChildAt(0);
+        firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
+        offset = firstChild.getTop();
     }
 
     @Override
@@ -82,6 +111,69 @@ public class MediaFragment extends Fragment{
         //recyclerViewSetting();
         adapter = new CategoryAdapter(getContext(), spanCount);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            @Override
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                super.onScrollStateChanged(recyclerView, newState);
+                if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    toolbar.animate().translationY(0).setInterpolator(new DecelerateInterpolator())
+                            .setListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(@NonNull Animator animator) {
+                                    toolbar.setVisibility(View.VISIBLE);
+                                }
+
+                                @Override
+                                public void onAnimationEnd(@NonNull Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationCancel(@NonNull Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(@NonNull Animator animator) {
+
+                                }
+                            })
+                            .start();
+                }
+                else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new AccelerateInterpolator())
+                            .setListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(@NonNull Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationEnd(@NonNull Animator animator) {
+                                    toolbar.setVisibility(View.GONE);
+
+                                }
+
+                                @Override
+                                public void onAnimationCancel(@NonNull Animator animator) {
+
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(@NonNull Animator animator) {
+
+                                }
+                            })
+                            .start();
+                }
+            }
+
+            @Override
+            public void onScrolled(@NonNull RecyclerView recyclerView, int dx, int dy) {
+                super.onScrolled(recyclerView, dx, dy);
+                //toolbar.setVisibility(View.GONE);
+            }
+        });
         recyclerView.setItemViewCacheSize(4);
         return view;
     }

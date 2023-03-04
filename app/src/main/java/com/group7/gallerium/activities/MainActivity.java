@@ -21,7 +21,6 @@ public class MainActivity extends AppCompatActivity {
     ViewPager2 view_pager;
 
     PermissionManager permission;
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
