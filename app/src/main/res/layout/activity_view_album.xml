@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".activities.ViewAlbum"
+    android:orientation="vertical">
+    <TextView
+        android:id="@+id/album_memory_title"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_album_memory_title"
+        android:textColor="@color/primary_color_light"
+        android:textSize="32sp"
+        android:textAlignment="textStart"
+        android:overScrollMode="never"
+        />
+    <TextView
+        android:id="@+id/album_memory_time"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Tháng 6, 2022"
+        android:textSize="12sp"
+        android:overScrollMode="never"/>
+
+    <TextView
+        android:id="@+id/album_memory_content"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="@string/sample_album_memory_content"
+        android:inputType="textMultiLine|none"
+        android:overScrollMode="never"
+        android:textSize="15sp"
+        android:textStyle="italic"
+        />
+    <androidx.recyclerview.widget.RecyclerView
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"/>
+
+</LinearLayout>

@@ -7,7 +7,9 @@ import android.view.ViewGroup;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
@@ -16,20 +18,35 @@ import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
-public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.CategoryViewHolder>{
+public class CategoryAdapter extends ListAdapter<Category,CategoryAdapter.CategoryViewHolder> {
+
+    public static final DiffUtil.ItemCallback<Category> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Category>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+                    return Objects.equals(oldItem.getNameCategory(), newItem.getNameCategory());
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+                    return oldItem.getList().size() == newItem.getList().size();
+                }
+            };
     private int spanCount = 3;
     private Context context;
     private List<Category> listCategory;
 
     public CategoryAdapter(Context context, int count) {
+        super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = count;
     }
 
     public void setData(List<Category> listCategory){
         this.listCategory = listCategory;
-        notifyDataSetChanged();
+        submitList(listCategory);
     }
 
     @NonNull
@@ -41,7 +58,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        Category category = listCategory.get(position);
+        Category category = getItem(position);
         if (category == null)
             return;
 
@@ -62,15 +79,7 @@ public class CategoryAdapter extends RecyclerView.Adapter<CategoryAdapter.Catego
         mediaAdapter.setListImages((ArrayList<Media>) category.getList());
         mediaAdapter.setListCategory((ArrayList<Category>) listCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(6);
-    }
-
-    @Override
-    public int getItemCount() {
-        if (listCategory != null){
-            return listCategory.size();
-        }
-        return 0;
+        holder.rcvPictures.setItemViewCacheSize(24);
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

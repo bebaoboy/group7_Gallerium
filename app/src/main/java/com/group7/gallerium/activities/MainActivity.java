@@ -16,6 +16,7 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
+import com.group7.gallerium.fragments.AlbumFragment;
 import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;

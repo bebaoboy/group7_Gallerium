@@ -90,6 +90,8 @@ public class SlideAdapter extends PagerAdapter {
 //                mediaItemInterface.showActionBar(trigger);
 //                trigger = !trigger;
 //            });
+
+
             VideoView video = view.findViewById(R.id.videoView);
             playButton = view.findViewById(R.id.play_video_button);
             duration = view.findViewById(R.id.videoLength);
@@ -99,8 +101,9 @@ public class SlideAdapter extends PagerAdapter {
                 playVideo(video, img2, playButton);
                 mediaItemInterface.showActionBar(false);
                 trigger = false;
-
             });
+            mediaItemInterface.setVideoView(video);
+            mediaItemInterface.setImageViewAndButton(img2, playButton);
 
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);

@@ -15,4 +15,5 @@
     <color name="primary_color_dark_bg">#1E1E1E</color>
     <color name="primary_color_light_20a">#333949AB</color>
     <color name="red">#F22F2F</color>
+    <color name="num_pic_color">#675C5C</color>
 </resources>

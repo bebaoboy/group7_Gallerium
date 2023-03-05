@@ -10,6 +10,42 @@ public class Album {
     String dateCreated;
     String name;
 
+    String memoryTitle;
+    String memoryContent;
+    String memoryDate;
+
+    public String getMemoryTitle() {
+        return memoryTitle;
+    }
+
+    public void setMemoryTitle(String memoryTitle) {
+        this.memoryTitle = memoryTitle;
+    }
+
+    public String getMemoryContent() {
+        return memoryContent;
+    }
+
+    public void setMemoryContent(String memoryContent) {
+        this.memoryContent = memoryContent;
+    }
+
+    public String getMemoryDate() {
+        return memoryDate;
+    }
+
+    public void setMemoryDate(String memoryDate) {
+        this.memoryDate = memoryDate;
+    }
+
+    public Media getAvatar() {
+        return avatar;
+    }
+
+    public void setAvatar(Media avatar) {
+        this.avatar = avatar;
+    }
+
     Media avatar;
 
     public Album(Media albumImage, String name) {

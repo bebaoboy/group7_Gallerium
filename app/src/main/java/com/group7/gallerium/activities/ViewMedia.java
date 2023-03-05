@@ -1,22 +1,17 @@
 package com.group7.gallerium.activities;
 
-import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
 
 import android.app.Activity;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Bundle;
-import android.os.Environment;
 import android.view.KeyEvent;
-import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -50,18 +45,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private ViewPager viewPager;
     private SlideAdapter slideAdapter;
 
+    private VideoView videoView;
+    private ImageView playButton;
+    private ImageView img;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
-        setContentView(R.layout.activity_view_photo);
+        setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
         viewPager = findViewById(R.id.viewPager_picture);
-//        if (AccessMediaFile.getAllMedia().get(mediaPos).getType() == 3)
-//        {
-//            videoView = findViewById(R.id.videoView);
-//        }
 
         applyData();
         toolbarSetting();
@@ -109,9 +103,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
                 setTitleToolbar(mediaPath.substring(mediaPath.lastIndexOf('/') + 1));
-//                if (videoController != null) {
-//                    //videoController.setVisibility(View.GONE);
-//                }
+                if (videoController != null) {
+                    videoController.setVisibility(View.GONE);
+                    videoController = null;
+                }
+                if(videoView != null){
+                    videoView.setVisibility(View.GONE);
+                    videoView.setMediaController(null);
+                    videoView.pause();
+                    img.setVisibility(View.VISIBLE);
+                    playButton.setVisibility(View.VISIBLE);
+                }
             }
 
             @Override
@@ -291,4 +293,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         // starts the video
         videoView.start();
     }
+
+    @Override
+    public void setVideoView(VideoView videoView) {
+        this.videoView = videoView;
+    }
+
+    @Override
+    public void setImageViewAndButton(ImageView img, ImageView playButton) {
+        this.img = img;
+        this.playButton = playButton;
+    }
+
+
 }

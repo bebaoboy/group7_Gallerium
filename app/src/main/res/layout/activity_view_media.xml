@@ -26,7 +26,8 @@
         <androidx.viewpager.widget.ViewPager
             android:id="@+id/viewPager_picture"
             android:layout_width="match_parent"
-            android:layout_height="match_parent" />
+            android:layout_height="match_parent"
+            android:contentDescription="@string/view_pager" />
     </FrameLayout>
 
     <com.google.android.material.bottomnavigation.BottomNavigationView

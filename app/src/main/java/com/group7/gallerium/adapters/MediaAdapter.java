@@ -10,6 +10,8 @@ import android.view.ViewGroup;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
@@ -23,9 +25,22 @@ import com.group7.gallerium.models.Media;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Objects;
 
-public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHolder> {
+public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolder> {
 
+    public static final DiffUtil.ItemCallback<Media> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<Media>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
+                    return Objects.equals(oldItem.getPath(), newItem.getPath());
+                }
+
+                @Override
+                public boolean areContentsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
+                    return Objects.equals(oldItem.getTitle(), newItem.getTitle());
+                }
+            };
     private List<Media> listMedia;
     private Context context;
     private List<Category> listCategory;
@@ -33,7 +48,12 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
     private ArrayList<String> listPath;
 
     public MediaAdapter(Context context) {
+        super(DIFF_CALLBACK);
         this.context = context;
+    }
+
+    protected MediaAdapter() {
+        super(DIFF_CALLBACK);
     }
 
     public void setListImages(ArrayList<Media> media) {
@@ -43,7 +63,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 //             ) {
 //            Log.d("Thumbnail-d", media1.getThumbnail());
 //        }
-        notifyDataSetChanged();
+        submitList(listMedia);
     }
 
     public void setListCategory(ArrayList<Category> categories) {
@@ -65,7 +85,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
 
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
-        Media media = listMedia.get(position);
+        Media media = getItem(position);
         if (media == null) {
             return;
         }
@@ -93,14 +113,6 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
             navAsyncTask.execute();
         }));
 
-    }
-
-    @Override
-    public int getItemCount() {
-        if(listMedia.size() != 0){
-            return listMedia.size();
-        }
-        return 0;
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {
