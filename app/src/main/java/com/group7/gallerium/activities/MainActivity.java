@@ -1,6 +1,8 @@
 package com.group7.gallerium.activities;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -37,6 +39,7 @@ public class MainActivity extends AppCompatActivity {
         permission=new PermissionManager() {
             @Override
             public void ifCancelledAndCanRequest(Activity activity) {
+                permission.checkAndRequestPermissions(activity);
                 super.ifCancelledAndCanRequest(activity);
             }
         };
@@ -120,8 +123,20 @@ public class MainActivity extends AppCompatActivity {
 
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
-        super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-        permission.checkResult(requestCode, permissions, grantResults);
+        if (android.os.Build.VERSION.SDK_INT >= 33) {
+            if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED) {
+                Log.d("permission", "permission denied - requesting it");
+                // String[] permissions2 = {android.Manifest.permission.READ_MEDIA_AUDIO, android.Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
+                // requestPermissions(permissions2, 1);
+                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+                permission.checkResult(requestCode, permissions, grantResults);
+            }
+        } else {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
+
+            grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
+            permission.checkResult(requestCode, permissions, grantResults);
+        }
     }
 }
 

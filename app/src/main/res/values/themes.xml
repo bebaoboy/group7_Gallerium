@@ -16,6 +16,10 @@
         <!-- Customize your theme here. -->
     </style>
 
+    <style name="ViewPhotoItem" parent="Theme.AppCompat.DayNight.NoActionBar">
+
+    </style>
+
     <style name="PhotoCardView" parent="Widget.MaterialComponents.CardView">
         <item name="cardBackgroundColor">@android:color/transparent</item>
     </style>

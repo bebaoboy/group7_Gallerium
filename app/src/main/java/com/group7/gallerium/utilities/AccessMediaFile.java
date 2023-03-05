@@ -125,9 +125,9 @@ public class AccessMediaFile {
                 dateTaken = cursor.getLong(dateColumn);
                 dateText = formatter.format(dateTaken*multiplier);
                 title = cursor.getString(titleColumn);
-                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
-                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
-                if (mimeType.startsWith("video")) {
+//                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
+//                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
+                if (mimeType!=null && mimeType.startsWith("video")) {
                     videoLength = cursor.getLong(videoLengthColumn);
                 }
 
@@ -165,7 +165,7 @@ public class AccessMediaFile {
                         }
                         allMedia.add(0, media);
                         paths.put(media.getPath(), true);
-                        Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
+                        //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                     }
                 } else {
                     listMedia.add(media);

@@ -80,8 +80,10 @@ public class MediaFragment extends Fragment{
     public void onPause() {
         super.onPause();
         View firstChild = recyclerView.getChildAt(0);
-        firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
-        offset = firstChild.getTop();
+        if (firstChild != null) {
+            firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
+            offset = firstChild.getTop();
+        }
     }
 
     @Override
@@ -114,6 +116,7 @@ public class MediaFragment extends Fragment{
         adapter = new CategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
+        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     void recyclerViewSetting(){
@@ -193,9 +196,9 @@ public class MediaFragment extends Fragment{
                     categoryCount++;
                 }
             }
-            categoryList.forEach(x -> {
-                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
-            });
+//            categoryList.forEach(x -> {
+//                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
+//            });
             return categoryList;
         } catch (Exception e) {
             return null;

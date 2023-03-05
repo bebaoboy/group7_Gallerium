@@ -69,7 +69,7 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.MediaViewHol
         if (media == null) {
             return;
         }
-        Log.d("gallerium", media.getMimeType());
+        // Log.d("gallerium", media.getMimeType());
         String[] gifList = {"image/gif"};
         if (Arrays.asList(gifList).contains(media.getMimeType())) {
             Glide.with(context).asGif().load("file://" + media.getThumbnail())

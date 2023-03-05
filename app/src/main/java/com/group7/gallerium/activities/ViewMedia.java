@@ -103,16 +103,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
         viewPager.setCurrentItem(mediaPos);
-        viewPager.setOffscreenPageLimit(0);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
                 setTitleToolbar(mediaPath.substring(mediaPath.lastIndexOf('/') + 1));
-                if (videoController != null) {
-                    //videoController.setVisibility(View.GONE);
-                }
+//                if (videoController != null) {
+//                    //videoController.setVisibility(View.GONE);
+//                }
             }
 
             @Override
