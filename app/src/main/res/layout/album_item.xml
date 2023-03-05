@@ -14,7 +14,8 @@
     <androidx.cardview.widget.CardView
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        app:cardCornerRadius="10dp">
+        app:cardCornerRadius="10dp"
+        style="@style/PhotoCardView">
 
     <ImageView
         android:id="@+id/album_avatar"
@@ -24,13 +25,13 @@
         android:focusable="true"
         android:scaleType="centerCrop"
         tools:srcCompat="@tools:sample/avatars"
-        android:contentDescription="@string/album_avatar" />
+        android:contentDescription="@string/album_avatar"
+        style="@style/PhotoCardImageView"/>
 
     </androidx.cardview.widget.CardView>
 
     <TextView
         android:id="@+id/album_name"
-        android:textColor="@color/black"
         android:textSize="14sp"
         android:textStyle="bold"
         android:layout_width="wrap_content"

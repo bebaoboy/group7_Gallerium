@@ -1,11 +1,10 @@
 <?xml version="1.0" encoding="utf-8"?>
 
-    <FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto"
     xmlns:tools="http://schemas.android.com/tools"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-       >
+    android:layout_width="match_parent"
+    android:layout_height="match_parent">
 
 
     <TextView
@@ -13,8 +12,8 @@
         android:layout_width="wrap_content"
         android:layout_height="38dp"
         android:layout_gravity="bottom|end"
-        android:layout_marginBottom="115dp"
         android:layout_marginEnd="15dp"
+        android:layout_marginBottom="115dp"
         android:gravity="center"
         android:text="TextView"
         android:textAlignment="center"
@@ -23,28 +22,28 @@
     <ImageView
         android:id="@+id/preview_thumbnail"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="400dp"
         android:layout_gravity="center_horizontal|center_vertical"
         android:adjustViewBounds="true"
         android:scaleType="centerCrop"
         tools:srcCompat="@tools:sample/avatars" />
 
-            <ImageView
-                android:id="@+id/play_video_button"
-                android:layout_width="150dp"
-                android:layout_height="150dp"
-                android:layout_gravity="center"
-                android:clickable="true"
-                android:contentDescription="play icon"
-                android:src="@drawable/ic_play" />
+    <ImageView
+        android:id="@+id/play_video_button"
+        android:layout_width="150dp"
+        android:layout_height="150dp"
+        android:layout_gravity="center"
+        android:clickable="true"
+        android:contentDescription="play icon"
+        android:src="@drawable/ic_play" />
 
 
     <VideoView
         android:id="@+id/videoView"
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_gravity="center"
         android:visibility="invisible" />
 
-    </FrameLayout>
+</FrameLayout>
 

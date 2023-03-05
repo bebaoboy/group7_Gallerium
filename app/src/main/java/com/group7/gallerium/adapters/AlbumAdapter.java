@@ -2,7 +2,6 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.provider.ContactsContract;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -14,11 +13,10 @@ import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewAlbum;
 import com.group7.gallerium.models.Album;
-import com.group7.gallerium.models.Category;
+import com.bumptech.glide.Glide;
 
 import java.util.ArrayList;
 import java.util.Objects;

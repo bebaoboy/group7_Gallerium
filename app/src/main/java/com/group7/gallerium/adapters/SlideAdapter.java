@@ -1,14 +1,11 @@
 package com.group7.gallerium.adapters;
 
 import android.content.Context;
-import android.media.Image;
-import android.provider.ContactsContract;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
 
@@ -16,11 +13,11 @@ import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
-import com.bumptech.glide.Glide;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.bumptech.glide.Glide;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.util.ArrayList;
@@ -30,7 +27,6 @@ public class SlideAdapter extends PagerAdapter {
     Context context;
     private PhotoView img;
 
-    private TextView duration;
     private boolean trigger = false;
 
     private MediaItemInterface mediaItemInterface;
@@ -86,19 +82,20 @@ public class SlideAdapter extends PagerAdapter {
             ImageView playButton;
             img2 =  view.findViewById(R.id.preview_thumbnail);
             Glide.with(context).load("file://" + m.getThumbnail()).into(img2);
-//            img2.setOnClickListener((view1)->{
-//                mediaItemInterface.showActionBar(trigger);
-//                trigger = !trigger;
-//            });
-
+            img2.setOnClickListener((view1)->{
+                mediaItemInterface.showActionBar(trigger);
+                trigger = !trigger;
+            });
 
             VideoView video = view.findViewById(R.id.videoView);
             playButton = view.findViewById(R.id.play_video_button);
+            TextView duration;
             duration = view.findViewById(R.id.videoLength);
             duration.setText(m.getDuration());
 
             playButton.setOnClickListener((playbutton)->{
                 playVideo(video, img2, playButton);
+                mediaItemInterface.showVideoPlayer(video, img2, playButton, duration, m);
                 mediaItemInterface.showActionBar(false);
                 trigger = false;
             });
@@ -118,7 +115,6 @@ public class SlideAdapter extends PagerAdapter {
             img2.setVisibility(View.GONE);
             video.setVisibility(View.VISIBLE);
             playButton.setVisibility(View.GONE);
-            mediaItemInterface.showVideoPlayer(video, img2, playButton);
     }
 
     @Override

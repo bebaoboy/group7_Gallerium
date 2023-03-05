@@ -42,6 +42,8 @@ public class AccessMediaFile {
             MediaStore.Files.FileColumns.MIME_TYPE,
             MediaStore.Files.FileColumns.TITLE,
             MediaStore.Files.FileColumns.RESOLUTION,
+            MediaStore.Files.FileColumns.WIDTH,
+            MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.DURATION,
             MediaStore.Files.FileColumns.SIZE,
 
@@ -76,8 +78,8 @@ public class AccessMediaFile {
     public static List<Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
-            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn;
-            int count, type;
+            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn;
+            int count, type, width, height;
             String mimeType;
             String absolutePath, id, dateText, title;
             long dateTaken, videoLength=0;
@@ -99,6 +101,8 @@ public class AccessMediaFile {
             typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
             mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
             videoLengthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION);
+            widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
+            heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
             if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
                 multiplier = 1;
             }
@@ -130,6 +134,8 @@ public class AccessMediaFile {
                 if (mimeType!=null && mimeType.startsWith("video")) {
                     videoLength = cursor.getLong(videoLengthColumn);
                 }
+                width = cursor.getInt(widthColumn);
+                height = cursor.getInt(heightColumn);
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -139,6 +145,8 @@ public class AccessMediaFile {
                 media.setMimeType(mimeType);
                 media.setTitle(title);
                 media.setDuration(videoLength);
+                media.setWidth(width);
+                media.setHeight(height);
 
                 if (media.getPath().equals("")) {
                     continue;

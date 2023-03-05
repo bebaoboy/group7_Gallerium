@@ -14,6 +14,8 @@ public class Media {
     private long size;
 
     private String title;
+    private int width;
+    private int height;
 
     public Media() {
 
@@ -70,6 +72,20 @@ public class Media {
     public void setTitle(String title) {
         this.title = title;
     }
+    public void setWidth(int t) {
+        this.width = t;
+    }
+
+    public int getWidth() {
+        return this.width;
+    }
+    public void setHeight(int t) {
+        this.height = t;
+    }
+
+    public int getHeight() {
+        return this.height;
+    }
 
     public void setDuration(long videoLength) {
         duration = videoLength;
@@ -77,7 +93,7 @@ public class Media {
 
     public String getDuration() {
         String newDuration;
-        duration /= 1000.0;
+        long duration = this.duration / 1000;
         var hours = duration / 3600;
         var minutes = (duration % 3600) / 60;
         var seconds = duration % 60;

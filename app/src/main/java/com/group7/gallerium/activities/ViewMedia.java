@@ -15,6 +15,7 @@ import android.view.KeyEvent;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.MediaController;
+import android.widget.TextView;
 import android.widget.Toast;
 import android.widget.VideoView;
 
@@ -24,6 +25,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.navigation.NavigationBarView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.SlideAdapter;
+import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
@@ -248,7 +250,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     @Override
-    public void showVideoPlayer(VideoView videoView, ImageView img2, ImageView btn) {
+    public void showVideoPlayer(VideoView videoView, ImageView img2, ImageView btn, TextView duration, Media m) {
         Uri uri = Uri.parse(mediaPath);
 
         // sets the resource from the
@@ -274,11 +276,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
         // sets the media player to the videoView
         mediaController.setMediaPlayer(videoView);
+        duration.setText(m.getDuration());
 
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
-                showActionBar(true);
+                // showActionBar(true);
                 mediaController.setVisibility(View.GONE);
                 videoView.setMediaController(mediaController);
                 videoView.setVisibility(View.GONE);
@@ -286,6 +289,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 img2.setVisibility(View.VISIBLE);
             }
         });
+
+        setDimension(videoView, m);
 
         // sets the media controller to the videoView
         videoView.setMediaController(mediaController);
@@ -305,5 +310,59 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         this.playButton = playButton;
     }
 
+    private void setDimension(VideoView videoView, Media m) {
+        // Adjust the size of the video
+        // so it fits on the screen
+        float videoProportion = m.getHeight() / (float)m.getWidth();
+        int screenWidth = getResources().getDisplayMetrics().widthPixels;
+        int screenHeight = getResources().getDisplayMetrics().heightPixels;
+        float screenProportion = (float) screenHeight / (float) screenWidth;
+        android.view.ViewGroup.LayoutParams lp = videoView.getLayoutParams();
+
+//        if (videoProportion < screenProportion) {
+//            lp.height= screenHeight;
+//            lp.width = (int) ((float) screenHeight / videoProportion);
+//        } else {
+//            lp.width = screenWidth;
+//            lp.height = (int) ((float) screenWidth * videoProportion);
+//        }
+        if (videoProportion > screenProportion) {
+            if (screenProportion < 1) { // screen width > height (landscape)
+                if (m.getHeight() > screenHeight) {
+                    float ratio = (float) screenHeight / m.getHeight();
+                    lp.height = (int) (m.getHeight() * ratio);
+                    lp.width = (int) (m.getWidth() * ratio);
+                }
+                else {
+                    lp.height = screenHeight;
+                }
+                if (m.getWidth() > screenWidth) {
+                    float ratio = (float) screenWidth / lp.width;
+                    lp.height = (int) (m.getHeight() * ratio);
+                    lp.width = (int) (m.getWidth() * ratio);
+                } else {
+                    lp.width = screenWidth;
+                }
+            } else if (screenProportion > 1) { // screen width < height (portrait)
+                if (m.getWidth() > screenWidth) {
+                    float ratio = (float) screenWidth / m.getWidth();
+                    lp.height = (int) (m.getHeight() * ratio);
+                    lp.width = (int) (m.getWidth() * ratio);
+                }
+                else {
+                    lp.width = screenWidth;
+                }
+                if (lp.height > screenHeight) {
+                    float ratio = (float) screenHeight / lp.height;
+                    lp.height = (int) (m.getHeight() * ratio);
+                    lp.width = (int) (m.getWidth() * ratio);
+                }
+                else {
+                    lp.height = screenHeight;
+                }
+            }
+        }
+        videoView.setLayoutParams(lp);
+    }
 
 }
