@@ -58,7 +58,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
         viewPager = findViewById(R.id.viewPager_picture);
+        videoController = new MediaController(this){
+            public boolean dispatchKeyEvent(KeyEvent event)
+            {
+                if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
+                    ((Activity) getContext()).finish();
 
+                return super.dispatchKeyEvent(event);
+            }
+        };
         applyData();
         toolbarSetting();
         setUpSlider();
@@ -107,12 +115,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 setTitleToolbar(mediaPath.substring(mediaPath.lastIndexOf('/') + 1));
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
-                    videoController = null;
                 }
                 if(videoView != null){
                     videoView.setVisibility(View.GONE);
-                    videoView.setMediaController(null);
-                    videoView.pause();
+                    videoView.stopPlayback();
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
                 }
@@ -259,44 +265,35 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
         // creating object of
         // media controller class
-        MediaController mediaController = new MediaController(this){
-            public boolean dispatchKeyEvent(KeyEvent event)
-            {
-                if (event.getKeyCode() == KeyEvent.KEYCODE_BACK)
-                    ((Activity) getContext()).finish();
-
-                return super.dispatchKeyEvent(event);
-            }
-        };
-        this.videoController = mediaController;
-
         // sets the anchor view
         // anchor view for the videoView
-        mediaController.setAnchorView(videoView);
+        videoController.setAnchorView(videoView);
 
         // sets the media player to the videoView
-        mediaController.setMediaPlayer(videoView);
+        videoController.setMediaPlayer(videoView);
+        videoController.setVisibility(View.VISIBLE);
         duration.setText(m.getDuration());
 
         videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
             @Override
             public void onCompletion(MediaPlayer mediaPlayer) {
                 // showActionBar(true);
-                mediaController.setVisibility(View.GONE);
-                videoView.setMediaController(mediaController);
+                videoController.setVisibility(View.GONE);
+                videoView.setMediaController(videoController);
                 videoView.setVisibility(View.GONE);
-                btn.setVisibility(View.VISIBLE);
-                img2.setVisibility(View.VISIBLE);
+                img.setVisibility(View.VISIBLE);
+                playButton.setVisibility(View.VISIBLE);
             }
         });
-
         setDimension(videoView, m);
 
         // sets the media controller to the videoView
-        videoView.setMediaController(mediaController);
+        videoView.setMediaController(videoController);
 
+        this.videoView = videoView;
+        this.videoView.setVisibility(View.VISIBLE);
         // starts the video
-        videoView.start();
+        this.videoView.start();
     }
 
     @Override
@@ -308,6 +305,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     public void setImageViewAndButton(ImageView img, ImageView playButton) {
         this.img = img;
         this.playButton = playButton;
+        this.img.setVisibility(View.VISIBLE);
+        this.playButton.setVisibility(View.VISIBLE);
     }
 
     private void setDimension(VideoView videoView, Media m) {

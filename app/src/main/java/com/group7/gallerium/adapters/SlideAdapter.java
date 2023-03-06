@@ -93,8 +93,13 @@ public class SlideAdapter extends PagerAdapter {
             duration = view.findViewById(R.id.videoLength);
             duration.setText(m.getDuration());
 
+            video.setOnClickListener((view1)->{
+                mediaItemInterface.showActionBar(trigger);
+                trigger = !trigger;
+            });
+
             playButton.setOnClickListener((playbutton)->{
-                playVideo(video, img2, playButton);
+                // playVideo(video, img2, playButton);
                 mediaItemInterface.showVideoPlayer(video, img2, playButton, duration, m);
                 mediaItemInterface.showActionBar(false);
                 trigger = false;
@@ -109,13 +114,13 @@ public class SlideAdapter extends PagerAdapter {
     }
 
     //TODO add logic to play video
-    void playVideo(VideoView video, ImageView img2, ImageView playButton){
-        // ẩn các image view tên img ở trên
-        // làm hiện các videoThumbnail ở trên
-            img2.setVisibility(View.GONE);
-            video.setVisibility(View.VISIBLE);
-            playButton.setVisibility(View.GONE);
-    }
+//    void playVideo(VideoView video, ImageView img2, ImageView playButton){
+//        // ẩn các image view tên img ở trên
+//        // làm hiện các videoThumbnail ở trên
+//            img2.setVisibility(View.GONE);
+//            video.setVisibility(View.VISIBLE);
+//            playButton.setVisibility(View.GONE);
+//    }
 
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
