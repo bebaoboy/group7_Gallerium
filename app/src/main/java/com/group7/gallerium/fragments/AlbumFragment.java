@@ -24,6 +24,7 @@ import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.ProgressDialogHelper;
+import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -40,6 +41,7 @@ public class AlbumFragment extends Fragment {
 
     private AlbumAdapter adapter;
     private RecyclerView album_rec;
+
 
     public AlbumFragment() {}
 
@@ -101,6 +103,8 @@ public class AlbumFragment extends Fragment {
         return albums;
     }
 
+
+
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
         @Override
         protected void onPreExecute() {
@@ -113,6 +117,7 @@ public class AlbumFragment extends Fragment {
             super.onPostExecute(unused);
             ProgressDialogHelper.dismissDialog();
             album_rec.setAdapter(adapter);
+            album_rec.addOnScrollListener(new ToolbarScrollListener(toolbar));
         }
 
         @Override

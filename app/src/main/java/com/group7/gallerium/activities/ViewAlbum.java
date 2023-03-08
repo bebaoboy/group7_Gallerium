@@ -6,11 +6,18 @@ import android.os.Bundle;
 
 import com.group7.gallerium.R;
 
+import java.util.ArrayList;
+
 public class ViewAlbum extends AppCompatActivity {
+
+    private String albumPath;
+    private ArrayList<String> paths;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_view_album);
     }
+
+
 }

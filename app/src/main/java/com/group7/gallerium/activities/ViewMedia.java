@@ -292,6 +292,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
         this.videoView = videoView;
         this.videoView.setVisibility(View.VISIBLE);
+        this.img.setVisibility(View.GONE);
+        this.playButton.setVisibility(View.GONE);
         // starts the video
         this.videoView.start();
     }

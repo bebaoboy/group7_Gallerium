@@ -63,7 +63,7 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
         Album album = getItem(position);
         if(album == null) return;
 
-        holder.amountPic.setText(String.valueOf(albumList.size()));
+        holder.amountPic.setText(String.valueOf(album.getListMedia().size()));
         holder.albumName.setText(album.getName());
 
         Glide.with(context).load(album.getAvatar().getPath()).into(holder.albumAvatar);
