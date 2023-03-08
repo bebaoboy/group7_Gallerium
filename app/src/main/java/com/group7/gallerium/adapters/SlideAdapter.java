@@ -60,7 +60,7 @@ public class SlideAdapter extends PagerAdapter {
         String path = paths.get(position);
         Log.d("gallerium", path + " " + position);
         // TODO: fix wrong video path
-        Media m = AccessMediaFile.getAllMedia().get(position);
+        Media m = AccessMediaFile.getAllMedia().get(path);
         mediaItemInterface.showActionBar(true);
         trigger = true;
         if (m.getType() == 1) {
@@ -101,6 +101,8 @@ public class SlideAdapter extends PagerAdapter {
 
             playButton.setOnClickListener((playbutton)->{
                 // playVideo(video, img2, playButton);
+                img2.setVisibility(View.GONE);
+                playButton.setVisibility(View.GONE);
                 mediaItemInterface.showVideoPlayer(video, img2, playButton, duration, m);
                 mediaItemInterface.showActionBar(false);
                 trigger = false;

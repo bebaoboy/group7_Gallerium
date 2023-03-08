@@ -76,7 +76,7 @@ public class AlbumFragment extends Fragment {
         GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         album_rec.setLayoutManager(layoutManager);
         adapter = new AlbumAdapter(context);
-        ArrayList<Media> listMediaTemp = (ArrayList<Media>) AccessMediaFile.getAllMedia();
+        ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
         albumList = getAlbum(listMediaTemp);
         adapter.setData(albumList);
     }
@@ -169,7 +169,7 @@ public class AlbumFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = (ArrayList<Media>) AccessMediaFile.getAllMedia();
+            ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
             albumList = getAlbum(listMediaTemp);
             adapter.setData(albumList);
             return null;

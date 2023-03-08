@@ -11,12 +11,13 @@ import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 
 public class AccessMediaFile {
 
-    public static List<Media> allMedia;
-    public static HashMap<String, Boolean> paths = new HashMap<>();
+    //public static List<Media> allMedia;
+    public static HashMap<String, Media> allMedia = new LinkedHashMap<>();
 
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
@@ -48,17 +49,12 @@ public class AccessMediaFile {
     static final String orderBy = MediaStore.Files.FileColumns.DATE_MODIFIED;
     static Uri queryUri = MediaStore.Files.getContentUri("external");
 
-    public static List<Media> getAllMedia() {
+    public static HashMap<String, Media> getAllMedia() {
         return allMedia;
     }
 
     public static Media getMediaWithPath(String path){
-        for(Media media: allMedia){
-            if(media.getPath().equals(path)){
-                return media;
-            }
-        }
-        return null;
+        return allMedia.get(path);
     }
     public static void refreshAllMedia(){
         allMediaPresent = false;
@@ -67,15 +63,10 @@ public class AccessMediaFile {
         addNewestMediaOnly = true;
     }
     public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
-        for(int i=0;i<allMedia.size();i++) {
-            if(allMedia.get(i).getPath().equals(path)) {
-                allMedia.remove(i);
-                break;
-            }
-        }
+        allMedia.remove(path);
     }
 
-    public static List<Media> getAllMediaFromGallery(Context context) {
+    public static HashMap<String, Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
             int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn;
@@ -83,7 +74,7 @@ public class AccessMediaFile {
             String mimeType;
             String absolutePath, id, dateText, title;
             long dateTaken, videoLength=0;
-            List<Media> listMedia = new ArrayList<>();
+            HashMap<String, Media> listMedia = new LinkedHashMap<>();
 
 
             Cursor cursor = context.getApplicationContext().getContentResolver().query(queryUri,
@@ -117,11 +108,10 @@ public class AccessMediaFile {
             while (cursor.moveToNext()) {
                 id = cursor.getString(idColumn);
                 absolutePath = cursor.getString(pathColumn);
-                if (paths.containsKey(absolutePath)) {
+                if (allMedia.containsKey(absolutePath)) {
                     addNewestMediaOnly = false;
                     allMediaPresent = true;
-                    cursor.close();
-                    return allMedia;
+                    break;
                 }
 
                 type = cursor.getInt(typeColumn);
@@ -151,7 +141,7 @@ public class AccessMediaFile {
                     continue;
                 }
                 if (addNewestMediaOnly) {
-                    boolean iscontained = paths.containsKey(media.getPath()); // in the "all media database"
+                    boolean iscontained = allMedia.containsKey(media.getPath()); // in the "all media database"
 //                    for(Media m: allMedia){
 //                        if(m.getPath().equals(media.getPath())){
 //                            iscontained = true;
@@ -161,21 +151,19 @@ public class AccessMediaFile {
                     if (iscontained) {
                         addNewestMediaOnly = false;
                         allMediaPresent = true;
-                        cursor.close();
-                        return allMedia;
+                        break;
                     } else {
                         if (allMedia.size() == count) {
                             addNewestMediaOnly = false;
                             allMediaPresent = true;
                             cursor.close();
-                            return allMedia;
+                            return getAllMedia();
                         }
-                        allMedia.add(0, media);
-                        paths.put(media.getPath(), true);
+                        allMedia.put(media.getPath(), media);
                         //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                     }
                 } else {
-                    listMedia.add(media);
+                    listMedia.put(media.getPath(), media);
 //                    paths.put(media.getPath(), true);
 //                    Log.d("gallerium", "adding new pic" + dateTaken);
                 }
@@ -185,12 +173,12 @@ public class AccessMediaFile {
 
             }
             cursor.close(); // Android Studio suggestion
-            allMedia = listMedia;
+            allMedia.putAll(listMedia);
             addNewestMediaOnly = false;
             allMediaPresent = true;
-            return listMedia;
+            return getAllMedia();
         } else {
-            return allMedia;
+            return getAllMedia();
         }
     }
 }

@@ -127,7 +127,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
-                final Media m = AccessMediaFile.getAllMedia().get(mediaPos);
+                final Media m = AccessMediaFile.getAllMedia().get(mediaPath);
+                assert m != null;
                 setTitleToolbar(m);
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
@@ -310,6 +311,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
         this.videoView = videoView;
         this.videoView.setVisibility(View.VISIBLE);
+        img = img2;
+        playButton = btn;
         this.img.setVisibility(View.GONE);
         this.playButton.setVisibility(View.GONE);
         // starts the video

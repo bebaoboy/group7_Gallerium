@@ -20,6 +20,9 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -59,15 +62,17 @@ public class ViewAlbum extends AppCompatActivity {
     public void onResume() {
         super.onResume();
         Toast.makeText(this, "Resuming", Toast.LENGTH_SHORT).show();
-        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            changeOrientation(6);
-            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-        }
-        else {
-            adapter.setData(getListCategory());
-            album_rec_item.setAdapter(adapter);
-            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-        }
+        adapter.setData(getListCategory());
+        album_rec_item.setAdapter(adapter);
+//        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+//            changeOrientation(6);
+//            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+//        }
+//        else {
+//            adapter.setData(getListCategory());
+//            album_rec_item.setAdapter(adapter);
+//            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+//        }
     }
 
     @Override
@@ -94,8 +99,9 @@ public class ViewAlbum extends AppCompatActivity {
 
     @NonNull
     private List<Category> getListCategory() {
+
         AccessMediaFile.refreshAllMedia();
-        List<Category> categoryList = new ArrayList<>();
+        HashMap<String, Category> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
         Media media;
         List<Media> mediaList = new ArrayList<>();
@@ -106,28 +112,36 @@ public class ViewAlbum extends AppCompatActivity {
         }
 
         try {
-            categoryList.add(new Category(mediaList.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(categoryCount).addMediaToList(mediaList.get(0));
+            categoryList.put(mediaList.get(0).getDateTaken(), new Category(mediaList.get(0).getDateTaken(), new ArrayList<>()));
+            categoryList.get(mediaList.get(0).getDateTaken()).addMediaToList(mediaList.get(0));
             for (int i = 1; i < mediaList.size(); i++) {
-                if (!mediaList.get(i).getDateTaken().equals(mediaList.get(i - 1).getDateTaken())) {
-                    categoryList.add(new Category(mediaList.get(i).getDateTaken(), new ArrayList<>()));
+                if (!categoryList.containsKey(mediaList.get(i).getDateTaken())) {
+                    categoryList.put(mediaList.get(i).getDateTaken(), new Category(mediaList.get(i).getDateTaken(), new ArrayList<>()));
                     categoryCount++;
                 }
-                if(categoryList.get(categoryCount).getList().size() < 60)
-                {
-                    categoryList.get(categoryCount).addMediaToList(mediaList.get(i));
-                } else {
-                    categoryList.add(new Category("", new ArrayList<>()));
-                    categoryCount++;
-                }
+
+                categoryList.get(mediaList.get(i).getDateTaken()).addMediaToList(mediaList.get(i));
             }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
-            return categoryList;
+            var newCatList = new ArrayList<Category>();
+            int partitionSize = 60;
+            for(var cat : categoryList.values()) {
+                cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
+                for (int i = 0; i < cat.getList().size(); i += partitionSize) {
+
+                    newCatList.add(new Category(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
+                            Math.min(i + partitionSize, cat.getList().size())))));
+
+                }
+            }
+
+            return newCatList;
         } catch (Exception e) {
             return null;
         }
+
 
     }
 }

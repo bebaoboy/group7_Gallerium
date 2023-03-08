@@ -26,11 +26,17 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
 import java.util.ArrayList;
+import java.util.Collection;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.LinkedHashMap;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -136,11 +142,11 @@ public class MediaFragment extends Fragment{
 
     ArrayList<String> getListMedia(){
         AccessMediaFile.refreshAllMedia();
-        List<Media> mediaList = AccessMediaFile.getAllMediaFromGallery(getContext());
+        var mediaList = AccessMediaFile.getAllMediaFromGallery(getContext());
         Log.d("List-Media", mediaList.toString());
         long hash = 0;
         Map<Long,ArrayList<String>> map = new HashMap<Long,ArrayList<String>>();
-        for (Media img: mediaList) {
+        for (Media img: mediaList.values()) {
             Bitmap bitmap = BitmapFactory.decodeFile(img.getPath());
             hash = hashBitmap(bitmap);
             if(map.containsKey(hash)){
@@ -176,30 +182,37 @@ public class MediaFragment extends Fragment{
     @NonNull
     private List<Category> getListCategory() {
         AccessMediaFile.refreshAllMedia();
-        List<Category> categoryList = new ArrayList<>();
+        HashMap<String, Category> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
-        listMedia = (ArrayList<Media>) AccessMediaFile.getAllMediaFromGallery(getContext());
+        listMedia = new ArrayList<>(AccessMediaFile.getAllMediaFromGallery(getContext()).values());
 
         try {
-            categoryList.add(new Category(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(categoryCount).addMediaToList(listMedia.get(0));
+            categoryList.put(listMedia.get(0).getDateTaken(), new Category(listMedia.get(0).getDateTaken(), new ArrayList<>()));
+            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
             for (int i = 1; i < listMedia.size(); i++) {
-                if (!listMedia.get(i).getDateTaken().equals(listMedia.get(i - 1).getDateTaken())) {
-                    categoryList.add(new Category(listMedia.get(i).getDateTaken(), new ArrayList<>()));
+                if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
+                    categoryList.put(listMedia.get(i).getDateTaken(), new Category(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                     categoryCount++;
                 }
-                if(categoryList.get(categoryCount).getList().size() < 60)
-                {
-                    categoryList.get(categoryCount).addMediaToList(listMedia.get(i));
-                } else {
-                    categoryList.add(new Category("", new ArrayList<>()));
-                    categoryCount++;
-                }
+
+                categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
             }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
-            return categoryList;
+            var newCatList = new ArrayList<Category>();
+            int partitionSize = 60;
+            for(var cat : categoryList.values()) {
+                cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
+                for (int i = 0; i < cat.getList().size(); i += partitionSize) {
+
+                    newCatList.add(new Category(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
+                            Math.min(i + partitionSize, cat.getList().size())))));
+
+                }
+            }
+
+            return newCatList;
         } catch (Exception e) {
             return null;
         }
