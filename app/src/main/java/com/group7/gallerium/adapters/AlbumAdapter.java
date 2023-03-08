@@ -75,7 +75,7 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
             }
 
             intent.putStringArrayListExtra("media_paths", listPath);
-            intent.putExtra("path_folder", album.getPath());
+            intent.putExtra("folder_path", album.getPath());
             intent.putExtra("name", album.getName());
             intent.putExtra("ok", 1);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);

@@ -60,6 +60,15 @@ public class AccessMediaFile {
     public static List<Media> getAllMedia() {
         return allMedia;
     }
+
+    public static Media getMediaWithPath(String path){
+        for(Media media: allMedia){
+            if(media.getPath().equals(path)){
+                return media;
+            }
+        }
+        return null;
+    }
     public static void refreshAllMedia(){
         allMediaPresent = false;
     }

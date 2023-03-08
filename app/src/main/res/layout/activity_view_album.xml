@@ -6,6 +6,16 @@
     android:layout_height="match_parent"
     tools:context=".activities.ViewAlbum"
     android:orientation="vertical">
+
+    <include
+        android:id="@+id/toolbar_album"
+        layout="@layout/layout_toolbar"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
     <TextView
         android:id="@+id/album_memory_title"
         android:layout_width="match_parent"
@@ -14,15 +24,17 @@
         android:textColor="@color/primary_color_light"
         android:textSize="32sp"
         android:textAlignment="textStart"
-        android:overScrollMode="never"
+        android:overScrollMode="ifContentScrolls"
+        android:layout_margin="10dp"
         />
     <TextView
         android:id="@+id/album_memory_time"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Tháng 6, 2022"
+        android:layout_margin="10dp"
         android:textSize="12sp"
-        android:overScrollMode="never"/>
+        android:overScrollMode="ifContentScrolls"/>
 
     <TextView
         android:id="@+id/album_memory_content"
@@ -30,13 +42,16 @@
         android:layout_height="wrap_content"
         android:text="@string/sample_album_memory_content"
         android:inputType="textMultiLine|none"
-        android:overScrollMode="never"
+        android:layout_marginStart="10dp"
         android:textSize="15sp"
         android:textStyle="italic"
+        android:overScrollMode="ifContentScrolls"
         />
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rec_menu_item"
         android:layout_width="match_parent"
-        android:layout_height="match_parent"/>
+        android:layout_height="match_parent"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+        android:layout_marginBottom="50dp"/>
 
 </LinearLayout>
