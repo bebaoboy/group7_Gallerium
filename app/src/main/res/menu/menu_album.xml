@@ -6,14 +6,14 @@
         android:id="@+id/add_album_tb_item"
         android:enabled="true"
         android:icon="@drawable/ic_add_library"
-        android:title=""
+        android:title="@string/add_album"
         app:showAsAction="always"
         android:tooltipText="@string/add_album"/>
     <item
         android:id="@+id/search_tb_item"
         android:enabled="true"
         android:icon="@drawable/ic_search"
-        android:title=""
+        android:title="@string/search"
         app:showAsAction="ifRoom|collapseActionView"
         android:tooltipText="@string/search"/>
 

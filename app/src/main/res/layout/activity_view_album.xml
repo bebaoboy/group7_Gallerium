@@ -8,7 +8,7 @@
     android:orientation="vertical">
 
     <include
-        android:id="@+id/toolbar_album"
+        android:id="@+id/toolbar_view_album"
         layout="@layout/layout_toolbar"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
@@ -47,11 +47,12 @@
         android:textStyle="italic"
         android:overScrollMode="ifContentScrolls"
         />
+
     <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/rec_menu_item"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        android:layout_marginBottom="50dp"/>
+        android:layout_marginBottom="5dp"
+        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
 </LinearLayout>

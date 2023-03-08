@@ -82,6 +82,10 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(6);
+            } else if(view_pager.getCurrentItem() == 1){
+                var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(6);
             }
 
         }else {
@@ -89,6 +93,10 @@ public class MainActivity extends AppCompatActivity {
             Log.d("orientation-changing", "portrait");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(3);
+            }  else if(view_pager.getCurrentItem() == 1){
+                var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(3);
             }

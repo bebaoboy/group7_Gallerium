@@ -1,5 +1,8 @@
 package com.group7.gallerium.models;
 
+import android.os.Build;
+
+import java.text.SimpleDateFormat;
 import java.util.Locale;
 
 public class Media {
@@ -8,7 +11,7 @@ public class Media {
     private int type;
     private String mimeType; // 1 is image 3 is video
     private String thumbnail;
-    private String dateTaken;
+    private long dateTaken;
 
     private long duration;
     private long size;
@@ -43,10 +46,14 @@ public class Media {
     }
 
     public String getDateTaken() {
+        return new SimpleDateFormat("EEE, dd-MM-yyyy").format(dateTaken);
+    }
+
+    public long getRawDate() {
         return dateTaken;
     }
 
-    public void setDateTaken(String dateTaken) {
+    public void setDateTaken(long dateTaken) {
         this.dateTaken = dateTaken;
     }
 

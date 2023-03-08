@@ -83,8 +83,8 @@ public class ViewAlbum extends AppCompatActivity {
     }
 
     void toolbarSetting(){
-        toolbar = findViewById(R.id.toolbar_album);
-        toolbar.inflateMenu(R.menu.menu_photo);
+        toolbar = findViewById(R.id.toolbar_view_album);
+        toolbar.inflateMenu(R.menu.menu_view_album);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(this, R.style.ToolbarTitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);

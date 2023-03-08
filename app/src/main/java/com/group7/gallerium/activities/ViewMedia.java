@@ -1,5 +1,6 @@
 package com.group7.gallerium.activities;
 
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
@@ -12,6 +13,8 @@ import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
 import android.view.KeyEvent;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.MediaController;
@@ -30,13 +33,14 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.io.File;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
 public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
-
+    private MenuItem favBtn;
     private MediaController videoController;
     private int mediaPos;
     private String mediaPath;
@@ -82,12 +86,23 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     private void toolbarSetting() {
         // Toolbar events
-        toolbar.inflateMenu(R.menu.menu_photo);
+        toolbar.inflateMenu(R.menu.menu_view_photo);
+        favBtn = toolbar.getMenu().findItem(R.id.add_fav);
         toolbar.setTitle("hello");
         toolbar.setTitleTextAppearance(getApplicationContext(), R.style.ToolbarTitleMediaView);
-
+        toolbar.setSubtitleTextAppearance(getApplicationContext(), R.style.ToolbarSubtitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
+        favBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+
+            @Override
+            public boolean onMenuItemClick(@NonNull MenuItem menuItem) {
+                if (menuItem.getItemId() == R.id.add_fav) {
+                        menuItem.setIcon(R.drawable.ic_fav_solid);
+                }
+                return menuItem.isChecked();
+            }
+        });
     }
 
     private void showNavigation(boolean flag) {
@@ -112,7 +127,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
-                setTitleToolbar(mediaPath.substring(mediaPath.lastIndexOf('/') + 1));
+                final Media m = AccessMediaFile.getAllMedia().get(mediaPos);
+                setTitleToolbar(m);
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
                 }
@@ -135,9 +151,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         });
     }
 
-    public void setTitleToolbar(String name) {
+    public void setTitleToolbar(Media m) {
+        var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
         this.mediaName = name;
-        toolbar.setTitle(name);
+        toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
+        toolbar.setSubtitle(name);
     }
 
     public void bottomNavCustom() {

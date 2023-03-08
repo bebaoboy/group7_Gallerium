@@ -27,4 +27,6 @@
     <string name="sample_album_memory_title">Mùa hè của tôi</string>
     <string name="sample_album_memory_content">Bất cứ nơi nào bạn đi, bất kể thời tiết như thế nào, luôn mang theo ánh nắng mặt trời của riêng bạn.</string>
     <string name="view_pager">viewpager</string>
+    <string name="add_fav">Thêm vào yêu thích</string>
+    <string name="change_info">Thay đổi thông tin</string>
 </resources>

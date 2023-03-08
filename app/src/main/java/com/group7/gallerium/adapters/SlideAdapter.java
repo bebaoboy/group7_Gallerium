@@ -59,6 +59,7 @@ public class SlideAdapter extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         String path = paths.get(position);
         Log.d("gallerium", path + " " + position);
+        // TODO: fix wrong video path
         Media m = AccessMediaFile.getAllMedia().get(position);
         mediaItemInterface.showActionBar(true);
         trigger = true;
