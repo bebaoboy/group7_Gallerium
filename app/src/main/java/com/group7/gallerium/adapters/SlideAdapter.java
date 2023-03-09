@@ -31,8 +31,6 @@ public class SlideAdapter extends PagerAdapter {
 
     private MediaItemInterface mediaItemInterface;
 
-    private boolean flag = false;
-
     public void setData(ArrayList<String> paths) {
         this.paths = paths;
         notifyDataSetChanged();
@@ -63,8 +61,10 @@ public class SlideAdapter extends PagerAdapter {
         Media m = AccessMediaFile.getAllMedia().get(path);
         mediaItemInterface.showActionBar(true);
         trigger = true;
+        assert m != null;
+        View view;
         if (m.getType() == 1) {
-            View view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
+            view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
             img = view.findViewById(R.id.imageView);
             img.setMaximumScale(10);
             Glide.with(context).load(path).into(img);
@@ -75,10 +75,9 @@ public class SlideAdapter extends PagerAdapter {
             });
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);
-            return view;
 
         } else {
-            View view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
+            view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
             ImageView img2;
             ImageView playButton;
             img2 =  view.findViewById(R.id.preview_thumbnail);
@@ -112,18 +111,9 @@ public class SlideAdapter extends PagerAdapter {
 
             ViewPager vp = (ViewPager) container;
             vp.addView(view, 0);
-            return view;
         }
+        return view;
     }
-
-    //TODO add logic to play video
-//    void playVideo(VideoView video, ImageView img2, ImageView playButton){
-//        // ẩn các image view tên img ở trên
-//        // làm hiện các videoThumbnail ở trên
-//            img2.setVisibility(View.GONE);
-//            video.setVisibility(View.VISIBLE);
-//            playButton.setVisibility(View.GONE);
-//    }
 
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {

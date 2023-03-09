@@ -13,40 +13,40 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
-import com.group7.gallerium.models.Category;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
-public class CategoryAdapter extends ListAdapter<Category,CategoryAdapter.CategoryViewHolder> {
+public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCategoryAdapter.CategoryViewHolder> {
 
-    public static final DiffUtil.ItemCallback<Category> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<Category>() {
+    public static final DiffUtil.ItemCallback<MediaCategory> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
-                public boolean areItemsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+                public boolean areItemsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
                     return Objects.equals(oldItem.getNameCategory(), newItem.getNameCategory());
                 }
 
                 @Override
-                public boolean areContentsTheSame(@NonNull Category oldItem, @NonNull Category newItem) {
+                public boolean areContentsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
                     return oldItem.getList().size() == newItem.getList().size();
                 }
             };
     private int spanCount = 3;
     private Context context;
-    private List<Category> listCategory;
+    private List<MediaCategory> listMediaCategory;
 
-    public CategoryAdapter(Context context, int count) {
+    public MediaCategoryAdapter(Context context, int count) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = count;
     }
 
-    public void setData(List<Category> listCategory){
-        this.listCategory = listCategory;
-        submitList(listCategory);
+    public void setData(List<MediaCategory> listMediaCategory){
+        this.listMediaCategory = listMediaCategory;
+        submitList(listMediaCategory);
     }
 
     @NonNull
@@ -58,26 +58,26 @@ public class CategoryAdapter extends ListAdapter<Category,CategoryAdapter.Catego
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        Category category = getItem(position);
-        if (category == null)
+        MediaCategory mediaCategory = getItem(position);
+        if (mediaCategory == null)
             return;
 
-        if(category.getNameCategory().isEmpty()) {
+        if(mediaCategory.getNameCategory().isEmpty()) {
             holder.tvNameCategory.setVisibility(View.GONE);
             holder.horizontalLine.setVisibility(View.GONE);
         }
         else {
             holder.tvNameCategory.setVisibility(View.VISIBLE);
             holder.horizontalLine.setVisibility(View.VISIBLE);
-            holder.tvNameCategory.setText(category.getNameCategory());
+            holder.tvNameCategory.setText(mediaCategory.getNameCategory());
         }
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
 
         MediaAdapter mediaAdapter = new MediaAdapter(context.getApplicationContext());
-        mediaAdapter.setListImages((ArrayList<Media>) category.getList());
-        mediaAdapter.setListCategory((ArrayList<Category>) listCategory);
+        mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
+        mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
         holder.rcvPictures.setItemViewCacheSize(24);
     }

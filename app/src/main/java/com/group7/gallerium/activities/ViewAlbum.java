@@ -2,7 +2,6 @@ package com.group7.gallerium.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
-import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
@@ -13,8 +12,8 @@ import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
 
 import com.group7.gallerium.R;
-import com.group7.gallerium.adapters.CategoryAdapter;
-import com.group7.gallerium.models.Category;
+import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
@@ -24,7 +23,6 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Objects;
 
 public class ViewAlbum extends AppCompatActivity {
 
@@ -32,7 +30,7 @@ public class ViewAlbum extends AppCompatActivity {
     private String albumName;
     private ArrayList<String> mediaPaths;
     private Intent intent;
-    private CategoryAdapter adapter;
+    private MediaCategoryAdapter adapter;
     private int spanCount = 3;
 
     private Toolbar toolbar;
@@ -52,9 +50,9 @@ public class ViewAlbum extends AppCompatActivity {
 
         album_rec_item = findViewById(R.id.rec_menu_item);
 
-        adapter = new CategoryAdapter(this, spanCount);
+        adapter = new MediaCategoryAdapter(this, spanCount);
 
-        // album_rec_item.addOnScrollListener(new ToolbarScrollListener(toolbar));
+        album_rec_item.addOnScrollListener(new ToolbarScrollListener(toolbar));
         album_rec_item.setItemViewCacheSize(4);
     }
 
@@ -64,15 +62,15 @@ public class ViewAlbum extends AppCompatActivity {
         Toast.makeText(this, "Resuming", Toast.LENGTH_SHORT).show();
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
-//        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-//            changeOrientation(6);
-//            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-//        }
-//        else {
-//            adapter.setData(getListCategory());
-//            album_rec_item.setAdapter(adapter);
-//            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-//        }
+        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            changeOrientation(6);
+            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        }
+        else {
+            adapter.setData(getListCategory());
+            album_rec_item.setAdapter(adapter);
+            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        }
     }
 
     @Override
@@ -81,7 +79,7 @@ public class ViewAlbum extends AppCompatActivity {
     }
 
     public void changeOrientation(int spanCount) {
-        adapter = new CategoryAdapter(this, spanCount);
+        adapter = new MediaCategoryAdapter(this, spanCount);
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
         //((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -98,10 +96,10 @@ public class ViewAlbum extends AppCompatActivity {
     }
 
     @NonNull
-    private List<Category> getListCategory() {
+    private List<MediaCategory> getListCategory() {
 
         AccessMediaFile.refreshAllMedia();
-        HashMap<String, Category> categoryList = new LinkedHashMap<>();
+        HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
         Media media;
         List<Media> mediaList = new ArrayList<>();
@@ -112,26 +110,23 @@ public class ViewAlbum extends AppCompatActivity {
         }
 
         try {
-            categoryList.put(mediaList.get(0).getDateTaken(), new Category(mediaList.get(0).getDateTaken(), new ArrayList<>()));
+            categoryList.put(mediaList.get(0).getDateTaken(), new MediaCategory(mediaList.get(0).getDateTaken(), new ArrayList<>()));
             categoryList.get(mediaList.get(0).getDateTaken()).addMediaToList(mediaList.get(0));
             for (int i = 1; i < mediaList.size(); i++) {
                 if (!categoryList.containsKey(mediaList.get(i).getDateTaken())) {
-                    categoryList.put(mediaList.get(i).getDateTaken(), new Category(mediaList.get(i).getDateTaken(), new ArrayList<>()));
+                    categoryList.put(mediaList.get(i).getDateTaken(), new MediaCategory(mediaList.get(i).getDateTaken(), new ArrayList<>()));
                     categoryCount++;
                 }
 
                 categoryList.get(mediaList.get(i).getDateTaken()).addMediaToList(mediaList.get(i));
             }
-//            categoryList.forEach(x -> {
-//                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
-//            });
-            var newCatList = new ArrayList<Category>();
+            var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
             for(var cat : categoryList.values()) {
                 cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
 
-                    newCatList.add(new Category(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
+                    newCatList.add(new MediaCategory(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
                             Math.min(i + partitionSize, cat.getList().size())))));
 
                 }
@@ -141,7 +136,5 @@ public class ViewAlbum extends AppCompatActivity {
         } catch (Exception e) {
             return null;
         }
-
-
     }
 }

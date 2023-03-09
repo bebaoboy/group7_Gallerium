@@ -1,5 +1,9 @@
 package com.group7.gallerium.activities;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -46,6 +50,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private String mediaPath;
     private String mediaName;
     private Intent intent;
+
+    private  ActivityResultLauncher<Intent> editResult;
     private ArrayList<String> listPath;
     private MediaItemInterface mediaItemInterface;
     private ViewPager viewPager;
@@ -58,6 +64,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);

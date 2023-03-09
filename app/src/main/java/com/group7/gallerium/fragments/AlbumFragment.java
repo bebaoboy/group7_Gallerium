@@ -2,16 +2,13 @@ package com.group7.gallerium.fragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
-import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
-import android.os.SystemClock;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.ProgressBar;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -23,15 +20,18 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumAdapter;
-import com.group7.gallerium.adapters.CategoryAdapter;
 import com.group7.gallerium.models.Album;
+import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
-import com.group7.gallerium.utilities.ProgressDialogHelper;
-import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
+import java.util.Map;
 import java.util.Objects;
 
 public class AlbumFragment extends Fragment {
@@ -40,6 +40,8 @@ public class AlbumFragment extends Fragment {
     private Context context;
 
     private ArrayList<Album> albumList;
+
+    private ArrayList<AlbumCategory> categoryList;
 
     private AlbumListTask albumListTask;
 
@@ -61,6 +63,10 @@ public class AlbumFragment extends Fragment {
     @Override
     public void onResume() {
         super.onResume();
+        AccessMediaFile.refreshAllMedia();
+        ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
+        albumList = getAllAlbum(listMediaTemp);
+        adapter.setData(albumList);
     }
 
     public void onPause() {
@@ -77,7 +83,7 @@ public class AlbumFragment extends Fragment {
         album_rec.setLayoutManager(layoutManager);
         adapter = new AlbumAdapter(context);
         ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
-        albumList = getAlbum(listMediaTemp);
+        albumList = getAllAlbum(listMediaTemp);
         adapter.setData(albumList);
     }
 
@@ -116,6 +122,8 @@ public class AlbumFragment extends Fragment {
         album_rec.setLayoutManager(layoutManager);
         album_rec.setItemViewCacheSize(3);
         adapter = new AlbumAdapter(context);
+
+        categoryList = new ArrayList<>();
         toolbarSetting();
         return view;
     }
@@ -127,7 +135,7 @@ public class AlbumFragment extends Fragment {
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
     }
 
-    public ArrayList<Album> getAlbum(ArrayList<Media> listMedia){
+    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
 
@@ -152,6 +160,59 @@ public class AlbumFragment extends Fragment {
     }
 
 
+    public void categorizeAlbum() {
+        HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
+        String[] subDir = albumList.get(0).getPath().split("/");
+
+        categoryList.put("", new AlbumCategory("", new ArrayList<>()));
+        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
+        categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+
+        for (Album album : albumList) {
+            String path = album.getPath();
+            subDir = path.split("/");
+
+            if (subDir.length == 6 && (subDir[subDir.length - 1].equals("Camera") || subDir[subDir.length - 1].equals("Screenshots")
+                    || subDir[subDir.length - 1].equals("Video"))) {
+                categoryList.get("").addAlbumToList(album);
+            }
+            else if (subDir.length == 4 || subDir.length == 5){
+                if(subDir[2].equals("DCIM (1)")) {
+                    continue;
+                }
+               else{
+                    categoryList.get("Thêm album").addAlbumToList(album);
+                }
+            }
+
+            if (subDir.length > 6) {
+                categoryList.get("Của tôi").addAlbumToList(album);
+            }
+        }
+
+       AlbumCategory category = categoryList.get("");
+
+        for(int i=0;i<category.getList().size();i++){
+            String[] path1 = category.getList().get(i).getPath().split("/");
+            for(int j=i+1;j<category.getList().size();j++){
+                String[] path2 = category.getList().get(j).getPath().split("/");
+                if(path1[path1.length-1].equals(path2[path2.length-1])){
+                    category.getList().get(i).getListMedia().addAll(category.getList().get(j).getListMedia());
+                    category.getList().remove(j);
+                    categoryList.replace("", category);
+                    break;
+                }
+            }
+        }
+
+        for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
+            Log.d("Key", entry.getKey());
+            for(Album album: entry.getValue().getList()){
+                Log.d("value", album.getPath() + " " + album.getListMedia().size());
+            }
+        }
+
+    }
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
         @Override
@@ -170,7 +231,8 @@ public class AlbumFragment extends Fragment {
         @Override
         protected Void doInBackground(Void... voids) {
             ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
-            albumList = getAlbum(listMediaTemp);
+            albumList = getAllAlbum(listMediaTemp);
+            categorizeAlbum();
             adapter.setData(albumList);
             return null;
         }

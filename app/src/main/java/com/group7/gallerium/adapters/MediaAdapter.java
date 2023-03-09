@@ -19,7 +19,7 @@ import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
-import com.group7.gallerium.models.Category;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
@@ -43,7 +43,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             };
     private List<Media> listMedia;
     private Context context;
-    private List<Category> listCategory;
+    private List<MediaCategory> listMediaCategory;
     private Intent intent;
     private ArrayList<String> listPath;
 
@@ -66,8 +66,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         submitList(listMedia);
     }
 
-    public void setListCategory(ArrayList<Category> categories) {
-        this.listCategory = categories;
+    public void setListCategory(ArrayList<MediaCategory> categories) {
+        this.listMediaCategory = categories;
     }
 
     @NonNull
@@ -138,8 +138,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         @Override
         protected Void doInBackground(Void... voids) {
             listPath = new ArrayList<>();
-            for(int i = 0;i<listCategory.size();i++) {
-                List<Media> listCat = listCategory.get(i).getList();
+            for(int i = 0; i< listMediaCategory.size(); i++) {
+                List<Media> listCat = listMediaCategory.get(i).getList();
                 for (int j = 0; j < listCat.size(); j++) {
                     listPath.add(listCat.get(j).getPath());
                 }

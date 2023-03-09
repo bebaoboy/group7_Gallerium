@@ -19,24 +19,20 @@ import android.view.ViewGroup;
 import android.widget.Toast;
 
 import com.group7.gallerium.R;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
-import com.group7.gallerium.adapters.CategoryAdapter;
-import com.group7.gallerium.models.Category;
+import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
 import java.util.ArrayList;
-import java.util.Collection;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -50,7 +46,7 @@ public class MediaFragment extends Fragment{
 
     private ArrayList<Media> listMedia;
 
-    private CategoryAdapter adapter;
+    private MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
     private int spanCount = 3;
     private int firstVisiblePosition;
@@ -106,7 +102,7 @@ public class MediaFragment extends Fragment{
         context = getContext();
         toolbarSetting();
         //recyclerViewSetting();
-        adapter = new CategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
@@ -119,14 +115,14 @@ public class MediaFragment extends Fragment{
     }
 
     public void changeOrientation(int spanCount) {
-        adapter = new CategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     void recyclerViewSetting(){
-        adapter = new CategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount);
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);
@@ -180,18 +176,18 @@ public class MediaFragment extends Fragment{
     }
 
     @NonNull
-    private List<Category> getListCategory() {
+    private List<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
-        HashMap<String, Category> categoryList = new LinkedHashMap<>();
+        HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
         listMedia = new ArrayList<>(AccessMediaFile.getAllMediaFromGallery(getContext()).values());
 
         try {
-            categoryList.put(listMedia.get(0).getDateTaken(), new Category(listMedia.get(0).getDateTaken(), new ArrayList<>()));
+            categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
             categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
             for (int i = 1; i < listMedia.size(); i++) {
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
-                    categoryList.put(listMedia.get(i).getDateTaken(), new Category(listMedia.get(i).getDateTaken(), new ArrayList<>()));
+                    categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                     categoryCount++;
                 }
 
@@ -200,13 +196,13 @@ public class MediaFragment extends Fragment{
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
-            var newCatList = new ArrayList<Category>();
+            var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
             for(var cat : categoryList.values()) {
                 cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
 
-                    newCatList.add(new Category(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
+                    newCatList.add(new MediaCategory(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
                             Math.min(i + partitionSize, cat.getList().size())))));
 
                 }

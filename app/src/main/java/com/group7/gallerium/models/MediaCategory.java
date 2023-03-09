@@ -1,10 +1,8 @@
 package com.group7.gallerium.models;
 
-import android.media.Image;
-
 import java.util.List;
 
-public class Category {
+public class MediaCategory {
 
     private String nameCategory;
     private List<Media> listMedia;
@@ -27,12 +25,12 @@ public class Category {
 
     public void addMediaToList(Media media){this.listMedia.add(media);}
 
-    public Category(String nameCategory, List<Media> listMedia) {
+    public MediaCategory(String nameCategory, List<Media> listMedia) {
         this.nameCategory = nameCategory;
         this.listMedia = listMedia;
     }
 
-    public Category(List<Media> listMedia) {
+    public MediaCategory(List<Media> listMedia) {
         this.listMedia = listMedia;
     }
 }

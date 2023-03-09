@@ -4,12 +4,11 @@
     android:id="@+id/toolbar"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:paddingVertical="10dp"
+    android:paddingVertical="8dp"
     android:elevation="20sp"
+    app:contentInsetStart="0dp"
+    app:contentInsetLeft="0dp"
     android:minHeight="?attr/actionBarSize"
     android:theme="@style/Toolbar"
-    app:layout_constraintEnd_toEndOf="parent"
-    app:layout_constraintStart_toStartOf="parent"
-    app:layout_constraintTop_toTopOf="parent"
     >
 </androidx.appcompat.widget.Toolbar>
