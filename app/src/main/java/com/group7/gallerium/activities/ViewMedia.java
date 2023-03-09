@@ -105,7 +105,13 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             @Override
             public boolean onMenuItemClick(@NonNull MenuItem menuItem) {
                 if (menuItem.getItemId() == R.id.add_fav) {
+                    if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+                        AccessMediaFile.removeFromFavMedia(mediaPath);
+                        menuItem.setIcon(R.drawable.ic_fav_empty);
+                    } else {
+                        AccessMediaFile.addToFavMedia(mediaPath);
                         menuItem.setIcon(R.drawable.ic_fav_solid);
+                    }
                 }
                 return menuItem.isChecked();
             }
@@ -134,7 +140,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
                 mediaPath = listPath.get(position);
-                final Media m = AccessMediaFile.getAllMedia().get(mediaPath);
+                final Media m = AccessMediaFile.getMediaWithPath(mediaPath);
                 assert m != null;
                 setTitleToolbar(m);
                 if (videoController != null) {
@@ -146,6 +152,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
                 }
+                favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
             }
 
             @Override
@@ -191,7 +198,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 }
 
                 case R.id.delete_nav_item ->{
-                    String type = AccessMediaFile.getAllMedia().get(mediaPos).getType() == 1 ? "Image" : "Video";
+                    String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
 
                     builder.setTitle("Confirm");

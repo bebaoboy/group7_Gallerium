@@ -27,12 +27,15 @@ import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
 import java.util.ArrayList;
+import java.util.Collections;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 public class AlbumFragment extends Fragment {
     private View view;
@@ -64,9 +67,12 @@ public class AlbumFragment extends Fragment {
     public void onResume() {
         super.onResume();
         AccessMediaFile.refreshAllMedia();
-        ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
+        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         albumList = getAllAlbum(listMediaTemp);
+        adapter = new AlbumAdapter(context);
         adapter.setData(albumList);
+        album_rec.setAdapter(adapter);
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     public void onPause() {
@@ -82,9 +88,12 @@ public class AlbumFragment extends Fragment {
         GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         album_rec.setLayoutManager(layoutManager);
         adapter = new AlbumAdapter(context);
-        ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
+        AccessMediaFile.refreshAllMedia();
+        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         albumList = getAllAlbum(listMediaTemp);
         adapter.setData(albumList);
+        album_rec.setAdapter(adapter);
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
 
@@ -94,6 +103,7 @@ public class AlbumFragment extends Fragment {
         albumListTask = new AlbumListTask();
         progressDialog = new ProgressDialog(AlbumFragment.this.getContext());
         progressDialog.setTitle("Loading (0%)");
+        // progressDialog.show();
         new CountDownTimer(delaySecond, delaySecond / 100) {
             int counter = 0;
             @Override
@@ -230,7 +240,7 @@ public class AlbumFragment extends Fragment {
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = new ArrayList<>(AccessMediaFile.getAllMedia().values());
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
             albumList = getAllAlbum(listMediaTemp);
             categorizeAlbum();
             adapter.setData(albumList);

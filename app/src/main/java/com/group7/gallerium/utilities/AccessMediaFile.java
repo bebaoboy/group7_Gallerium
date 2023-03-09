@@ -7,17 +7,26 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
+import androidx.annotation.Nullable;
+
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AccessMediaFile {
 
     //public static List<Media> allMedia;
-    public static HashMap<String, Media> allMedia = new LinkedHashMap<>();
+    private static HashMap<String, Media> allMedia = new HashMap<>();
+    private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
 
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
@@ -49,7 +58,39 @@ public class AccessMediaFile {
     static final String orderBy = MediaStore.Files.FileColumns.DATE_MODIFIED;
     static Uri queryUri = MediaStore.Files.getContentUri("external");
 
-    public static HashMap<String, Media> getAllMedia() {
+    public static void setAllFavMedia(Set<String> paths) {
+        paths.forEach(AccessMediaFile::addToFavMedia);
+    }
+
+    public static void addToFavMedia(String path) {
+        allFavMedia.put(path, false);
+    }
+
+    public static void removeFromFavMedia(String path) {
+        allFavMedia.remove(path);
+    }
+
+    public static List<Media> getAllFavMedia() {
+        return getFavMedia().stream().map(x -> allMedia.get(x)).sorted((x1, x2) -> {
+            if (x1.getRawDate() == x2.getRawDate()) {
+                return 0;
+            } else if (x1.getRawDate() > x2.getRawDate()) {
+                return -1;
+            } else return 1;
+        }).collect(Collectors.toList());
+    }
+
+    public static Set<String> getFavMedia() {
+        var s = allFavMedia.keySet();
+        s.removeIf(x -> !allMedia.containsKey(x));
+        return new HashSet<>(s);
+    }
+
+    public static boolean isFavMediaContains(String path) {
+        return allFavMedia.containsKey(path);
+    }
+
+    private static HashMap<String, Media> getAllMedia() {
         return allMedia;
     }
 
@@ -66,7 +107,21 @@ public class AccessMediaFile {
         allMedia.remove(path);
     }
 
-    public static HashMap<String, Media> getAllMediaFromGallery(Context context) {
+    public static ArrayList<Media> getAllMedia(Context context) {
+        Comparator<Map.Entry<String, Media>> customComparator = (media1, media2) -> {
+            if (media2.getValue().getRawDate() == media1.getValue().getRawDate()) {
+                return 0;
+            } else if (media2.getValue().getRawDate() > media1.getValue().getRawDate()) {
+                return 1;
+            } else return -1;
+        };
+        return getAllMediaFromGallery(context).entrySet()
+                .stream()
+                .sorted(customComparator)
+                .map(Map.Entry::getValue).collect(Collectors.toCollection(ArrayList::new));
+    }
+
+    private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
             int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn;
@@ -74,7 +129,7 @@ public class AccessMediaFile {
             String mimeType;
             String absolutePath, id, dateText, title;
             long dateTaken, videoLength=0;
-            HashMap<String, Media> listMedia = new LinkedHashMap<>();
+            HashMap<String, Media> listMedia = new HashMap<>();
 
 
             Cursor cursor = context.getApplicationContext().getContentResolver().query(queryUri,
@@ -105,6 +160,9 @@ public class AccessMediaFile {
             }
             var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
+            if (cursor.getCount() < allMedia.size()) {
+                allMedia.clear();
+            }
             while (cursor.moveToNext()) {
                 id = cursor.getString(idColumn);
                 absolutePath = cursor.getString(pathColumn);

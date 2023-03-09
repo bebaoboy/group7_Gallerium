@@ -2,11 +2,13 @@ package com.group7.gallerium.activities;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.view.View;
 import android.widget.Toast;
 
 import androidx.appcompat.widget.Toolbar;
@@ -23,6 +25,7 @@ import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Objects;
 
 public class ViewAlbum extends AppCompatActivity {
 
@@ -35,7 +38,8 @@ public class ViewAlbum extends AppCompatActivity {
 
     private Toolbar toolbar;
     private RecyclerView album_rec_item;
-
+    private int firstVisiblePosition;
+    private int offset;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -52,7 +56,7 @@ public class ViewAlbum extends AppCompatActivity {
 
         adapter = new MediaCategoryAdapter(this, spanCount);
 
-        album_rec_item.addOnScrollListener(new ToolbarScrollListener(toolbar));
+        // album_rec_item.addOnScrollListener(new ToolbarScrollListener(toolbar));
         album_rec_item.setItemViewCacheSize(4);
     }
 
@@ -64,12 +68,21 @@ public class ViewAlbum extends AppCompatActivity {
         album_rec_item.setAdapter(adapter);
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
             changeOrientation(6);
-            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
         else {
             adapter.setData(getListCategory());
             album_rec_item.setAdapter(adapter);
-            //((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        }
+    }
+
+    public void onPause() {
+        super.onPause();
+        View firstChild = album_rec_item.getChildAt(0);
+        if (firstChild != null) {
+            firstVisiblePosition = album_rec_item.getChildAdapterPosition(firstChild);
+            offset = firstChild.getTop();
         }
     }
 
@@ -97,8 +110,6 @@ public class ViewAlbum extends AppCompatActivity {
 
     @NonNull
     private List<MediaCategory> getListCategory() {
-
-        AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
         Media media;
@@ -123,7 +134,7 @@ public class ViewAlbum extends AppCompatActivity {
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
             for(var cat : categoryList.values()) {
-                cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
+                //cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
 
                     newCatList.add(new MediaCategory(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,

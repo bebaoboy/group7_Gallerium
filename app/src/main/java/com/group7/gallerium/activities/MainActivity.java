@@ -2,6 +2,7 @@ package com.group7.gallerium.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
@@ -18,6 +19,7 @@ import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
 import com.group7.gallerium.fragments.AlbumFragment;
 import com.group7.gallerium.fragments.MediaFragment;
+import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
 
@@ -145,6 +147,30 @@ public class MainActivity extends AppCompatActivity {
 
             grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
             permission.checkResult(requestCode, permissions, grantResults);
+        }
+    }
+
+    @Override
+    protected void onPause() {
+        super.onPause();
+        var favList = AccessMediaFile.getFavMedia();
+        favList.forEach(x -> Log.d("fav", x));
+        SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", favList);
+        myEdit.apply();
+    }
+
+    @Override
+    protected void onResume() {
+        super.onResume();
+        SharedPreferences mySharedPref = getSharedPreferences("fav_media", MODE_PRIVATE);
+        var favList = mySharedPref.getStringSet("path", null);
+        if (favList != null) {
+            AccessMediaFile.setAllFavMedia(favList);
+            AccessMediaFile.getAllFavMedia().forEach(x -> Log.d("fav", x.getRawDate() + ": " + x.getPath()));
         }
     }
 }

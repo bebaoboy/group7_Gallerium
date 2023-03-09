@@ -33,6 +33,7 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Set;
+import java.util.stream.Collectors;
 
 /**
  * A simple {@link Fragment} subclass.
@@ -136,33 +137,33 @@ public class MediaFragment extends Fragment{
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
     }
 
-    ArrayList<String> getListMedia(){
-        AccessMediaFile.refreshAllMedia();
-        var mediaList = AccessMediaFile.getAllMediaFromGallery(getContext());
-        Log.d("List-Media", mediaList.toString());
-        long hash = 0;
-        Map<Long,ArrayList<String>> map = new HashMap<Long,ArrayList<String>>();
-        for (Media img: mediaList.values()) {
-            Bitmap bitmap = BitmapFactory.decodeFile(img.getPath());
-            hash = hashBitmap(bitmap);
-            if(map.containsKey(hash)){
-                map.get(hash).add(img.getPath());
-            }else{
-                ArrayList<String> list = new ArrayList<>();
-                list.add(img.getPath());
-                map.put(hash,list);
-            }
-        }
-        ArrayList<String> result = new ArrayList<>();
-        Set<Long> set = map.keySet();
-        for (Object key: set) {
-            if(map.get(key).size() >=2){
-
-                result.addAll(map.get(key));
-            }
-        }
-        return result;
-    }
+//    ArrayList<String> getListMedia(){
+//        AccessMediaFile.refreshAllMedia();
+//        var mediaList = AccessMediaFile.getAllMediaFromGallery(getContext());
+//        Log.d("List-Media", mediaList.toString());
+//        long hash = 0;
+//        Map<Long,ArrayList<String>> map = new HashMap<Long,ArrayList<String>>();
+//        for (Media img: mediaList.values()) {
+//            Bitmap bitmap = BitmapFactory.decodeFile(img.getPath());
+//            hash = hashBitmap(bitmap);
+//            if(map.containsKey(hash)){
+//                map.get(hash).add(img.getPath());
+//            }else{
+//                ArrayList<String> list = new ArrayList<>();
+//                list.add(img.getPath());
+//                map.put(hash,list);
+//            }
+//        }
+//        ArrayList<String> result = new ArrayList<>();
+//        Set<Long> set = map.keySet();
+//        for (Object key: set) {
+//            if(map.get(key).size() >=2){
+//
+//                result.addAll(map.get(key));
+//            }
+//        }
+//        return result;
+//    }
 
     public long hashBitmap(Bitmap bmp){
         long hash = 31;
@@ -180,7 +181,7 @@ public class MediaFragment extends Fragment{
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         int categoryCount = 0;
-        listMedia = new ArrayList<>(AccessMediaFile.getAllMediaFromGallery(getContext()).values());
+        listMedia = AccessMediaFile.getAllMedia(getContext());
 
         try {
             categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
@@ -199,7 +200,7 @@ public class MediaFragment extends Fragment{
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
             for(var cat : categoryList.values()) {
-                cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
+                // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
 
                     newCatList.add(new MediaCategory(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,

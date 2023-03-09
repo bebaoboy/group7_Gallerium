@@ -58,7 +58,7 @@ public class SlideAdapter extends PagerAdapter {
         String path = paths.get(position);
         Log.d("gallerium", path + " " + position);
         // TODO: fix wrong video path
-        Media m = AccessMediaFile.getAllMedia().get(path);
+        Media m = AccessMediaFile.getMediaWithPath(path);
         mediaItemInterface.showActionBar(true);
         trigger = true;
         assert m != null;

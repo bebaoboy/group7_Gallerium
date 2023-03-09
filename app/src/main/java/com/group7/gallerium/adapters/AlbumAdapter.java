@@ -30,7 +30,8 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
             new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Album oldItem, @NonNull Album newItem) {
-                    return Objects.equals(oldItem.getPath(), newItem.getPath());
+                    return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
+                            oldItem.getListMedia().size() == newItem.getListMedia().size();
                 }
 
                 @Override
