@@ -26,6 +26,7 @@ import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
 import java.util.Collections;
@@ -38,7 +39,7 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
 
-public class AlbumFragment extends Fragment {
+public class AlbumFragment extends Fragment{
     private View view;
     private Toolbar toolbar;
     private Context context;
@@ -310,6 +311,7 @@ public class AlbumFragment extends Fragment {
             }
         }
     }
+
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
         @Override

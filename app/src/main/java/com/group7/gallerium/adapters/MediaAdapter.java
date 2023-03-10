@@ -7,6 +7,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.RadioButton;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
@@ -21,6 +22,7 @@ import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -41,20 +43,28 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     return Objects.equals(oldItem.getTitle(), newItem.getTitle());
                 }
             };
+    private SelectMediaInterface selecteMediaInterface;
     private List<Media> listMedia;
     private Context context;
     private List<MediaCategory> listMediaCategory;
     private Intent intent;
     private ArrayList<String> listPath;
 
-    public MediaAdapter(Context context) {
+    private boolean isMultipleEnabled = false;
+    private boolean isSelected = false;
+    private ArrayList<Media> selectedMedia;
+
+    public MediaAdapter(Context context, SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
+        this.selecteMediaInterface = selectMediaInterface;
+        selectedMedia = new ArrayList<>();
     }
 
     protected MediaAdapter() {
         super(DIFF_CALLBACK);
     }
+
 
     public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
@@ -107,23 +117,54 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
 
         holder.image.setOnClickListener((view -> {
-            intent = new Intent(context, ViewMedia.class);
-            navAsyncTask navAsyncTask = new navAsyncTask();
-            navAsyncTask.setPos(position);
-            navAsyncTask.execute();
+            if(isMultipleEnabled) {
+                if (selectedMedia.contains(media)) {
+                    holder.select.setVisibility(View.GONE);
+                    isSelected = false;
+                    if (selectedMedia.isEmpty()) {
+                        // Create interface to hide menu
+                        isMultipleEnabled = false;
+                    }
+                } else if (isMultipleEnabled) {
+                    selectItem(holder, media, position);
+                    holder.select.setChecked(isSelected);
+                    isSelected = !isSelected;
+                }
+            }else {
+                intent = new Intent(context, ViewMedia.class);
+                navAsyncTask navAsyncTask = new navAsyncTask();
+                navAsyncTask.setPos(position);
+                navAsyncTask.execute();
+            }
         }));
 
+        holder.image.setOnLongClickListener((view -> {
+           selectItem(holder, media, position);
+           selecteMediaInterface.showAllSelect();
+           return true;
+        }));
+
+    }
+
+
+    private void selectItem(MediaViewHolder holder, Media media, int position) {
+        isMultipleEnabled = true;
+        selectedMedia.add(media);
+        isSelected = true;
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {
         ImageView image;
         ImageView fav_icon;
         ImageView play_icon;
+
+        RadioButton select;
         MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
             play_icon = itemView.findViewById(R.id.play_video_button_child);
+            select = itemView.findViewById(R.id.selectButton);
         }
     }
 

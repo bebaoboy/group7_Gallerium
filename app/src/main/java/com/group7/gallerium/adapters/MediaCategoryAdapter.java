@@ -13,8 +13,10 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
+import com.group7.gallerium.activities.ViewAlbum;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -22,6 +24,8 @@ import java.util.Objects;
 
 public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCategoryAdapter.CategoryViewHolder> {
 
+    private MediaAdapter mediaAdapter;
+    private SelectMediaInterface selectMediaInterface;
     public static final DiffUtil.ItemCallback<MediaCategory> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
@@ -38,10 +42,17 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     private Context context;
     private List<MediaCategory> listMediaCategory;
 
-    public MediaCategoryAdapter(Context context, int count) {
+    public MediaCategoryAdapter(Context context, int count, SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = count;
+        this.selectMediaInterface = selectMediaInterface;
+    }
+
+    public MediaCategoryAdapter(ViewAlbum context, int spanCount) {
+        super(DIFF_CALLBACK);
+        this.context = context;
+        this.spanCount = spanCount;
     }
 
     public void setData(List<MediaCategory> listMediaCategory){
@@ -61,7 +72,6 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         MediaCategory mediaCategory = getItem(position);
         if (mediaCategory == null)
             return;
-
         if(mediaCategory.getNameCategory().isEmpty()) {
             holder.tvNameCategory.setVisibility(View.GONE);
             holder.horizontalLine.setVisibility(View.GONE);
@@ -75,11 +85,15 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
 
-        MediaAdapter mediaAdapter = new MediaAdapter(context.getApplicationContext());
+        mediaAdapter = new MediaAdapter(context.getApplicationContext(), this.selectMediaInterface);
         mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
         holder.rcvPictures.setItemViewCacheSize(24);
+    }
+
+    public void showAllChecker(){
+
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

@@ -20,6 +20,7 @@ import android.widget.Toast;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.MediaCategory;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
@@ -40,7 +41,7 @@ import java.util.stream.Collectors;
  * Use the {@link MediaFragment#} factory method to
  * create an instance of this fragment.
  */
-public class MediaFragment extends Fragment{
+public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
     private Context context;
@@ -103,7 +104,7 @@ public class MediaFragment extends Fragment{
         context = getContext();
         toolbarSetting();
         //recyclerViewSetting();
-        adapter = new MediaCategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
@@ -116,14 +117,14 @@ public class MediaFragment extends Fragment{
     }
 
     public void changeOrientation(int spanCount) {
-        adapter = new MediaCategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     void recyclerViewSetting(){
-        adapter = new MediaCategoryAdapter(getContext(), spanCount);
+        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);
@@ -214,5 +215,17 @@ public class MediaFragment extends Fragment{
             return null;
         }
 
+    }
+
+    @Override
+    public void showAllSelect() {
+        for (int childCount = recyclerView.getChildCount(), i = 0; i < childCount; ++i) {
+            View child = recyclerView.getChildAt(i);
+            RecyclerView rec_temp = recyclerView.getChildViewHolder(child).itemView.findViewById(R.id.photos_recview);
+            for(int childCount1 = rec_temp.getChildCount(), j = 0; j < childCount1        ; ++j){
+                View child1 = rec_temp.getChildAt(j);
+                rec_temp.getChildViewHolder(child1).itemView.findViewById(R.id.selectButton).setVisibility(View.VISIBLE);
+            }
+        }
     }
 }

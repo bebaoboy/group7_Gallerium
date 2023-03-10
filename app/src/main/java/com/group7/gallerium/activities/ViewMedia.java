@@ -346,6 +346,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         this.playButton.setVisibility(View.VISIBLE);
     }
 
+
     private void setDimension(VideoView videoView, Media m) {
         // Adjust the size of the video
         // so it fits on the screen
