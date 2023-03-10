@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumAdapter;
+import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
@@ -44,11 +45,11 @@ public class AlbumFragment extends Fragment {
 
     private ArrayList<Album> albumList;
 
-    private ArrayList<AlbumCategory> categoryList;
+    private ArrayList<AlbumCategory> albumCategories;
 
     private AlbumListTask albumListTask;
 
-    private AlbumAdapter adapter;
+    private AlbumCategoryAdapter adapter;
     private RecyclerView album_rec;
     long delaySecond = 2000;
     ProgressDialog progressDialog;
@@ -70,8 +71,8 @@ public class AlbumFragment extends Fragment {
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         albumList = getAllAlbum(listMediaTemp);
         categorizeAlbum();
-        adapter = new AlbumAdapter(context);
-        adapter.setData(albumList);
+        adapter = new AlbumCategoryAdapter(context, 3);
+        adapter.setData(albumCategories);
         album_rec.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
@@ -88,12 +89,12 @@ public class AlbumFragment extends Fragment {
     public void changeOrientation(int spanCount) {
         GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         album_rec.setLayoutManager(layoutManager);
-        adapter = new AlbumAdapter(context);
+        adapter = new AlbumCategoryAdapter(context, 3);
         AccessMediaFile.refreshAllMedia();
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         categorizeAlbum();
         albumList = getAllAlbum(listMediaTemp);
-        adapter.setData(albumList);
+        adapter.setData(albumCategories);
         album_rec.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
@@ -130,12 +131,12 @@ public class AlbumFragment extends Fragment {
         context = getContext();
         toolbar = view.findViewById(R.id.toolbar_album);
         album_rec = view.findViewById(R.id.album_recyclerview);
-        GridLayoutManager layoutManager = new GridLayoutManager(context, 3);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, 1);
         album_rec.setLayoutManager(layoutManager);
         album_rec.setItemViewCacheSize(3);
-        adapter = new AlbumAdapter(context);
+        adapter = new AlbumCategoryAdapter(context, 3);
 
-        categoryList = new ArrayList<>();
+        albumCategories = new ArrayList<>();
         toolbarSetting();
         return view;
     }
@@ -199,7 +200,7 @@ public class AlbumFragment extends Fragment {
         String[] subDir = albumList.get(0).getPath().split("/");
 
 
-        categoryList.put("Mặc định", new AlbumCategory("", new ArrayList<>()));
+        categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
 
@@ -292,11 +293,20 @@ public class AlbumFragment extends Fragment {
 //            }
 //        }
         albumList.clear();
+        albumCategories.clear();
         for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
-            Log.d("Key", entry.getKey());
+           // Log.d("Key", entry.getKey());
+            albumCategories.add(entry.getValue());
             for(Album album: entry.getValue().getList()){
                 albumList.add(album);
-                Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
+                //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
+            }
+        }
+
+        for(AlbumCategory ab: albumCategories){
+            Log.d("alb cat name", ab.getNameCategory());
+            for(Album album: ab.getList()){
+                Log.d("album list", album.getName());
             }
         }
     }
@@ -320,7 +330,7 @@ public class AlbumFragment extends Fragment {
             ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
             albumList = getAllAlbum(listMediaTemp);
             categorizeAlbum();
-            adapter.setData(albumList);
+            adapter.setData(albumCategories);
             return null;
         }
     }
