@@ -54,6 +54,11 @@ public class Album {
         this.listMedia = new ArrayList<>();
     }
 
+    public Album(String name) {
+        this.name = name;
+        this.listMedia = new ArrayList<>();
+    }
+
     public String getPath() {
         return path;
     }

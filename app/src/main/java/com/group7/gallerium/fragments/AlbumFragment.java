@@ -69,6 +69,7 @@ public class AlbumFragment extends Fragment {
         AccessMediaFile.refreshAllMedia();
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         albumList = getAllAlbum(listMediaTemp);
+        categorizeAlbum();
         adapter = new AlbumAdapter(context);
         adapter.setData(albumList);
         album_rec.setAdapter(adapter);
@@ -90,6 +91,7 @@ public class AlbumFragment extends Fragment {
         adapter = new AlbumAdapter(context);
         AccessMediaFile.refreshAllMedia();
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+        categorizeAlbum();
         albumList = getAllAlbum(listMediaTemp);
         adapter.setData(albumList);
         album_rec.setAdapter(adapter);
@@ -149,6 +151,28 @@ public class AlbumFragment extends Fragment {
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
 
+        Album video = new Album("Video");
+        Album image = new Album("Ảnh");
+        for(var media : listMedia) {
+            if(media.getType() == 1){
+                image.addMedia(media);
+            }else if(media.getType() == 3){
+                video.addMedia(media);
+            }
+        }
+        if(image.getListMedia().size()>0) {
+            image.setAvatar(image.getListMedia().get(0));
+        }
+        if(video.getListMedia().size()>0) {
+            video.setAvatar(video.getListMedia().get(0));
+        }
+        image.setPath("/internal/DCIM/Ảnh");
+        video.setPath("/internal/DCIM/Video");
+        paths.add(image.getPath());
+        paths.add(video.getPath());
+        albums.add(image);
+        albums.add(video);
+
         for (int i = 0; i < listMedia.size(); i++) {
             String[] subDirectories = listMedia.get(i).getPath().split("/");
             String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
@@ -174,54 +198,107 @@ public class AlbumFragment extends Fragment {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
         String[] subDir = albumList.get(0).getPath().split("/");
 
-        categoryList.put("", new AlbumCategory("", new ArrayList<>()));
+
+        categoryList.put("Mặc định", new AlbumCategory("", new ArrayList<>()));
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+
+//        categoryList.get("Mặc định").getList().add(image);
+//        categoryList.get("Mặc định").getList().add(video);
 
         for (Album album : albumList) {
             String path = album.getPath();
             subDir = path.split("/");
-
-            if (subDir.length == 6 && (subDir[subDir.length - 1].equals("Camera") || subDir[subDir.length - 1].equals("Screenshots")
-                    || subDir[subDir.length - 1].equals("Video"))) {
-                categoryList.get("").addAlbumToList(album);
-            }
-            else if (subDir.length == 4 || subDir.length == 5){
-                if(subDir[2].equals("DCIM (1)")) {
-                    continue;
+            String catName = "";
+            String parent = subDir[subDir.length - 1];
+            if(subDir.length>=2) {
+                parent = subDir[subDir.length - 2];
+                if (parent.equals("DCIM")) {
+                    if (subDir[subDir.length - 1].equals("Camera")
+                            || subDir[subDir.length - 1].equals("Screenshots")
+                            || subDir[subDir.length - 1].equals("Ảnh")
+                            || subDir[subDir.length - 1].equals("Video") ) {
+                        //categoryList.get("Mặc định").addAlbumToList(album);
+                        catName = "Mặc định";
+                    }
+                } else if (parent.equals("owner")) {
+                    //categoryList.get("Của tôi").addAlbumToList(album);
+                    catName = "Của tôi";
                 }
-               else{
-                    categoryList.get("Thêm album").addAlbumToList(album);
-                }
             }
 
-            if (subDir.length > 6) {
-                categoryList.get("Của tôi").addAlbumToList(album);
+            if (catName.length() == 0) {
+
+                catName = "Thêm album";
             }
-        }
 
-       AlbumCategory category = categoryList.get("");
-
-        for(int i=0;i<category.getList().size();i++){
-            String[] path1 = category.getList().get(i).getPath().split("/");
-            for(int j=i+1;j<category.getList().size();j++){
-                String[] path2 = category.getList().get(j).getPath().split("/");
-                if(path1[path1.length-1].equals(path2[path2.length-1])){
-                    category.getList().get(i).getListMedia().addAll(category.getList().get(j).getListMedia());
-                    category.getList().remove(j);
-                    categoryList.replace("", category);
+            boolean needToMerge = false;
+            for(Album album1: categoryList.get(catName).getList()){
+                if (!album.getPath().equals(album1.getPath()) && album.getName().equalsIgnoreCase(album1.getName()))
+                {
+                    String path1 = album1.getPath();
+                    String[] subDir1 = path1.split("/");
+                    String parent1 = subDir1[subDir1.length - 2];
+                    if (parent1.equalsIgnoreCase(parent))
+                    {
+                        Log.d("merge", "merging " + album.getPath() + " and " + album1.getPath());
+                        album1.getListMedia().addAll(album.getListMedia());
+                        album1.setListMedia(
+                                new ArrayList<>(album1.getListMedia()
+                                .stream()
+                                .sorted(Comparator.comparingLong(Media::getRawDate).reversed())
+                                .collect(Collectors.toList())));
+                        needToMerge = true;
+                    }
+                    else
+                    {
+                        album.setName(album1.getName() + " (" + parent + ")");
+                    }
                     break;
                 }
             }
+
+            if (!needToMerge)
+            {
+                categoryList.get(catName).addAlbumToList(album);
+            }
+
+//            if (subDir.length == 6 && (subDir[subDir.length - 1].equals("Camera")
+//                    || subDir[subDir.length - 1].equals("Screenshots")
+//                    || subDir[subDir.length - 1].equals("Video"))) {
+//                categoryList.get("").addAlbumToList(album);
+//            }
+//            else if (subDir.length == 4 || subDir.length == 5){
+//                categoryList.get("Thêm album").addAlbumToList(album);
+//            }
+//
+//            if (subDir.length > 6 || subDir[subDir.length-2] == "owner") {
+//                categoryList.get("Của tôi").addAlbumToList(album);
+//            }
         }
 
+//       AlbumCategory category = categoryList.get("");
+//
+//        for(int i=0;i<category.getList().size();i++){
+//            String[] path1 = category.getList().get(i).getPath().split("/");
+//            for(int j=i+1;j<category.getList().size();j++){
+//                String[] path2 = category.getList().get(j).getPath().split("/");
+//                if(path1[path1.length-1].equals(path2[path2.length-1])){
+//                    category.getList().get(i).getListMedia().addAll(category.getList().get(j).getListMedia());
+//                    category.getList().remove(j);
+//                    categoryList.replace("", category);
+//                    break;
+//                }
+//            }
+//        }
+        albumList.clear();
         for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
             Log.d("Key", entry.getKey());
             for(Album album: entry.getValue().getList()){
-                Log.d("value", album.getPath() + " " + album.getListMedia().size());
+                albumList.add(album);
+                Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
             }
         }
-
     }
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
