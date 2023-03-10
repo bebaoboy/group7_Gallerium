@@ -27,6 +27,8 @@ public class AccessMediaFile {
     //public static List<Media> allMedia;
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
+    private static ArrayList<Media> cacheAllMedia = new ArrayList<>();
+    private static boolean cached = false;
 
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
@@ -108,17 +110,24 @@ public class AccessMediaFile {
     }
 
     public static ArrayList<Media> getAllMedia(Context context) {
-        Comparator<Map.Entry<String, Media>> customComparator = (media1, media2) -> {
-            if (media2.getValue().getRawDate() == media1.getValue().getRawDate()) {
-                return 0;
-            } else if (media2.getValue().getRawDate() > media1.getValue().getRawDate()) {
-                return 1;
-            } else return -1;
-        };
-        return getAllMediaFromGallery(context).entrySet()
-                .stream()
-                .sorted(customComparator)
-                .map(Map.Entry::getValue).collect(Collectors.toCollection(ArrayList::new));
+        Log.d("CACHED", String.valueOf(cached));
+        var temp = getAllMediaFromGallery(context);
+        if (!cached) {
+            cacheAllMedia.clear();
+            Comparator<Map.Entry<String, Media>> customComparator = (media1, media2) -> {
+                if (media2.getValue().getRawDate() == media1.getValue().getRawDate()) {
+                    return 0;
+                } else if (media2.getValue().getRawDate() > media1.getValue().getRawDate()) {
+                    return 1;
+                } else return -1;
+            };
+            cached = true;
+            cacheAllMedia = temp.entrySet()
+                    .stream()
+                    .sorted(customComparator)
+                    .map(Map.Entry::getValue).collect(Collectors.toCollection(ArrayList::new));
+        }
+        return cacheAllMedia;
     }
 
     private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
@@ -161,6 +170,7 @@ public class AccessMediaFile {
             var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
             if (cursor.getCount() < allMedia.size()) {
+                cached = false;
                 allMedia.clear();
             }
             while (cursor.moveToNext()) {
@@ -218,10 +228,12 @@ public class AccessMediaFile {
                             return getAllMedia();
                         }
                         allMedia.put(media.getPath(), media);
+                        cached = false;
                         //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                     }
                 } else {
                     listMedia.put(media.getPath(), media);
+                    cached = false;
 //                    paths.put(media.getPath(), true);
 //                    Log.d("gallerium", "adding new pic" + dateTaken);
                 }
@@ -234,6 +246,7 @@ public class AccessMediaFile {
             allMedia.putAll(listMedia);
             addNewestMediaOnly = false;
             allMediaPresent = true;
+            cached = false;
             return getAllMedia();
         } else {
             return getAllMedia();
