@@ -10,6 +10,9 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.fragments.MediaFragment;
+
 public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
 
     private final Toolbar toolbar;
@@ -82,5 +85,6 @@ public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
             recyclerView.stopNestedScroll();
             recyclerView.stopScroll();
         }
+
     }
 }

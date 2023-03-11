@@ -3,9 +3,11 @@ package com.group7.gallerium.adapters;
 import android.content.Context;
 import android.content.Intent;
 import android.os.AsyncTask;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CheckBox;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 
@@ -30,7 +32,6 @@ import java.util.List;
 import java.util.Objects;
 
 public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolder> {
-
     public static final DiffUtil.ItemCallback<Media> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<Media>() {
                 @Override
@@ -51,8 +52,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private ArrayList<String> listPath;
 
     private boolean isMultipleEnabled = false;
-    private boolean isSelected = false;
     private ArrayList<Media> selectedMedia;
+
+    public void setMultipleEnabled(boolean value){
+        isMultipleEnabled = true;
+        notifyDataSetChanged();
+    }
 
     public MediaAdapter(Context context, SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
@@ -68,11 +73,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
     public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
-
-//        for (Media media1: media
-//             ) {
-//            Log.d("Thumbnail-d", media1.getThumbnail());
-//        }
         submitList(listMedia);
     }
 
@@ -84,8 +84,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     @Override
     public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-
         return new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
+    }
+
+    @Override
+    public void onViewAttachedToWindow(@NonNull MediaViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        Log.d("Attached", "" + holder.getBindingAdapterPosition());
+        if(isMultipleEnabled){
+            holder.select.setVisibility(View.VISIBLE);
+        }
     }
 
     @Override
@@ -118,17 +126,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
-                if (selectedMedia.contains(media)) {
-                    holder.select.setVisibility(View.GONE);
-                    isSelected = false;
-                    if (selectedMedia.isEmpty()) {
-                        // Create interface to hide menu
-                        isMultipleEnabled = false;
-                    }
-                } else if (isMultipleEnabled) {
-                    selectItem(holder, media, position);
-                    holder.select.setChecked(isSelected);
-                    isSelected = !isSelected;
+                if(holder.select.isSelected()){
+                    holder.select.setChecked(false);
+                }else{
+                    holder.select.setChecked(true);
                 }
             }else {
                 intent = new Intent(context, ViewMedia.class);
@@ -150,7 +151,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private void selectItem(MediaViewHolder holder, Media media, int position) {
         isMultipleEnabled = true;
         selectedMedia.add(media);
-        isSelected = true;
+        holder.select.setChecked(true);
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {
@@ -158,7 +159,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView fav_icon;
         ImageView play_icon;
 
-        RadioButton select;
+        CheckBox select;
         MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);

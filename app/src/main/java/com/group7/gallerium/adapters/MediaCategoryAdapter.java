@@ -1,6 +1,7 @@
 package com.group7.gallerium.adapters;
 
 import android.content.Context;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -26,6 +27,9 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
 
     private MediaAdapter mediaAdapter;
     private SelectMediaInterface selectMediaInterface;
+
+    private int lastBound = -1;
+    private int lastDetach = -1;
     public static final DiffUtil.ItemCallback<MediaCategory> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
@@ -41,6 +45,20 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     private int spanCount = 3;
     private Context context;
     private List<MediaCategory> listMediaCategory;
+
+    private boolean isMultipleEnabled = false;
+
+    public int getLastBound(){
+        return lastBound;
+    }
+    public int getLastDetach(){
+        return  lastDetach;
+    }
+    public void setMultipleEnabled(boolean value){
+        isMultipleEnabled = value;
+        notifyDataSetChanged();
+    }
+
 
     public MediaCategoryAdapter(Context context, int count, SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
@@ -69,6 +87,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
+        lastBound = position;
         MediaCategory mediaCategory = getItem(position);
         if (mediaCategory == null)
             return;
@@ -92,8 +111,14 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         holder.rcvPictures.setItemViewCacheSize(24);
     }
 
-    public void showAllChecker(){
-
+    @Override
+    public void onViewAttachedToWindow(@NonNull CategoryViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        if(isMultipleEnabled){
+            if(mediaAdapter != null){
+                mediaAdapter.setMultipleEnabled(true);
+            }
+        }
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{
