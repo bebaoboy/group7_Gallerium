@@ -8,6 +8,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.CheckBox;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 import android.widget.RadioButton;
 
@@ -24,6 +25,7 @@ import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
@@ -51,8 +53,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private Intent intent;
     private ArrayList<String> listPath;
 
-    private boolean isMultipleEnabled = false;
     private ArrayList<Media> selectedMedia;
+    private boolean isMultipleEnabled = false;
 
     public void setMultipleEnabled(boolean value){
         isMultipleEnabled = true;
@@ -63,7 +65,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         super(DIFF_CALLBACK);
         this.context = context;
         this.selecteMediaInterface = selectMediaInterface;
-        selectedMedia = new ArrayList<>();
     }
 
     protected MediaAdapter() {
@@ -91,9 +92,22 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     public void onViewAttachedToWindow(@NonNull MediaViewHolder holder) {
         super.onViewAttachedToWindow(holder);
         Log.d("Attached", "" + holder.getBindingAdapterPosition());
+
         if(isMultipleEnabled){
             holder.select.setVisibility(View.VISIBLE);
+            if(selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))){
+                holder.select.setChecked(true);
+                Log.d("Contained", "false");
+            }else{
+                holder.select.setChecked(false);
+                Log.d("Contained", "false");
+            }
         }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull MediaViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
     }
 
     @Override
@@ -106,6 +120,11 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         Media media = getItem(position);
         if (media == null) {
             return;
+        }
+
+        if(selectedMedia != null) {
+            Log.d("selected media size", " " + selectedMedia.size());
+            holder.select.setChecked(selectedMedia.contains(media));
         }
         // Log.d("gallerium", media.getMimeType());
         String[] gifList = {"image/gif"};
@@ -121,15 +140,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     .into(holder.image);
         }
 
-
         if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
 
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
                 if(holder.select.isSelected()){
                     holder.select.setChecked(false);
+                    selecteMediaInterface.deleteFromSelectedList(media);
                 }else{
                     holder.select.setChecked(true);
+                    selecteMediaInterface.addToSelectedList(media);
                 }
             }else {
                 intent = new Intent(context, ViewMedia.class);
@@ -140,18 +160,22 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }));
 
         holder.image.setOnLongClickListener((view -> {
-           selectItem(holder, media, position);
+            holder.select.setVisibility(View.VISIBLE);
+            holder.select.setChecked(true);
            selecteMediaInterface.showAllSelect();
            return true;
         }));
 
+        holder.select.setOnClickListener((view)->{
+            if(((CompoundButton) view).isChecked()){
+                selecteMediaInterface.addToSelectedList(media);
+            }else{
+                selecteMediaInterface.deleteFromSelectedList(media);
+            }
+        });
     }
-
-
-    private void selectItem(MediaViewHolder holder, Media media, int position) {
-        isMultipleEnabled = true;
-        selectedMedia.add(media);
-        holder.select.setChecked(true);
+    public void setSelectedList(ArrayList<Media> list) {
+        selectedMedia = list;
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {

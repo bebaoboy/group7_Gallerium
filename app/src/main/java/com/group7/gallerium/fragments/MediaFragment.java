@@ -48,11 +48,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private ArrayList<Media> listMedia;
 
+    private ArrayList<Media> selectedMedia;
+
     private MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
     private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
+
+    private boolean isMultipleEnabled = false;
 
     public MediaFragment() {
 
@@ -219,15 +223,23 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     @Override
     public void showAllSelect() {
-//        for (int childCount = recyclerView.getChildCount(), i = 0; i < childCount; ++i) {
-//            View child = recyclerView.getChildAt(i);
-//            RecyclerView rec_temp = recyclerView.getChildViewHolder(child).itemView.findViewById(R.id.photos_recview);
-//            for(int childCount1 = rec_temp.getChildCount(), j = 0; j < childCount1; ++j){
-//                Log.d("num item","" + childCount1);
-//                View child1 = rec_temp.getChildAt(j);
-//                rec_temp.getChildViewHolder(child1).itemView.findViewById(R.id.selectButton).setVisibility(View.VISIBLE);
-//            }
-//        }
         adapter.setMultipleEnabled(true);
+        selectedMedia = new ArrayList<>();
+    }
+
+    @Override
+    public void addToSelectedList(Media media) {
+        selectedMedia.add(media);
+        Log.d("size outer", "" + selectedMedia.size());
+    }
+    @Override
+    public ArrayList<Media> getSelectedList() {
+        return selectedMedia;
+    }
+
+    @Override
+    public void deleteFromSelectedList(Media media) {
+        selectedMedia.remove(media);
+        Log.d("size outer", "" + selectedMedia.size());
     }
 }

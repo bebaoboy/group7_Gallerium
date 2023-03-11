@@ -62,8 +62,7 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
     @Override
     public void onBindViewHolder(@NonNull AlbumViewHolder holder, int position) {
         Album album = getItem(position);
-        if(album == null) return;
-
+        if(Objects.equals(album,null)) return;
         holder.amountPic.setText(String.valueOf(album.getListMedia().size()));
         holder.albumName.setText(album.getName());
 

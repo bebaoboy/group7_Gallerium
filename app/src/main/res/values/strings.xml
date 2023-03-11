@@ -29,4 +29,5 @@
     <string name="view_pager">viewpager</string>
     <string name="add_fav">Thêm vào yêu thích</string>
     <string name="change_info">Thay đổi thông tin</string>
+    <string name="select_all">Chọn tất cả</string>
 </resources>

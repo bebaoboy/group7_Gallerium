@@ -15,8 +15,8 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewAlbum;
-import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
@@ -27,8 +27,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
 
     private MediaAdapter mediaAdapter;
     private SelectMediaInterface selectMediaInterface;
-
-    private int lastBound = -1;
+    private final int lastBound = -1;
     private int lastDetach = -1;
     public static final DiffUtil.ItemCallback<MediaCategory> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<MediaCategory>() {
@@ -59,7 +58,6 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         notifyDataSetChanged();
     }
 
-
     public MediaCategoryAdapter(Context context, int count, SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
@@ -87,7 +85,6 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
 
     @Override
     public void onBindViewHolder(@NonNull CategoryViewHolder holder, int position) {
-        lastBound = position;
         MediaCategory mediaCategory = getItem(position);
         if (mediaCategory == null)
             return;
@@ -117,6 +114,9 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         if(isMultipleEnabled){
             if(mediaAdapter != null){
                 mediaAdapter.setMultipleEnabled(true);
+                ArrayList<Media> selectedMedia = selectMediaInterface.getSelectedList();
+                Log.d("parent size", " " + selectedMedia.size());
+                mediaAdapter.setSelectedList(selectedMedia);
             }
         }
     }
