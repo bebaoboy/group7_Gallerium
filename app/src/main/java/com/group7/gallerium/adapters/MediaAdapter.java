@@ -99,6 +99,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             if(isAllChecked){
                 holder.select.setChecked(true);
             }else {
+                holder.select.setChecked(false);
                 if(selectedMedia != null) {
                     if (selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))) {
                         holder.select.setChecked(true);
@@ -178,7 +179,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 selecteMediaInterface.addToSelectedList(media);
                 holder.select.setChecked(true);
             }
-            if(!isMultipleEnabled) selecteMediaInterface.showAllSelect();
+            if(!isMultipleEnabled) {
+                selecteMediaInterface.showAllSelect();
+            }
            return true;
         }));
 
@@ -195,8 +198,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     }
 
     public void setAllChecked(boolean b) {
-        isAllChecked = true;
-        notifyDataSetChanged();
+        isAllChecked = b;
+        notifyItemRangeChanged(0, this.getCurrentList().size());
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {

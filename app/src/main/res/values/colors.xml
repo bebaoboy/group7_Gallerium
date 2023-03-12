@@ -16,4 +16,7 @@
     <color name="primary_color_light_20a">#333949AB</color>
     <color name="red">#F22F2F</color>
     <color name="num_pic_color">#675C5C</color>
+    <color name="light_blue">#3849C2</color>
+    <color name="less_white">#F5F1F1</color>
+
 </resources>

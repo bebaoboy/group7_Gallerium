@@ -50,6 +50,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private boolean isMultipleEnabled = false;
 
+    private boolean isAllChecked = false;
     private ActionMode mode;
 
     private ActionMode.Callback callback;
@@ -112,7 +113,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
                 mode = actionMode;
-
                 return true;
             }
 
@@ -135,9 +135,16 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
                 if(menuItem.getItemId() == R.id.select_all_item) {
                     selectedMedia.clear();
-                    selectedMedia.addAll(listMedia);
-                    adapter.setAllChecked();
-                    if(mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                    adapter.setAllChecked(false);
+                    if(isAllChecked){
+                        isAllChecked = false;
+                        if(mode != null) mode.setTitle("Chọn mục");
+                    }else{
+                        selectedMedia.addAll(listMedia);
+                        isAllChecked = true;
+                        if(mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                    }
+                    adapter.setAllChecked(isAllChecked);
                     return true;
                 }
                 return false;
@@ -147,10 +154,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             public void onDestroyActionMode(ActionMode actionMode) {
                 selectedMedia.clear();
                 adapter.setMultipleEnabled(false);
+                mode = null;
             }
         };
-
-
         return view;
     }
 
@@ -270,7 +276,10 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void addToSelectedList(Media media) {
         if(!selectedMedia.contains(media)) {
             selectedMedia.add(media);
-            if(mode != null) mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
+            if(mode != null) {
+                mode.invalidate();
+                mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
+            }
         }
         Log.d("size outer", "" + selectedMedia.size());
     }
@@ -284,6 +293,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         if(selectedMedia.contains(media)) {
             selectedMedia.remove(media);
             if(mode != null){
+                mode.invalidate();
                 mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
                 if(selectedMedia.isEmpty()){
                     mode.setTitle("Chọn mục");

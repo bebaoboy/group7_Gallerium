@@ -123,8 +123,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         }
     }
 
-    public void setAllChecked() {
-        mediaAdapter.setAllChecked(true);
+    public void setAllChecked(boolean value) {
+        mediaAdapter.setAllChecked(value);
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

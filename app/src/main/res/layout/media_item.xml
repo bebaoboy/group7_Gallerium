@@ -44,7 +44,6 @@
         android:id="@+id/selectButton"
         android:layout_width="36dp"
         android:layout_height="29dp"
-        android:text=""
         android:visibility="gone" />
 </com.google.android.material.card.MaterialCardView>
 

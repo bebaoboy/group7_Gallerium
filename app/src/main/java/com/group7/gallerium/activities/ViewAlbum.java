@@ -8,6 +8,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.util.Log;
+import android.view.ActionMode;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.widget.Toast;
 
@@ -18,6 +22,7 @@ import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
@@ -27,11 +32,14 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 
-public class ViewAlbum extends AppCompatActivity {
+public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface {
 
     private String albumPath;
     private String albumName;
     private ArrayList<String> mediaPaths;
+    private ArrayList<Media> selectedMedia;
+
+    private ArrayList<Media> listMedia;
     private Intent intent;
     private MediaCategoryAdapter adapter;
     private int spanCount = 3;
@@ -40,6 +48,13 @@ public class ViewAlbum extends AppCompatActivity {
     private RecyclerView album_rec_item;
     private int firstVisiblePosition;
     private int offset;
+
+    private boolean isMultipleEnabled = false;
+
+    private boolean isAllChecked = false;
+    private ActionMode mode;
+
+    private ActionMode.Callback callback;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -50,14 +65,70 @@ public class ViewAlbum extends AppCompatActivity {
         albumPath = intent.getStringExtra("folder_path");
         albumName = intent.getStringExtra("name");
 
+        selectedMedia = new ArrayList<>();
+        listMedia = new ArrayList<>();
+        for(String path: mediaPaths){
+            Media media = AccessMediaFile.getMediaWithPath(path);
+            listMedia.add(media);
+        }
         toolbarSetting();
 
         album_rec_item = findViewById(R.id.rec_menu_item);
 
-        adapter = new MediaCategoryAdapter(this, spanCount);
+        adapter = new MediaCategoryAdapter(this, spanCount, this);
 
         // album_rec_item.addOnScrollListener(new ToolbarScrollListener(toolbar));
         album_rec_item.setItemViewCacheSize(4);
+
+        callback = new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                mode = actionMode;
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                // remove previous items
+                menu.clear();
+                mode = actionMode;
+                if(selectedMedia.size() == 0)
+                    actionMode.setTitle("Chọn mục");
+                else{
+                    getMenuInflater().inflate(R.menu.menu_multiple_select, menu);
+                    actionMode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+
+                if(menuItem.getItemId() == R.id.select_all_item) {
+                    selectedMedia.clear();
+                    adapter.setAllChecked(false);
+                    if(isAllChecked){
+                        isAllChecked = false;
+                        if(mode != null) mode.setTitle("Chọn mục");
+                    }else{
+                        selectedMedia.addAll(listMedia);
+                        isAllChecked = true;
+                        if(mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                    }
+                    adapter.setAllChecked(isAllChecked);
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode actionMode) {
+                selectedMedia.clear();
+                adapter.setMultipleEnabled(false);
+                mode = null;
+            }
+        };
+
     }
 
     @Override
@@ -147,5 +218,42 @@ public class ViewAlbum extends AppCompatActivity {
         } catch (Exception e) {
             return null;
         }
+    }
+
+    @Override
+    public void showAllSelect() {
+        adapter.setMultipleEnabled(true);
+        toolbar.startActionMode(callback);
+    }
+
+    @Override
+    public void addToSelectedList(Media media) {
+        if(!selectedMedia.contains(media)) {
+            selectedMedia.add(media);
+            if(mode != null) {
+                mode.invalidate();
+                mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
+            }
+        }
+        Log.d("size outer", "" + selectedMedia.size());
+    }
+    @Override
+    public ArrayList<Media> getSelectedList() {
+        return selectedMedia;
+    }
+
+    @Override
+    public void deleteFromSelectedList(Media media) {
+        if(selectedMedia.contains(media)) {
+            selectedMedia.remove(media);
+            if(mode != null){
+                mode.invalidate();
+                mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                if(selectedMedia.isEmpty()){
+                    mode.setTitle("Chọn mục");
+                }
+            }
+        }
+        Log.d("size outer", "" + selectedMedia.size());
     }
 }
