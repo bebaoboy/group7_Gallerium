@@ -3,7 +3,6 @@ package com.group7.gallerium.fragments;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
 import android.os.Bundle;
 
 import androidx.annotation.NonNull;
@@ -13,7 +12,10 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.util.Log;
+import android.view.ActionMode;
 import android.view.LayoutInflater;
+import android.view.Menu;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Toast;
@@ -27,29 +29,19 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Map;
-import java.util.Objects;
-import java.util.Set;
-import java.util.stream.Collectors;
 
-/**
- * A simple {@link Fragment} subclass.
- * Use the {@link MediaFragment#} factory method to
- * create an instance of this fragment.
- */
+import java.util.Objects;
+
+
 public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
     private Context context;
-
     private ArrayList<Media> listMedia;
-
     private ArrayList<Media> selectedMedia;
-
     private MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
     private int spanCount = 3;
@@ -58,6 +50,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private boolean isMultipleEnabled = false;
 
+    private ActionMode mode;
+
+    private ActionMode.Callback callback;
     public MediaFragment() {
 
     }
@@ -65,6 +60,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        setHasOptionsMenu(true);
+        selectedMedia = new ArrayList<>();
     }
 
     @Override
@@ -79,9 +76,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             adapter.setData(getListCategory());
             recyclerView.setAdapter(adapter);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-
         }
-
     }
 
     @Override
@@ -112,6 +107,50 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
+
+        callback = new ActionMode.Callback() {
+            @Override
+            public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
+                mode = actionMode;
+
+                return true;
+            }
+
+            @Override
+            public boolean onPrepareActionMode(ActionMode actionMode, Menu menu) {
+                // remove previous items
+                menu.clear();
+                mode = actionMode;
+                if(selectedMedia.size() == 0)
+                    actionMode.setTitle("Chọn mục");
+                else{
+                    getActivity().getMenuInflater().inflate(R.menu.menu_multiple_select, menu);
+                    actionMode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                }
+                return true;
+            }
+
+            @Override
+            public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
+
+                if(menuItem.getItemId() == R.id.select_all_item) {
+                    selectedMedia.clear();
+                    selectedMedia.addAll(listMedia);
+                    adapter.setAllChecked();
+                    if(mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                    return true;
+                }
+                return false;
+            }
+
+            @Override
+            public void onDestroyActionMode(ActionMode actionMode) {
+                selectedMedia.clear();
+                adapter.setMultipleEnabled(false);
+            }
+        };
+
+
         return view;
     }
 
@@ -224,12 +263,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void showAllSelect() {
         adapter.setMultipleEnabled(true);
-        selectedMedia = new ArrayList<>();
+        toolbar.startActionMode(callback);
     }
 
     @Override
     public void addToSelectedList(Media media) {
-        selectedMedia.add(media);
+        if(!selectedMedia.contains(media)) {
+            selectedMedia.add(media);
+            if(mode != null) mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
+        }
         Log.d("size outer", "" + selectedMedia.size());
     }
     @Override
@@ -239,7 +281,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     @Override
     public void deleteFromSelectedList(Media media) {
-        selectedMedia.remove(media);
+        if(selectedMedia.contains(media)) {
+            selectedMedia.remove(media);
+            if(mode != null){
+                mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                if(selectedMedia.isEmpty()){
+                    mode.setTitle("Chọn mục");
+                }
+            }
+        }
         Log.d("size outer", "" + selectedMedia.size());
     }
 }

@@ -118,7 +118,13 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
                 Log.d("parent size", " " + selectedMedia.size());
                 mediaAdapter.setSelectedList(selectedMedia);
             }
+        }else{
+            mediaAdapter.setMultipleEnabled(false);
         }
+    }
+
+    public void setAllChecked() {
+        mediaAdapter.setAllChecked(true);
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

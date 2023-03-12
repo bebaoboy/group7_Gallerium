@@ -53,11 +53,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private Intent intent;
     private ArrayList<String> listPath;
 
+    private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
     private boolean isMultipleEnabled = false;
 
     public void setMultipleEnabled(boolean value){
-        isMultipleEnabled = true;
+        isMultipleEnabled = value;
         notifyDataSetChanged();
     }
 
@@ -95,13 +96,21 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
         if(isMultipleEnabled){
             holder.select.setVisibility(View.VISIBLE);
-            if(selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))){
+            if(isAllChecked){
                 holder.select.setChecked(true);
-                Log.d("Contained", "false");
-            }else{
-                holder.select.setChecked(false);
-                Log.d("Contained", "false");
+            }else {
+                if(selectedMedia != null) {
+                    if (selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))) {
+                        holder.select.setChecked(true);
+                        Log.d("Contained", "false");
+                    } else {
+                        holder.select.setChecked(false);
+                        Log.d("Contained", "false");
+                    }
+                }
             }
+        }else{
+            holder.select.setVisibility(View.GONE);
         }
     }
 
@@ -144,7 +153,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
-                if(holder.select.isSelected()){
+                if(holder.select.isChecked()){
                     holder.select.setChecked(false);
                     selecteMediaInterface.deleteFromSelectedList(media);
                 }else{
@@ -160,9 +169,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }));
 
         holder.image.setOnLongClickListener((view -> {
-            holder.select.setVisibility(View.VISIBLE);
-            holder.select.setChecked(true);
-           selecteMediaInterface.showAllSelect();
+            if(holder.select.isChecked()){
+                Log.d("checkbox", "is checked");
+                selecteMediaInterface.deleteFromSelectedList(media);
+                holder.select.setChecked(false);
+            }else{
+                Log.d("checkbox", "is not checked");
+                selecteMediaInterface.addToSelectedList(media);
+                holder.select.setChecked(true);
+            }
+            if(!isMultipleEnabled) selecteMediaInterface.showAllSelect();
            return true;
         }));
 
@@ -176,6 +192,11 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     }
     public void setSelectedList(ArrayList<Media> list) {
         selectedMedia = list;
+    }
+
+    public void setAllChecked(boolean b) {
+        isAllChecked = true;
+        notifyDataSetChanged();
     }
 
     static class MediaViewHolder extends RecyclerView.ViewHolder  {

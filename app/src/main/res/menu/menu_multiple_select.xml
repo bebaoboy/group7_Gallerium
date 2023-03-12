@@ -2,10 +2,10 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
     <item
-        android:id="@+id/search_tb_item"
+        android:id="@+id/select_all_item"
         android:enabled="true"
         android:icon="@drawable/ic_select_all"
-        app:showAsAction="ifRoom|collapseActionView"
+        app:showAsAction="always"
         android:tooltipText="@string/select_all"
         android:title="@string/select_all" />
 </menu>
