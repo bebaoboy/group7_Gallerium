@@ -12,11 +12,13 @@ import androidx.viewpager.widget.ViewPager;
 
 import android.app.Activity;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.KeyEvent;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -172,6 +174,23 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         this.mediaName = name;
         toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
         toolbar.setSubtitle(name);
+        if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+            favBtn.setIcon(R.drawable.ic_fav_solid);
+        }
+    }
+    @Override
+    protected void onPause() {
+        super.onPause();
+        var favList = AccessMediaFile.getFavMedia();
+        Log.d("fav", "fav amount pause = " + favList.size());
+        favList.forEach(x -> Log.d("fav", x));
+        SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.clear();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", favList);
+        myEdit.apply();
     }
 
     public void bottomNavCustom() {

@@ -140,7 +140,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
             @Override
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-
+                bottom_sheet.setVisibility(View.VISIBLE);
                 if(menuItem.getItemId() == R.id.select_all_item) {
                     selectedMedia.clear();
                     adapter.setAllChecked(false);
@@ -329,6 +329,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
                 }
             }
+            AccessMediaFile.getAllFavMedia().forEach(x -> Log.d("fav", x.getRawDate() + ": " + x.getPath()));
 
             return newCatList;
         } catch (Exception e) {

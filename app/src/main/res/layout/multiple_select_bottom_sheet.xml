@@ -13,8 +13,9 @@
     app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
 
         <TextView
+            android:layout_weight="0.25"
             android:id="@+id/share_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:minHeight="48dp"
@@ -22,12 +23,14 @@
             android:paddingEnd="10dp"
             android:text="@string/share"
             android:textSize="11sp"
+            android:textAlignment="center"
             app:drawableTopCompat="@drawable/ic_share" />
 
 
         <TextView
+            android:layout_weight="0.25"
             android:id="@+id/create_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:minHeight="48dp"
@@ -35,11 +38,13 @@
             android:paddingEnd="10dp"
             android:text="@string/creative"
             android:textSize="11sp"
+            android:textAlignment="center"
             app:drawableTopCompat="@drawable/ic_creative" />
 
         <TextView
+            android:layout_weight="0.25"
             android:id="@+id/add_album_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:minHeight="48dp"
@@ -47,11 +52,13 @@
             android:paddingEnd="10dp"
             android:text="@string/add_to_album"
             android:textSize="11sp"
+            android:textAlignment="center"
             app:drawableTopCompat="@drawable/ic_add_to_album" />
 
         <TextView
+            android:layout_weight="0.25"
             android:id="@+id/delete_button"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:minWidth="48dp"
@@ -60,5 +67,6 @@
             android:textSize="11sp"
             android:paddingStart="5dp"
             android:paddingEnd="10dp"
+            android:textAlignment="center"
             app:drawableTopCompat="@drawable/ic_delete" />
 </LinearLayout>

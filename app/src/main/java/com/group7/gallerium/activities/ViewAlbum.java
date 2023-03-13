@@ -6,6 +6,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
@@ -156,6 +157,16 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             firstVisiblePosition = album_rec_item.getChildAdapterPosition(firstChild);
             offset = firstChild.getTop();
         }
+        var favList = AccessMediaFile.getFavMedia();
+        Log.d("fav", "fav amount pause = " + favList.size());
+        favList.forEach(x -> Log.d("fav", x));
+        SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.clear();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", favList);
+        myEdit.apply();
     }
 
     @Override

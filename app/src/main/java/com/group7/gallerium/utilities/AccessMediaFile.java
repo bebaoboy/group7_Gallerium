@@ -60,6 +60,7 @@ public class AccessMediaFile {
     static Uri queryUri = MediaStore.Files.getContentUri("external");
 
     public static void setAllFavMedia(Set<String> paths) {
+        allFavMedia.clear();
         paths.forEach(AccessMediaFile::addToFavMedia);
     }
 

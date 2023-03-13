@@ -77,6 +77,13 @@ public class MainActivity extends AppCompatActivity {
             return true;
         });
 
+        SharedPreferences mySharedPref = getSharedPreferences("fav_media", MODE_PRIVATE);
+        var favList = mySharedPref.getStringSet("path", null);
+        if (favList != null) {
+            Log.d("fav", "fav amount = " + favList.size());
+            AccessMediaFile.setAllFavMedia(favList);
+        }
+
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
         layoutParams.setBehavior(new BottomNavigationViewBehavior());
 
@@ -169,30 +176,6 @@ public class MainActivity extends AppCompatActivity {
 
             grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
             permission.checkResult(requestCode, permissions, grantResults);
-        }
-    }
-
-    @Override
-    protected void onPause() {
-        super.onPause();
-        var favList = AccessMediaFile.getFavMedia();
-        favList.forEach(x -> Log.d("fav", x));
-        SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
-        SharedPreferences.Editor myEdit = sharedPreferences.edit();
-
-        // write all the data entered by the user in SharedPreference and apply
-        myEdit.putStringSet("path", favList);
-        myEdit.apply();
-    }
-
-    @Override
-    protected void onResume() {
-        super.onResume();
-        SharedPreferences mySharedPref = getSharedPreferences("fav_media", MODE_PRIVATE);
-        var favList = mySharedPref.getStringSet("path", null);
-        if (favList != null) {
-            AccessMediaFile.setAllFavMedia(favList);
-            AccessMediaFile.getAllFavMedia().forEach(x -> Log.d("fav", x.getRawDate() + ": " + x.getPath()));
         }
     }
 }

@@ -30,15 +30,14 @@
             android:visibility="invisible"
             android:contentDescription="play icon" />
 
-        <ImageView
-            android:id="@+id/fav_icon"
-            android:layout_width="20dp"
-            android:layout_height="20dp"
-            android:layout_gravity="bottom|end"
-            android:src="@drawable/ic_fav_solid"
-            app:tint="@color/red"
-            android:visibility="invisible"
-            />
+    <ImageView
+        android:id="@+id/fav_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom|end"
+        android:src="@drawable/ic_fav_solid"
+        android:visibility="invisible"
+        app:tint="@color/red" />
 
     <CheckBox
         android:id="@+id/selectButton"

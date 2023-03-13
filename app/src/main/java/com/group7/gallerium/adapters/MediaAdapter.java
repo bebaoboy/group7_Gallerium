@@ -25,6 +25,7 @@ import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
@@ -38,7 +39,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             new DiffUtil.ItemCallback<Media>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
-                    return Objects.equals(oldItem.getPath(), newItem.getPath());
+                    return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
+                            AccessMediaFile.isFavMediaContains(oldItem.getPath())
+                                    == AccessMediaFile.isFavMediaContains(newItem.getPath());
                 }
 
                 @Override
@@ -154,6 +157,13 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     .diskCacheStrategy(DiskCacheStrategy.ALL)
                     .into(holder.image);
         }
+
+       if (AccessMediaFile.isFavMediaContains(media.getPath())) {
+           holder.fav_icon.setVisibility(View.VISIBLE);
+       }
+       else {
+           holder.fav_icon.setVisibility(View.GONE);
+       }
 
         if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
 
