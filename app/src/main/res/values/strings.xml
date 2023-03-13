@@ -30,4 +30,6 @@
     <string name="add_fav">Thêm vào yêu thích</string>
     <string name="change_info">Thay đổi thông tin</string>
     <string name="select_all">Chọn tất cả</string>
+    <string name="creative">Sáng tạo</string>
+    <string name="add_to_album">Thêm vào album</string>
 </resources>

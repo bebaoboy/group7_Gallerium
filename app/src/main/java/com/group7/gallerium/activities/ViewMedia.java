@@ -15,6 +15,7 @@ import android.content.Intent;
 import android.graphics.Color;
 import android.media.MediaPlayer;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.view.KeyEvent;
 import android.view.Menu;
@@ -206,11 +207,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     builder.setPositiveButton("YES", (dialog, which) -> {
                         File file = new File(targetUri.getPath());
                         if (file.exists()) {
-                            if (file.delete()) {
-                                AccessMediaFile.removeMediaFromAllMedia(targetUri.getPath());
-                                Toast.makeText(this, "Delete successfully: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
-                            } else
-                                Toast.makeText(this, "Delete failed: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
+                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                                if (file.delete()) {
+                                    AccessMediaFile.removeMediaFromAllMedia(targetUri.getPath());
+                                    Toast.makeText(this, "Delete successfully: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
+                                } else
+                                    Toast.makeText(this, "Delete failed: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
+                            }else{
+                                var resolver = getContentResolver();
+                                resolver.delete(Uri.parse(mediaPath), null, null);
+                                AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                            }
                         }
                         finish();
                         dialog.dismiss();

@@ -123,6 +123,9 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         }
     }
 
+    public void removeMedia(Media media){
+        mediaAdapter.deleteMedia(media);
+    }
     public void setAllChecked(boolean value) {
         mediaAdapter.setAllChecked(value);
     }

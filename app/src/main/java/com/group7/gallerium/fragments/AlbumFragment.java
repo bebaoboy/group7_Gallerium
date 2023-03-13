@@ -189,9 +189,9 @@ public class AlbumFragment extends Fragment{
                 albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
             }
         }
-        for(Album album: albums){
-            Log.d("album", album.toString());
-        }
+//        for(Album album: albums){
+//            Log.d("album", album.toString());
+//        }
         return albums;
     }
 
@@ -243,7 +243,7 @@ public class AlbumFragment extends Fragment{
                     String parent1 = subDir1[subDir1.length - 2];
                     if (parent1.equalsIgnoreCase(parent))
                     {
-                        Log.d("merge", "merging " + album.getPath() + " and " + album1.getPath());
+                        // Log.d("merge", "merging " + album.getPath() + " and " + album1.getPath());
                         album1.getListMedia().addAll(album.getListMedia());
                         album1.setListMedia(
                                 new ArrayList<>(album1.getListMedia()
@@ -304,12 +304,12 @@ public class AlbumFragment extends Fragment{
             }
         }
 
-        for(AlbumCategory ab: albumCategories){
-            Log.d("alb cat name", ab.getNameCategory());
-            for(Album album: ab.getList()){
-                Log.d("album list", album.getName());
-            }
-        }
+//        for(AlbumCategory ab: albumCategories){
+//            Log.d("alb cat name", ab.getNameCategory());
+//            for(Album album: ab.getList()){
+//                Log.d("album list", album.getName());
+//            }
+//        }
     }
 
 

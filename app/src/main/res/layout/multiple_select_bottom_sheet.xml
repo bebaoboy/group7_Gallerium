@@ -1,0 +1,64 @@
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/bottom_sheet"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="#fff"
+    android:orientation="horizontal"
+    app:behavior_hideable="true"
+    android:paddingBottom="20dp"
+    android:paddingStart="40dp"
+    android:paddingEnd="40dp"
+    android:paddingTop="10dp"
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+
+        <TextView
+            android:id="@+id/share_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minHeight="48dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            android:text="@string/share"
+            android:textSize="11sp"
+            app:drawableTopCompat="@drawable/ic_share" />
+
+
+        <TextView
+            android:id="@+id/create_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minHeight="48dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            android:text="@string/creative"
+            android:textSize="11sp"
+            app:drawableTopCompat="@drawable/ic_creative" />
+
+        <TextView
+            android:id="@+id/add_album_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minHeight="48dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            android:text="@string/add_to_album"
+            android:textSize="11sp"
+            app:drawableTopCompat="@drawable/ic_add_to_album" />
+
+        <TextView
+            android:id="@+id/delete_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:text="@string/delete"
+            android:textSize="11sp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            app:drawableTopCompat="@drawable/ic_delete" />
+</LinearLayout>

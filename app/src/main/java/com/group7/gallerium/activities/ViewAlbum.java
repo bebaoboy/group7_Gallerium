@@ -22,6 +22,7 @@ import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
@@ -255,5 +256,13 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             }
         }
         Log.d("size outer", "" + selectedMedia.size());
+    }
+
+    @Override
+    public void moveMedia(String albumPath) {
+        FileUtils fileUtils = new FileUtils();
+        for(Media media: selectedMedia) {
+            fileUtils.moveFile(media.getPath(), "", albumPath);
+        }
     }
 }

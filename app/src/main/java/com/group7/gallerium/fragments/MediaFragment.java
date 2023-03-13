@@ -3,14 +3,8 @@ package com.group7.gallerium.fragments;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.os.AsyncTask;
 import android.os.Bundle;
-
-import androidx.annotation.NonNull;
-import androidx.appcompat.widget.Toolbar;
-import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
-import androidx.recyclerview.widget.RecyclerView;
-
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -18,21 +12,32 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.annotation.NonNull;
+import androidx.appcompat.widget.Toolbar;
+import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
+import androidx.recyclerview.widget.RecyclerView;
+
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
-import com.group7.gallerium.models.MediaCategory;
-import com.group7.gallerium.utilities.SelectMediaInterface;
-import com.group7.gallerium.utilities.ToolbarScrollListener;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.FileUtils;
+import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-
 import java.util.Objects;
 
 
@@ -44,19 +49,20 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private ArrayList<Media> selectedMedia;
     private MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
+
+    private RecyclerView addAlbumRecyclerView;
     private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
-
-    private boolean isMultipleEnabled = false;
-
     private boolean isAllChecked = false;
     private ActionMode mode;
-
     private ActionMode.Callback callback;
-    public MediaFragment() {
 
-    }
+    private LinearLayout bottom_sheet;
+    private BottomSheetBehavior behavior;
+    private BottomSheetDialog bottomSheetDialog;
+
+    private TextView btnShare, btnAdd, btnDelete, btnCreative;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -109,6 +115,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
 
+        bottomSheetConfig(); behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheetButtonConfig();
         callback = new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -124,7 +132,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 if(selectedMedia.size() == 0)
                     actionMode.setTitle("Chọn mục");
                 else{
-                    getActivity().getMenuInflater().inflate(R.menu.menu_multiple_select, menu);
+                    requireActivity().getMenuInflater().inflate(R.menu.menu_multiple_select, menu);
                     actionMode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
                 }
                 return true;
@@ -155,14 +163,79 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 selectedMedia.clear();
                 adapter.setMultipleEnabled(false);
                 mode = null;
+                requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+                behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                bottom_sheet.setVisibility(View.GONE);
             }
         };
+
         return view;
     }
+
+    void bottomSheetConfig(){
+
+        bottom_sheet = view.findViewById(R.id.bottom_sheet);
+        behavior = BottomSheetBehavior.from(bottom_sheet);
+        behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback(){
+
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN ->
+                            Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_EXPANDED ->
+                            Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_COLLAPSED ->
+                            Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_DRAGGING ->
+                            Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_SETTLING ->
+                            Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+        });
+    }
+   void bottomSheetButtonConfig(){
+        btnAdd = view.findViewById(R.id.add_album_button);
+        btnDelete = view.findViewById(R.id.delete_button);
+        btnShare = view.findViewById(R.id.share_button);
+        btnCreative = view.findViewById(R.id.create_button);
+
+        btnAdd.setOnClickListener((v)->{
+            openAlbumSelectView();
+        });
+        btnShare.setOnClickListener((v)->{
+
+        });
+       btnDelete.setOnClickListener((v)->{
+
+       });
+       btnCreative.setOnClickListener((v)->{
+
+       });
+   }
 
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
+    }
+
+    void openAlbumSelectView(){
+        Log.d("Open bottom sheet", "true");
+        View viewDialog = LayoutInflater.from(context).inflate(R.layout.add_to_album_bottom_dialog, null);
+        addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
+        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+
+        bottomSheetDialog = new BottomSheetDialog(context);
+        bottomSheetDialog.setContentView(viewDialog);
+        bottomSheetDialog.show();
+//        AlbumAsyncTask myAsyncTask = new MyAsyncTask();
+//        myAsyncTask.execute();
     }
 
     public void changeOrientation(int spanCount) {
@@ -230,7 +303,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private List<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        int categoryCount = 0;
         listMedia = AccessMediaFile.getAllMedia(getContext());
 
         try {
@@ -239,7 +311,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             for (int i = 1; i < listMedia.size(); i++) {
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
                     categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
-                    categoryCount++;
                 }
 
                 categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
@@ -270,18 +341,24 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void showAllSelect() {
         adapter.setMultipleEnabled(true);
         toolbar.startActionMode(callback);
+        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.GONE);
+        behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
     }
 
     @Override
     public void addToSelectedList(Media media) {
         if(!selectedMedia.contains(media)) {
             selectedMedia.add(media);
+            for ( int i = 0; i < bottom_sheet.getChildCount();  i++ ){
+                View view = bottom_sheet.getChildAt(i);
+                view.setEnabled(true);
+            }
             if(mode != null) {
                 mode.invalidate();
                 mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
             }
         }
-        Log.d("size outer", "" + selectedMedia.size());
+        //Log.d("size outer", "" + selectedMedia.size());
     }
     @Override
     public ArrayList<Media> getSelectedList() {
@@ -297,9 +374,21 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
                 if(selectedMedia.isEmpty()){
                     mode.setTitle("Chọn mục");
+                    for ( int i = 0; i < bottom_sheet.getChildCount();  i++ ){
+                        View view = bottom_sheet.getChildAt(i);
+                        view.setEnabled(false);
+                    }
                 }
             }
         }
-        Log.d("size outer", "" + selectedMedia.size());
+        //Log.d("size outer", "" + selectedMedia.size());
+    }
+
+    @Override
+    public void moveMedia(String albumPath) {
+        FileUtils fileUtils = new FileUtils();
+        for(Media media: selectedMedia) {
+            fileUtils.moveFile(media.getPath(), "", albumPath);
+        }
     }
 }

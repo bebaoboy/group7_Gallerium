@@ -13,4 +13,6 @@ public interface SelectMediaInterface {
     ArrayList<Media> getSelectedList();
 
     void deleteFromSelectedList(Media media);
+
+    void moveMedia(String albumPath);
 }

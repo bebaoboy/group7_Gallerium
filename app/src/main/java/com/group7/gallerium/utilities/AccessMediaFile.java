@@ -29,7 +29,6 @@ public class AccessMediaFile {
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
     private static ArrayList<Media> cacheAllMedia = new ArrayList<>();
     private static boolean cached = false;
-
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
     // is used when an user deletes or takes a new media file from within

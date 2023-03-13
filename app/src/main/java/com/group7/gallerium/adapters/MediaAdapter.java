@@ -73,6 +73,11 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     }
 
 
+    public void deleteMedia(Media media){
+        int position = this.getCurrentList().indexOf(media);
+        this.getCurrentList().remove(media);
+        notifyItemRemoved(position);
+    }
     public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
         submitList(listMedia);

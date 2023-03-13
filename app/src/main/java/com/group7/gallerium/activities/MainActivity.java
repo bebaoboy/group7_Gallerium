@@ -7,6 +7,9 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
 import android.util.Log;
+import android.view.View;
+import android.widget.LinearLayout;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -25,6 +28,9 @@ import com.karan.churi.PermissionManager.PermissionManager;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottom_nav;
+
+    TextView btnShare, btnAddtoAlbum, btnDelete, btnCreative;
+    LinearLayout bottom_sheet;
     ViewPager2 view_pager;
 
     PermissionManager permission;
@@ -36,6 +42,14 @@ public class MainActivity extends AppCompatActivity {
 
         bottom_nav = findViewById(R.id.bottom_navigation);
         view_pager = findViewById(R.id.view_pager);
+        view_pager.setUserInputEnabled(false);
+
+        bottom_sheet = findViewById(R.id.bottom_sheet);
+        btnCreative = findViewById(R.id.create_button);
+        btnAddtoAlbum = findViewById(R.id.add_album_button);
+        btnDelete = findViewById(R.id.delete_button);
+        btnShare = findViewById(R.id.share_button);
+
 
         initializeViewPager();
 
@@ -102,6 +116,14 @@ public class MainActivity extends AppCompatActivity {
                 assert myFragment != null;
                 myFragment.changeOrientation(3);
             }
+        }
+    }
+
+    public void setVisibleForBottomNav(boolean v){
+        if(v){
+            bottom_nav.setVisibility(View.GONE);
+        }else{
+            bottom_nav.setVisibility(View.VISIBLE);
         }
     }
 
