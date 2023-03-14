@@ -82,8 +82,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
         else {
-            adapter.setData(getListCategory());
-            recyclerView.setAdapter(adapter);
+            changeOrientation(3);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
     }

@@ -2,6 +2,7 @@ package com.group7.gallerium.fragments;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.CountDownTimer;
@@ -45,6 +46,7 @@ public class AlbumFragment extends Fragment{
     private Context context;
 
     private ArrayList<Album> albumList;
+    private int mediaAmount = 0;
 
     private ArrayList<AlbumCategory> albumCategories;
 
@@ -68,15 +70,15 @@ public class AlbumFragment extends Fragment{
     @Override
     public void onResume() {
         super.onResume();
-        AccessMediaFile.refreshAllMedia();
-        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
-        albumList = getAllAlbum(listMediaTemp);
-        categorizeAlbum();
-        adapter = new AlbumCategoryAdapter(context, 3);
-        adapter.setData(albumCategories);
-        album_rec.setAdapter(adapter);
-        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-    }
+        if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
+            changeOrientation(6);
+            ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        }
+        else {
+            changeOrientation(3);
+            ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        }
+      }
 
     public void onPause() {
         super.onPause();
@@ -88,13 +90,16 @@ public class AlbumFragment extends Fragment{
     }
 
     public void changeOrientation(int spanCount) {
-        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, 1);
         album_rec.setLayoutManager(layoutManager);
-        adapter = new AlbumCategoryAdapter(context, 3);
+        adapter = new AlbumCategoryAdapter(context, spanCount);
         AccessMediaFile.refreshAllMedia();
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+        if (listMediaTemp.size() != mediaAmount)
+        {
+            albumList = getAllAlbum(listMediaTemp);
+        }
         categorizeAlbum();
-        albumList = getAllAlbum(listMediaTemp);
         adapter.setData(albumCategories);
         album_rec.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -105,20 +110,20 @@ public class AlbumFragment extends Fragment{
     public void onStart() {
         super.onStart();
         albumListTask = new AlbumListTask();
-        progressDialog = new ProgressDialog(AlbumFragment.this.getContext());
-        progressDialog.setTitle("Loading (0%)");
+        //progressDialog = new ProgressDialog(AlbumFragment.this.getContext());
+        //progressDialog.setTitle("Loading (0%)");
         // progressDialog.show();
         new CountDownTimer(delaySecond, delaySecond / 100) {
             int counter = 0;
             @Override
             public void onTick(long l) {
                 counter += delaySecond / 100;
-                progressDialog.setTitle("Loading (" + counter + "%)");
+                //progressDialog.setTitle("Loading (" + counter + "%)");
             }
 
             @Override
             public void onFinish() {
-                progressDialog.dismiss();
+                //progressDialog.dismiss();
             }
         }.start();
 
@@ -152,6 +157,7 @@ public class AlbumFragment extends Fragment{
     public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
+        mediaAmount = listMedia.size();
 
         Album video = new Album("Video");
         Album image = new Album("Ảnh");
@@ -330,7 +336,10 @@ public class AlbumFragment extends Fragment{
         @Override
         protected Void doInBackground(Void... voids) {
             ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
-            albumList = getAllAlbum(listMediaTemp);
+            if (listMediaTemp.size() != mediaAmount)
+            {
+                albumList = getAllAlbum(listMediaTemp);
+            }
             categorizeAlbum();
             adapter.setData(albumCategories);
             return null;

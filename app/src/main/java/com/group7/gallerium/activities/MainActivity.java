@@ -21,6 +21,7 @@ import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
 import com.group7.gallerium.fragments.AlbumFragment;
+import com.group7.gallerium.fragments.FavoriteFragment;
 import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
@@ -109,6 +110,10 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(6);
+            } else if(view_pager.getCurrentItem() == 3){
+                var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(6);
             }
 
         }else {
@@ -120,6 +125,10 @@ public class MainActivity extends AppCompatActivity {
                 myFragment.changeOrientation(3);
             }  else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation(3);
+            }   else if(view_pager.getCurrentItem() == 3){
+                var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(3);
             }

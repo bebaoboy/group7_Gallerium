@@ -51,7 +51,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
     private Context context;
-    private ArrayList<Media> listMedia;
+    private ArrayList<Media> listMedia = new ArrayList<>();
     private ArrayList<Media> selectedMedia;
 
     private ArrayList<Album> albumList;
@@ -74,6 +74,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private BottomSheetDialog bottomSheetDialog;
 
     private TextView btnShare, btnAdd, btnDelete, btnCreative;
+    HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -92,8 +94,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             changeOrientation(6);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         } else {
-            adapter.setData(getListCategory());
-            recyclerView.setAdapter(adapter);
+            changeOrientation(3);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
     }
@@ -315,22 +316,25 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @NonNull
     private List<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
-        HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        listMedia = AccessMediaFile.getAllMedia(getContext());
 
         try {
-            categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
-            for (int i = 1; i < listMedia.size(); i++) {
-                if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
-                    categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
-                }
+            if (AccessMediaFile.getAllMedia(getContext()).size() != listMedia.size()) {
+                listMedia = AccessMediaFile.getAllMedia(getContext());
+                categoryList = new HashMap<>();
 
-                categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
-            }
+                categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
+                categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
+                for (int i = 1; i < listMedia.size(); i++) {
+                    if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
+                        categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
+                    }
+
+                    categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
+                }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
+            }
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
             for (var cat : categoryList.values()) {
@@ -468,13 +472,13 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
 
     public void categorizeAlbum() {
-        HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
+        HashMap<String, AlbumCategory> albumCategoryList = new LinkedHashMap<>();
         String[] subDir = albumList.get(0).getPath().split("/");
 
 
-        categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
-        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
-        categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+        albumCategoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
+        albumCategoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
+        albumCategoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
 
         for (Album album : albumList) {
             String path = album.getPath();
@@ -488,11 +492,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                             || subDir[subDir.length - 1].equals("Screenshots")
                             || subDir[subDir.length - 1].equals("Ảnh")
                             || subDir[subDir.length - 1].equals("Video") ) {
-                        //categoryList.get("Mặc định").addAlbumToList(album);
+                        //albumCategoryList.get("Mặc định").addAlbumToList(album);
                         catName = "Mặc định";
                     }
                 } else if (parent.equals("owner")) {
-                    //categoryList.get("Của tôi").addAlbumToList(album);
+                    //albumCategoryList.get("Của tôi").addAlbumToList(album);
                     catName = "Của tôi";
                 }
             }
@@ -503,7 +507,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             }
 
             boolean needToMerge = false;
-            for(Album album1: categoryList.get(catName).getList()){
+            for(Album album1: albumCategoryList.get(catName).getList()){
                 if (!album.getPath().equals(album1.getPath()) && album.getName().equalsIgnoreCase(album1.getName()))
                 {
                     String path1 = album1.getPath();
@@ -530,14 +534,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
             if (!needToMerge)
             {
-                categoryList.get(catName).addAlbumToList(album);
+                albumCategoryList.get(catName).addAlbumToList(album);
             }
 
         }
 
         albumList.clear();
         albumCategories.clear();
-        for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
+        for(Map.Entry<String, AlbumCategory> entry: albumCategoryList.entrySet()){
             // Log.d("Key", entry.getKey());
             albumCategories.add(entry.getValue());
             for(Album album: entry.getValue().getList()){
