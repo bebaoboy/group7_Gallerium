@@ -15,12 +15,16 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Objects;
 
 public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCategoryAdapter.CategoryViewHolder> {
+
+    int viewType = 0;
+    SelectMediaInterface selectMediaInterface;
 
     public static final DiffUtil.ItemCallback<AlbumCategory> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<>() {
@@ -38,9 +42,20 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
     private Context context;
     private List<AlbumCategory> listAlbumCategory;
 
+    public void setViewType(int viewType) {
+        this.viewType = viewType;
+    }
+
     public AlbumCategoryAdapter(Context context, int count) {
         super(DIFF_CALLBACK);
         this.context = context;
+        this.spanCount = count;
+    }
+
+    public AlbumCategoryAdapter(Context context, SelectMediaInterface selectMediaInterface, int count){
+        super(DIFF_CALLBACK);
+        this.context = context;
+        this.selectMediaInterface = selectMediaInterface;
         this.spanCount = count;
     }
 
@@ -76,10 +91,18 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvAlbum.setLayoutManager(gridLayoutManager);
 
-        AlbumAdapter albumAdapter = new AlbumAdapter(context.getApplicationContext());
-        albumAdapter.setData((ArrayList<Album>) albumCategory.getList());
-        holder.rcvAlbum.setAdapter(albumAdapter);
-        holder.rcvAlbum.setItemViewCacheSize(24);
+        if(this.viewType == 0) {
+            AlbumAdapter albumAdapter = new AlbumAdapter(context.getApplicationContext());
+            albumAdapter.setData((ArrayList<Album>) albumCategory.getList());
+            holder.rcvAlbum.setAdapter(albumAdapter);
+            holder.rcvAlbum.setItemViewCacheSize(10);
+        }
+        else {
+            AddToAlbumAdapter albumAdapter = new AddToAlbumAdapter(context.getApplicationContext(), selectMediaInterface);
+            albumAdapter.setData((ArrayList<Album>) albumCategory.getList());
+            holder.rcvAlbum.setAdapter(albumAdapter);
+            holder.rcvAlbum.setItemViewCacheSize(10);
+        }
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder {
@@ -91,7 +114,6 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
             super(itemView);
             tvNameCategory = itemView.findViewById(R.id.txtAlbumName);
             rcvAlbum = itemView.findViewById(R.id.albums_recview);
-
         }
     }
 }

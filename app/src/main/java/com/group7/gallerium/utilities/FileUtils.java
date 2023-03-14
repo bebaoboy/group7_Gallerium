@@ -14,6 +14,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.Objects;
 
 public class FileUtils {
     public void deleteFile(String Path) {
@@ -25,10 +26,22 @@ public class FileUtils {
             Log.e("tag", e.getMessage());
         }
     }
-    public void moveFile(String inputPath, String inputFile, String outputPath) {
+
+    public static void deleteRecursive(File fileOrDirectory) {
+
+        if (fileOrDirectory.isDirectory())
+            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
+                deleteRecursive(child);
+
+        fileOrDirectory.delete();
+
+    }
+
+    public void moveFile(String inputPath, String inputFileName, String outputPath) {
 
         InputStream in = null;
         OutputStream out = null;
+        File original = new File(inputPath);
         try {
 
             //create output directory if it doesn't exist
@@ -40,7 +53,7 @@ public class FileUtils {
 
 
             in = new FileInputStream(inputPath);
-            out = new FileOutputStream(outputPath + File.separator +inputFile);
+            out = new FileOutputStream(outputPath + File.separator + inputFileName);
 
             byte[] buffer = new byte[1024];
             int read;
@@ -56,9 +69,11 @@ public class FileUtils {
             out = null;
 
             // delete the original file
-            new File(inputPath).delete();
-
-
+            if(original.exists()){
+                if(original.delete()){
+                    AccessMediaFile.removeMediaFromAllMedia(inputPath);
+                }
+            }
         }
 
         catch (FileNotFoundException fnfe1) {

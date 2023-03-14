@@ -118,7 +118,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         recyclerView.setItemViewCacheSize(4);
 
         bottomSheetConfig(); behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        bottomSheetButtonConfig();
+        bottomSheetButtonConfig(); bottom_sheet.setVisibility(View.GONE);
         callback = new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -346,6 +346,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         toolbar.startActionMode(callback);
         requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.GONE);
         behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+        bottom_sheet.setVisibility(View.VISIBLE);
     }
 
     @Override
