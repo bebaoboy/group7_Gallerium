@@ -3,7 +3,7 @@
     android:id="@+id/bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="#fff"
+    android:background="@color/primary_color_dark"
     android:orientation="horizontal"
     app:behavior_hideable="true"
     android:paddingBottom="20dp"
