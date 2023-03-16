@@ -1,6 +1,5 @@
 package com.group7.gallerium.activities;
 
-import android.Manifest;
 import android.app.Activity;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -47,7 +46,7 @@ public class MainActivity extends AppCompatActivity {
 
         bottom_sheet = findViewById(R.id.bottom_sheet);
         btnCreative = findViewById(R.id.create_button);
-        btnAddtoAlbum = findViewById(R.id.add_album_button);
+        btnAddtoAlbum = findViewById(R.id.move_album_button);
         btnDelete = findViewById(R.id.delete_button);
         btnShare = findViewById(R.id.share_button);
 

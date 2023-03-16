@@ -104,6 +104,7 @@ public class AccessMediaFile {
     }
     public static void updateNewMedia(){
         addNewestMediaOnly = true;
+        allMediaPresent = false;
     }
     public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
         allMedia.remove(path);

@@ -73,7 +73,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private BottomSheetBehavior behavior;
     private BottomSheetDialog bottomSheetDialog;
 
-    private TextView btnShare, btnAdd, btnDelete, btnCreative;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -215,12 +215,13 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     void bottomSheetButtonConfig() {
-        btnAdd = view.findViewById(R.id.add_album_button);
+        btnMove = view.findViewById(R.id.move_album_button);
+        btnCopy = view.findViewById(R.id.copy_album_button);
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
 
-        btnAdd.setOnClickListener((v) -> {
+        btnMove.setOnClickListener((v) -> {
             openAlbumSelectView();
         });
         btnShare.setOnClickListener((v) -> {

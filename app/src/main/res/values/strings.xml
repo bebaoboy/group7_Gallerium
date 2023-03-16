@@ -32,4 +32,6 @@
     <string name="select_all">Chọn tất cả</string>
     <string name="creative">Sáng tạo</string>
     <string name="add_to_album">Thêm vào album</string>
+    <string name="move">Di chuyển</string>
+    <string name="copy">Sao chép</string>
 </resources>

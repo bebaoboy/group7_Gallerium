@@ -16,7 +16,6 @@ import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -202,7 +201,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         });
     }
     void bottomSheetButtonConfig(){
-        btnAdd = view.findViewById(R.id.add_album_button);
+        btnAdd = view.findViewById(R.id.move_album_button);
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);

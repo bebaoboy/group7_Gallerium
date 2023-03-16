@@ -9,6 +9,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.GridView;
+import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -50,6 +51,9 @@ public class SecureFragment extends Fragment {
         }
 
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
+        btnEnter.setOnClickListener((view1) -> {
+            Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
+        });
         context = getContext();
         toolbarSetting();
         return view;

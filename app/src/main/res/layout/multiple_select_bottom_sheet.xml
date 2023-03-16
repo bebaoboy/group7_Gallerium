@@ -24,7 +24,8 @@
             android:text="@string/share"
             android:textSize="11sp"
             android:textAlignment="center"
-            app:drawableTopCompat="@drawable/ic_share" />
+            app:drawableTopCompat="@drawable/ic_share"
+            android:foreground="?android:attr/selectableItemBackground"/>
 
 
         <TextView
@@ -39,21 +40,39 @@
             android:text="@string/creative"
             android:textSize="11sp"
             android:textAlignment="center"
-            app:drawableTopCompat="@drawable/ic_creative" />
+            app:drawableTopCompat="@drawable/ic_creative"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
 
         <TextView
             android:layout_weight="0.25"
-            android:id="@+id/add_album_button"
+            android:id="@+id/move_album_button"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:clickable="true"
             android:minHeight="48dp"
             android:paddingStart="5dp"
             android:paddingEnd="10dp"
-            android:text="@string/add_to_album"
+            android:text="@string/move"
             android:textSize="11sp"
             android:textAlignment="center"
-            app:drawableTopCompat="@drawable/ic_add_to_album" />
+            app:drawableTopCompat="@drawable/ic_move"
+            android:foreground="?android:attr/selectableItemBackground"/>
+
+        <TextView
+            android:layout_weight="0.25"
+            android:id="@+id/copy_album_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minHeight="48dp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            android:text="@string/copy"
+            android:textSize="11sp"
+            android:textAlignment="center"
+            app:drawableTopCompat="@drawable/ic_copy"
+            android:foreground="?android:attr/selectableItemBackground"/>
 
         <TextView
             android:layout_weight="0.25"
@@ -68,5 +87,6 @@
             android:paddingStart="5dp"
             android:paddingEnd="10dp"
             android:textAlignment="center"
-            app:drawableTopCompat="@drawable/ic_delete" />
+            app:drawableTopCompat="@drawable/ic_delete"
+            android:foreground="?android:attr/selectableItemBackground"/>
 </LinearLayout>
