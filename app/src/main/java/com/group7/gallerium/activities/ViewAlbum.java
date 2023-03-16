@@ -273,7 +273,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     public void moveMedia(String albumPath) {
         FileUtils fileUtils = new FileUtils();
         for(Media media: selectedMedia) {
-            fileUtils.moveFile(media.getPath(), "", albumPath);
+            fileUtils.moveFile(media.getPath(), "", albumPath, this);
         }
     }
 }

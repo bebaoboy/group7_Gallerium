@@ -1,7 +1,14 @@
 package com.group7.gallerium.utilities;
 
+import static com.google.android.material.internal.ContextUtils.getActivity;
+
+import android.content.ContentResolver;
+import android.content.Context;
 import android.os.Environment;
 import android.util.Log;
+import android.widget.Toast;
+
+import com.group7.gallerium.fragments.MediaFragment;
 
 import java.io.BufferedReader;
 import java.io.BufferedWriter;
@@ -37,7 +44,7 @@ public class FileUtils {
 
     }
 
-    public void moveFile(String inputPath, String inputFileName, String outputPath) {
+    public void moveFile(String inputPath, String inputFileName, String outputPath, Context context) {
 
         InputStream in = null;
         OutputStream out = null;
@@ -68,10 +75,14 @@ public class FileUtils {
             out.close();
             out = null;
 
+            original.delete();
             // delete the original file
             if(original.exists()){
-                if(original.delete()){
+                original.getCanonicalFile().delete();
+                if(original.exists()){
+                    context.getApplicationContext().deleteFile(original.getName());
                     AccessMediaFile.removeMediaFromAllMedia(inputPath);
+                    AccessMediaFile.updateNewMedia();
                 }
             }
         }

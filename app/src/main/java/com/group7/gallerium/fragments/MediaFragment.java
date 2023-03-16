@@ -405,7 +405,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         for (Media media : selectedMedia) {
             String[] subDir = media.getPath().split("/");
             String name = subDir[subDir.length - 1];
-            fileUtils.moveFile(media.getPath(), name, albumPath);
+            fileUtils.moveFile(media.getPath(), name, albumPath, context);
         }
         bottomSheetDialog.cancel();
         adapter.setData(getListCategory());
