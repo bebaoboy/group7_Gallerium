@@ -106,7 +106,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     @Override
     public void onViewAttachedToWindow(@NonNull MediaViewHolder holder) {
         super.onViewAttachedToWindow(holder);
-        Log.d("Attached", "" + holder.getBindingAdapterPosition());
+        //Log.d("Attached", "" + holder.getBindingAdapterPosition());
 
         if(isMultipleEnabled){
             holder.select.setVisibility(View.VISIBLE);
@@ -117,10 +117,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 if(selectedMedia != null) {
                     if (selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))) {
                         holder.select.setChecked(true);
-                        Log.d("Contained", "false");
+                        //Log.d("Contained", "false");
                     } else {
                         holder.select.setChecked(false);
-                        Log.d("Contained", "false");
+                        //Log.d("Contained", "false");
                     }
                 }
             }
@@ -147,7 +147,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
 
         if(selectedMedia != null) {
-            Log.d("selected media size", " " + selectedMedia.size());
+          //  Log.d("selected media size", " " + selectedMedia.size());
             holder.select.setChecked(selectedMedia.contains(media));
         }
         // Log.d("gallerium", media.getMimeType());

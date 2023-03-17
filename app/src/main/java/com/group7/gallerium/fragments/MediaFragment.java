@@ -1,5 +1,6 @@
 package com.group7.gallerium.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -16,6 +17,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -69,6 +73,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private ActionMode mode;
     private ActionMode.Callback callback;
 
+    private static FileUtils fileUtils;
+
     private LinearLayout bottom_sheet;
     private BottomSheetBehavior behavior;
     private BottomSheetDialog bottomSheetDialog;
@@ -82,12 +88,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         selectedMedia = new ArrayList<>();
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
+        fileUtils = new FileUtils();
     }
 
     @Override
     public void onResume() {
         super.onResume();
         Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
+        adapter.setData(getListCategory());
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             changeOrientation(6);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -96,6 +104,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
     }
+
 
     @Override
     public void onPause() {
@@ -106,6 +115,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             offset = firstChild.getTop();
         }
     }
+
+    private final ActivityResultLauncher<IntentSenderRequest> launcher = registerForActivityResult(
+            new ActivityResultContracts.StartIntentSenderForResult(),
+            result -> {
+                if (result.getResultCode() == Activity.RESULT_OK) {
+                    Toast.makeText(context.getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                }
+            });
 
     @Override
     public void onStart() {
@@ -228,11 +245,22 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         });
         btnDelete.setOnClickListener((v) -> {
-
+            deleteMedia();
         });
         btnCreative.setOnClickListener((v) -> {
 
         });
+    }
+
+    private void deleteMedia() {
+        for(Media media: selectedMedia) {
+            fileUtils.delete(launcher, media.getPath(), context);
+        }
+        adapter.setData(getListCategory());
+        selectedMedia.clear();
+        mode.finish();
+        bottom_sheet.setVisibility(View.GONE);
+        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
     }
 
     @Override

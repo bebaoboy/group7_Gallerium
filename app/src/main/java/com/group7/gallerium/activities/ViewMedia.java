@@ -4,15 +4,19 @@ import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.graphics.Color;
+import android.media.ExifInterface;
 import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.KeyEvent;
+import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -28,14 +32,20 @@ import androidx.viewpager.widget.ViewPager;
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.google.android.material.bottomsheet.BottomSheetBehavior;
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationBarView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.SlideAdapter;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.io.File;
+import java.io.FileDescriptor;
+import java.io.FileNotFoundException;
+import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -60,6 +70,14 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private ImageView playButton;
     private ImageView img;
 
+    private LinearLayout bottomSheet;
+    private BottomSheetBehavior behavior;
+
+    private BottomSheetDialog bottomSheetDialog;
+
+    private TextView btnSetBackGround, btnAddToAlbum;
+    private TextView btnShowDetails, btnRename;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,7 +99,105 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         toolbarSetting();
         setUpSlider();
         bottomNavCustom();
+
+        bottomSheetConfig();
+        behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottomSheet.setVisibility(View.GONE);
+
+        bottomSheetButtonConfig();
+
+        bottom_nav.setBackgroundTintList(null);
     }
+
+    private void bottomSheetConfig() {
+        bottomSheet = findViewById(R.id.more_bottom_sheet);
+
+        behavior = BottomSheetBehavior.from(bottomSheet);
+        behavior.addBottomSheetCallback(new BottomSheetBehavior.BottomSheetCallback() {
+
+            @Override
+            public void onStateChanged(@NonNull View bottomSheet, int newState) {
+                switch (newState) {
+                    case BottomSheetBehavior.STATE_HIDDEN ->
+                            Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_EXPANDED ->
+                            Toast.makeText(getApplicationContext(), "Expand sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_COLLAPSED ->
+                            Toast.makeText(getApplicationContext(), "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_DRAGGING ->
+                            Toast.makeText(getApplicationContext(), "Dragging sheet", Toast.LENGTH_SHORT).show();
+                    case BottomSheetBehavior.STATE_SETTLING ->
+                            Toast.makeText(getApplicationContext(), "Settling sheet", Toast.LENGTH_SHORT).show();
+                }
+            }
+
+            @Override
+            public void onSlide(@NonNull View bottomSheet, float slideOffset) {
+
+            }
+    });
+    }
+
+    void  bottomSheetButtonConfig() {
+        btnAddToAlbum = findViewById(R.id.add_to_album_item);
+        btnRename = findViewById(R.id.change_name_item);
+        btnSetBackGround = findViewById(R.id.set_sys_background_item);
+        btnShowDetails = findViewById(R.id.show_details_item);
+
+        btnAddToAlbum.setOnClickListener((v) -> {
+            behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+           bottomSheet.setVisibility(View.GONE);
+        });
+        btnRename.setOnClickListener((v) -> {
+            behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            bottomSheet.setVisibility(View.GONE);
+        });
+        btnSetBackGround.setOnClickListener((v) -> {
+            behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            bottomSheet.setVisibility(View.GONE);
+        });
+        btnShowDetails.setOnClickListener((v) -> {
+            Uri mediaUri = Uri.parse("file://" + mediaPath);
+            showDetails(mediaUri);
+            behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+            bottomSheet.setVisibility(View.GONE);
+        });
+    }
+
+    void bottomSheetDialogConfig() {
+
+        View moreBottomView = LayoutInflater.from(this).inflate(R.layout.more_bottom_sheet,
+                (LinearLayout)findViewById(R.id.more_bottom_sheet),  false);
+        bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(moreBottomView);
+
+        btnAddToAlbum = moreBottomView.findViewById(R.id.add_to_album_item);
+        btnRename = moreBottomView.findViewById(R.id.change_name_item);
+        btnSetBackGround = moreBottomView.findViewById(R.id.set_sys_background_item);
+        btnShowDetails = moreBottomView.findViewById(R.id.show_details_item);
+
+        btnAddToAlbum.setOnClickListener((v) -> {
+            bottomSheetDialog.cancel();
+        });
+        btnRename.setOnClickListener((v) -> {
+            bottomSheetDialog.cancel();
+        });
+        btnSetBackGround.setOnClickListener((v) -> {
+            bottomSheetDialog.cancel();
+        });
+        btnShowDetails.setOnClickListener((v) -> {
+            Uri mediaUri = Uri.parse("file://" + mediaPath);
+            showDetails(mediaUri);
+            bottomSheetDialog.cancel();
+        });
+    }
+
+    void showDetails(Uri uri){
+       Intent intent = new Intent(this, MediaDetails.class);
+       intent.putExtra("media_path", mediaPath);
+       startActivity(intent);
+    }
+
 
     void applyData() {
         intent = getIntent();
@@ -89,6 +205,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         mediaPos = intent.getIntExtra("pos", 0);
         mediaItemInterface = this;
     }
+
 
     private void toolbarSetting() {
         // Toolbar events
@@ -152,6 +269,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     playButton.setVisibility(View.VISIBLE);
                 }
                 favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
+                behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                bottomSheet.setVisibility(View.GONE);
             }
 
             @Override
@@ -213,6 +332,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     }
                 }
 
+                case R.id.more_nav_item -> {
+                   bottomSheet.setVisibility(View.VISIBLE);
+                   behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+                }
+
                 case R.id.delete_nav_item ->{
                     String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
                     AlertDialog.Builder builder = new AlertDialog.Builder(this);
@@ -220,22 +344,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     builder.setTitle("Confirm");
                     builder.setMessage("Do you want to delete this " + type + "?");
                     builder.setPositiveButton("YES", (dialog, which) -> {
-                        File file = new File(targetUri.getPath());
-                        if (file.exists()) {
-                            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                                if (file.delete()) {
-                                    AccessMediaFile.removeMediaFromAllMedia(targetUri.getPath());
-                                    Toast.makeText(this, "Delete successfully: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
-                                } else
-                                    Toast.makeText(this, "Delete failed: " + targetUri.getPath(), Toast.LENGTH_SHORT).show();
-                            }else{
-                                var resolver = getContentResolver();
-                                resolver.delete(Uri.parse(mediaPath), null, null);
-                                AccessMediaFile.removeMediaFromAllMedia(mediaPath);
-                            }
-                        }
-                        finish();
+                        FileUtils fileUtils = new FileUtils();
+                        fileUtils.deleteFile(mediaPath);
                         dialog.dismiss();
+                        finish();
                     });
 
                     builder.setNegativeButton("NO", (dialog, which) -> {

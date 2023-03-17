@@ -2,16 +2,23 @@ package com.group7.gallerium.utilities;
 
 import static com.google.android.material.internal.ContextUtils.getActivity;
 
+import android.app.PendingIntent;
+import android.app.RecoverableSecurityException;
 import android.content.ContentResolver;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.IntentSender;
+import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Environment;
 import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
 import androidx.core.content.FileProvider;
 
 import com.group7.gallerium.fragments.MediaFragment;
@@ -27,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.util.ArrayList;
 import java.util.Objects;
 
 public class FileUtils {
@@ -53,47 +61,9 @@ public class FileUtils {
     public void moveFile(String inputPath, String inputFileName, String outputPath, Context context) {
 
         InputStream in = null;
-        //OutputStream out = null;
         Uri outputFile, inputFile, mediaSource;
 
         try {
-
-            //create output directory if it doesn't exist
-            File dir = new File (outputPath);
-            if (!dir.exists())
-            {
-                dir.mkdirs();
-            }
-
-//
-//            in = new FileInputStream(inputPath);
-//            out = new FileOutputStream(outputPath + File.separator + inputFileName);
-//
-//            byte[] buffer = new byte[1024];
-//            int read;
-//            while ((read = in.read(buffer)) != -1) {
-//                out.write(buffer, 0, read);
-//            }
-//            in.close();
-//            in = null;
-//
-//            // write the output file
-//            out.flush();
-//            out.close();
-//            out = null;
-
-//            original.delete();
-//            // delete the original file
-//            if(original.exists()){
-//                original.getCanonicalFile().delete();
-//                if(original.exists()){
-//                    context.getApplicationContext().deleteFile(original.getName());
-//                    AccessMediaFile.removeMediaFromAllMedia(inputPath);
-//                    AccessMediaFile.updateNewMedia();
-//                }
-//            }
-
-
             String parentPath = inputPath.substring(0, inputPath.lastIndexOf("/"));
             Log.d("Parent path", parentPath);
 
@@ -103,7 +73,6 @@ public class FileUtils {
             mediaSource = getUri(context, parentPath, type);
 
 
-            Log.d("parent uri", Uri.parse("content:" + File.separator + inputPath).toString());
             try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
                 OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
@@ -140,44 +109,90 @@ public class FileUtils {
         }
 
     }
-    public void copyFile(String inputPath, String inputFile, String outputPath) {
+    public void copyFile(String inputPath, String inputFileName, String outputPath, Context context) {
 
         InputStream in = null;
-        OutputStream out = null;
+        Uri outputFile, inputFile, mediaSource;
+
         try {
+            String parentPath = inputPath.substring(0, inputPath.lastIndexOf("/"));
+            Log.d("Parent path", parentPath);
 
-            //create output directory if it doesn't exist
-            File dir = new File (outputPath);
-            if (!dir.exists())
-            {
-                dir.mkdirs();
+            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+            inputFile = getUri(context, inputPath, type);
+            outputFile = getUri(context, outputPath, type);
+            mediaSource = getUri(context, parentPath, type);
+
+
+            Log.d("parent uri", Uri.parse("content:" + File.separator + inputPath).toString());
+            try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buf)) > 0) {
+                    out.write(buf, 0, len); //write input file data to output file
+                }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
-
-
-            in = new FileInputStream(inputPath + inputFile);
-            out = new FileOutputStream(outputPath + inputFile);
-
-            byte[] buffer = new byte[1024];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-            }
-            in.close();
-            in = null;
-
-            // write the output file (You have now copied the file)
-            out.flush();
-            out.close();
-            out = null;
-
-        }  catch (FileNotFoundException fnfe1) {
-            Log.e("tag", fnfe1.getMessage());
+            // Toast.makeText(context, "Move file " + newPath, Toast.LENGTH_SHORT).show();
         }
+
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
+//        }
         catch (Exception e) {
             Log.e("tag", e.getMessage());
         }
-
     }
+
+    /**
+     * Delete file.
+     * <p>
+     * If {@link ContentResolver} failed to delete the file, use trick,
+     * SDK version is >= 29(Q)? use {@link SecurityException} and again request for delete.
+     * SDK version is >= 30(R)? use {@link //MediaStore#createDeleteRequest(ContentResolver, Collection)}.
+     */
+    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
+
+        Uri uri = getUri(context, path, AccessMediaFile.getMediaWithPath(path).getType());
+        ContentResolver contentResolver = context.getContentResolver();
+
+        try {
+            //delete object using resolver
+            contentResolver.delete(uri, null, null);
+
+        } catch (SecurityException e) {
+
+            PendingIntent pendingIntent = null;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                ArrayList<Uri> collection = new ArrayList<>();
+                collection.add(uri);
+                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                //if exception is recoverable then again send delete request using intent
+                if (e instanceof RecoverableSecurityException) {
+                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                    pendingIntent = exception.getUserAction().getActionIntent();
+                }
+            }
+
+            if (pendingIntent != null) {
+                IntentSender sender = pendingIntent.getIntentSender();
+                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                launcher.launch(request);
+            }
+        }
+        AccessMediaFile.removeMediaFromAllMedia(path);
+    }
+
     public  void updateInfoFile(String password) throws FileNotFoundException {
         File info = new File(Environment.getExternalStorageDirectory()+File.separator+".secret"+ File.separator+"info.txt");
         try{

@@ -34,4 +34,18 @@
     <string name="add_to_album">Thêm vào album</string>
     <string name="move">Di chuyển</string>
     <string name="copy">Sao chép</string>
+    <string name="change_name">Đổi tên</string>
+    <string name="set_background">Đặt làm hình nền</string>
+    <string name="details">Chi tiết</string>
+    <string name="taken_datetime">Thời gian chụp/quay</string>
+    <string name="file_name">Tên tập tin</string>
+    <string name="sample_file_name">photo1.png</string>
+    <string name="file_size">Kích thước</string>
+    <string name="sample_file_size">1.4 MB</string>
+    <string name="resolution">Độ phân giải</string>
+    <string name="sample_resolution">2048 x 1024 13MP</string>
+    <string name="resolution_placeholder"> %1$d x %2$d %3$dMP</string>
+    <string name="file_path">Đường dẫn</string>
+    <string name="sample_file_path">Bộ nhớ trong/DCIM/ScreenShot/photo 1.png</string>
+    <string name="location">Vị trí</string>
 </resources>

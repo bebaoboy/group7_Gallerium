@@ -128,6 +128,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     }
     public void setAllChecked(boolean value) {
         mediaAdapter.setAllChecked(value);
+        notifyDataSetChanged();
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{
