@@ -3,10 +3,16 @@ package com.group7.gallerium.utilities;
 import static com.google.android.material.internal.ContextUtils.getActivity;
 
 import android.content.ContentResolver;
+import android.content.ContentValues;
 import android.content.Context;
+import android.net.Uri;
 import android.os.Environment;
+import android.provider.DocumentsContract;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
+
+import androidx.core.content.FileProvider;
 
 import com.group7.gallerium.fragments.MediaFragment;
 
@@ -47,8 +53,9 @@ public class FileUtils {
     public void moveFile(String inputPath, String inputFileName, String outputPath, Context context) {
 
         InputStream in = null;
-        OutputStream out = null;
-        File original = new File(inputPath);
+        //OutputStream out = null;
+        Uri outputFile, inputFile, mediaSource;
+
         try {
 
             //create output directory if it doesn't exist
@@ -58,40 +65,78 @@ public class FileUtils {
                 dir.mkdirs();
             }
 
+//
+//            in = new FileInputStream(inputPath);
+//            out = new FileOutputStream(outputPath + File.separator + inputFileName);
+//
+//            byte[] buffer = new byte[1024];
+//            int read;
+//            while ((read = in.read(buffer)) != -1) {
+//                out.write(buffer, 0, read);
+//            }
+//            in.close();
+//            in = null;
+//
+//            // write the output file
+//            out.flush();
+//            out.close();
+//            out = null;
 
-            in = new FileInputStream(inputPath);
-            out = new FileOutputStream(outputPath + File.separator + inputFileName);
+//            original.delete();
+//            // delete the original file
+//            if(original.exists()){
+//                original.getCanonicalFile().delete();
+//                if(original.exists()){
+//                    context.getApplicationContext().deleteFile(original.getName());
+//                    AccessMediaFile.removeMediaFromAllMedia(inputPath);
+//                    AccessMediaFile.updateNewMedia();
+//                }
+//            }
 
-            byte[] buffer = new byte[1024];
-            int read;
-            while ((read = in.read(buffer)) != -1) {
-                out.write(buffer, 0, read);
-            }
-            in.close();
-            in = null;
 
-            // write the output file
-            out.flush();
-            out.close();
-            out = null;
+            String parentPath = inputPath.substring(0, inputPath.lastIndexOf("/"));
+            Log.d("Parent path", parentPath);
 
-            original.delete();
-            // delete the original file
-            if(original.exists()){
-                original.getCanonicalFile().delete();
-                if(original.exists()){
-                    context.getApplicationContext().deleteFile(original.getName());
-                    AccessMediaFile.removeMediaFromAllMedia(inputPath);
-                    AccessMediaFile.updateNewMedia();
+            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+            inputFile = getUri(context, inputPath, type);
+            outputFile = getUri(context, outputPath, type);
+            mediaSource = getUri(context, parentPath, type);
+
+
+            Log.d("parent uri", Uri.parse("content:" + File.separator + inputPath).toString());
+            try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                byte[] buf = new byte[1024];
+                int len;
+                while ((len = inputStream.read(buf)) > 0) {
+                    out.write(buf, 0, len); //write input file data to output file
                 }
+
+            } catch (IOException e) {
+                e.printStackTrace();
             }
+           // Toast.makeText(context, "Move file " + newPath, Toast.LENGTH_SHORT).show();
         }
 
-        catch (FileNotFoundException fnfe1) {
-            Log.e("tag", fnfe1.getMessage());
-        }
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
+//        }
         catch (Exception e) {
             Log.e("tag", e.getMessage());
+        }
+
+    }
+
+    public Uri getUri(Context context, String inputPath, int mediaType) {
+        ContentValues values = new ContentValues();
+        if (mediaType == 1) {
+            values.put(MediaStore.Images.Media.DATA, inputPath);
+            return context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        } else {
+            values.put(MediaStore.Video.Media.DATA, inputPath);
+            return context.getContentResolver().insert(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, values);
         }
 
     }
