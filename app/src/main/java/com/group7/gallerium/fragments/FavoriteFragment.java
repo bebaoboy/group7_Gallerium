@@ -26,6 +26,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.models.Album;
+import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -48,6 +50,8 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     private Context context;
     private ArrayList<Media> listMedia;
     private ArrayList<Media> selectedMedia;
+    private ArrayList<Album> albumList;
+    private ArrayList<AlbumCategory> albumCategories;
     private MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
 
@@ -63,7 +67,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     private BottomSheetBehavior behavior;
     private BottomSheetDialog bottomSheetDialog;
 
-    private TextView btnShare, btnAdd, btnDelete, btnCreative;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -112,11 +116,13 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         //recyclerViewSetting();
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
-        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
 
-        bottomSheetConfig(); behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-        bottomSheetButtonConfig(); bottom_sheet.setVisibility(View.GONE);
+        bottomSheetConfig();
+        behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+        bottom_sheet.setVisibility(View.GONE);
+        bottomSheetButtonConfig();
+        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
         callback = new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -129,9 +135,9 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
                 // remove previous items
                 menu.clear();
                 mode = actionMode;
-                if(selectedMedia.size() == 0)
+                if (selectedMedia.size() == 0)
                     actionMode.setTitle("Chọn mục");
-                else{
+                else {
                     requireActivity().getMenuInflater().inflate(R.menu.menu_multiple_select, menu);
                     actionMode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
                 }
@@ -140,17 +146,17 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
             @Override
             public boolean onActionItemClicked(ActionMode actionMode, MenuItem menuItem) {
-
-                if(menuItem.getItemId() == R.id.select_all_item) {
+                bottom_sheet.setVisibility(View.VISIBLE);
+                if (menuItem.getItemId() == R.id.select_all_item) {
                     selectedMedia.clear();
                     adapter.setAllChecked(false);
-                    if(isAllChecked){
+                    if (isAllChecked) {
                         isAllChecked = false;
-                        if(mode != null) mode.setTitle("Chọn mục");
-                    }else{
+                        if (mode != null) mode.setTitle("Chọn mục");
+                    } else {
                         selectedMedia.addAll(listMedia);
                         isAllChecked = true;
-                        if(mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
+                        if (mode != null) mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
                     }
                     adapter.setAllChecked(isAllChecked);
                     return true;
@@ -201,12 +207,12 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         });
     }
     void bottomSheetButtonConfig(){
-        btnAdd = view.findViewById(R.id.move_album_button);
+        btnMove = view.findViewById(R.id.move_album_button);
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
 
-        btnAdd.setOnClickListener((v)->{
+        btnMove.setOnClickListener((v)->{
             openAlbumSelectView();
         });
         btnShare.setOnClickListener((v)->{
@@ -230,7 +236,6 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         View viewDialog = LayoutInflater.from(context).inflate(R.layout.add_to_album_bottom_dialog, null);
         addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
         addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
-
         bottomSheetDialog = new BottomSheetDialog(context);
         bottomSheetDialog.setContentView(viewDialog);
         bottomSheetDialog.show();
@@ -242,6 +247,13 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
+        if (bottomSheetDialog != null) {
+            bottomSheetDialog.cancel();
+            selectedMedia.clear();
+            mode.finish();
+            bottom_sheet.setVisibility(View.GONE);
+            requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+        }
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
@@ -389,9 +401,17 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     @Override
     public void moveMedia(String albumPath) {
         FileUtils fileUtils = new FileUtils();
-        for(Media media: selectedMedia) {
-            fileUtils.moveFile(media.getPath(), "", albumPath, context);
+        for (Media media : selectedMedia) {
+            String[] subDir = media.getPath().split("/");
+            String name = subDir[subDir.length - 1];
+            fileUtils.moveFile(media.getPath(), name, albumPath, context);
         }
+        bottomSheetDialog.cancel();
+        adapter.setData(getListCategory());
+        selectedMedia.clear();
+        mode.finish();
+        bottom_sheet.setVisibility(View.GONE);
+        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
     }
 
 }

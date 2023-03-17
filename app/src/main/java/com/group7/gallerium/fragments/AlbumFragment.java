@@ -45,7 +45,7 @@ public class AlbumFragment extends Fragment{
     private Toolbar toolbar;
     private Context context;
 
-    private ArrayList<Album> albumList;
+    private ArrayList<Album> albumList = new ArrayList<>();
     private int mediaAmount = 0;
 
     private ArrayList<AlbumCategory> albumCategories;
@@ -204,7 +204,7 @@ public class AlbumFragment extends Fragment{
 
     public void categorizeAlbum() {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
-        String[] subDir = albumList.get(0).getPath().split("/");
+        String[] subDir;
 
 
         categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));

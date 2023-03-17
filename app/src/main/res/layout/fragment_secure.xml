@@ -17,11 +17,17 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/secure_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="60dp"
-        android:orientation="vertical">
+        android:layout_marginTop="20dp"
+        android:orientation="vertical"
+        android:layout_gravity="center">
         <ImageView
             android:layout_width="100dp"
             android:layout_height="100dp"
@@ -119,4 +125,6 @@
 
         </GridLayout>
     </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
 </FrameLayout>

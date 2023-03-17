@@ -1,43 +1,68 @@
 package com.group7.gallerium.fragments;
 
+import android.animation.Animator;
 import android.content.Context;
+import android.content.res.Configuration;
 import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.Button;
+import android.view.ViewTreeObserver;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.GridLayout;
-import android.widget.GridView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
+import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
+
+import java.util.Objects;
 
 public class SecureFragment extends Fragment {
     private View view;
     private Toolbar toolbar;
     private Context context;
+    private NestedScrollView scroll;
     private GridLayout numGrid;
     private EditText txtPass;
     private MaterialButton btnClear, btnEnter;
+
+    boolean isLandscape = false;
 
     public SecureFragment() {}
 
     @Override
     public void onCreate(@Nullable Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
+        isLandscape = this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE;
+    }
+
+    @Override
+    public void onResume() {
+        super.onResume();
+        view.invalidate();
+    }
+
+    public void changeOrientation() {
+        view.invalidate();
     }
 
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        view = inflater.inflate(R.layout.fragment_secure, container, false);
+//        if (isLandscape) {
+//            view = inflater.inflate(R.layout.fragment_secure_land, container, false);
+//        } else {
+            view = inflater.inflate(R.layout.fragment_secure, container, false);
+//        }
+        scroll = view.findViewById(R.id.secure_scrollview);
         numGrid = view.findViewById(R.id.numpad_grid);
         txtPass = view.findViewById(R.id.txtPassword);
         btnClear = view.findViewById(R.id.secure_clear_button);
@@ -64,5 +89,51 @@ public class SecureFragment extends Fragment {
         toolbar.inflateMenu(R.menu.menu_secure);
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
+        scroll.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
+            @Override
+            public void onScrollChanged() {
+                    toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
+                            .setListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationEnd(@NonNull Animator animator) {
+                                    toolbar.setVisibility(View.INVISIBLE);
+                                    toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+                                            .setListener(new Animator.AnimatorListener() {
+                                                @Override
+                                                public void onAnimationStart(@NonNull Animator animator) {
+                                                }
+
+                                                @Override
+                                                public void onAnimationEnd(@NonNull Animator animator) {
+                                                    toolbar.setVisibility(View.VISIBLE);
+                                                }
+
+                                                @Override
+                                                public void onAnimationCancel(@NonNull Animator animator) {
+                                                }
+
+                                                @Override
+                                                public void onAnimationRepeat(@NonNull Animator animator) {
+                                                }
+                                            })
+                                            .start();
+                                }
+
+                                @Override
+                                public void onAnimationCancel(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(@NonNull Animator animator) {
+                                }
+                            })
+                            .start();
+            }
+        });
+
     }
 }

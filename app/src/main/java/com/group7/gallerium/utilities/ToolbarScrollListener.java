@@ -5,19 +5,25 @@ import android.util.Log;
 import android.view.View;
 import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.fragments.MediaFragment;
 
 public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
 
     private final Toolbar toolbar;
-    public ToolbarScrollListener(Toolbar t) {
+    private LinearLayout bottomSheetDialog;
+
+    public ToolbarScrollListener(Toolbar t,LinearLayout btm) {
         toolbar = t;
+        bottomSheetDialog = btm;
     }
 
     @Override
@@ -43,6 +49,27 @@ public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
                         }
                     })
                     .start();
+            bottomSheetDialog.animate().translationY(0).setInterpolator(new DecelerateInterpolator())
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(@NonNull Animator animator) {
+                            toolbar.setVisibility(View.VISIBLE);
+                        }
+
+                        @Override
+                        public void onAnimationEnd(@NonNull Animator animator) {
+                        }
+
+                        @Override
+                        public void onAnimationCancel(@NonNull Animator animator) {
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(@NonNull Animator animator) {
+                        }
+                    })
+                    .start();
+
             super.onScrollStateChanged(recyclerView, newState);
         } else if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
             super.onScrollStateChanged(recyclerView, newState);
@@ -66,6 +93,27 @@ public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
                         }
                     })
                     .start();
+            bottomSheetDialog.animate().translationY(bottomSheetDialog.getBottom()).setInterpolator(new AccelerateInterpolator())
+                    .setListener(new Animator.AnimatorListener() {
+                        @Override
+                        public void onAnimationStart(@NonNull Animator animator) {
+                        }
+
+                        @Override
+                        public void onAnimationEnd(@NonNull Animator animator) {
+                            toolbar.setVisibility(View.GONE);
+                        }
+
+                        @Override
+                        public void onAnimationCancel(@NonNull Animator animator) {
+                        }
+
+                        @Override
+                        public void onAnimationRepeat(@NonNull Animator animator) {
+                        }
+                    })
+                    .start();
+
         } else {
             super.onScrollStateChanged(recyclerView, newState);
             if (!recyclerView.canScrollVertically(-1) || !recyclerView.canScrollVertically(1)) {

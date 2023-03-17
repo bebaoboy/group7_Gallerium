@@ -22,6 +22,7 @@ import com.group7.gallerium.adapters.ViewPagerAdapter;
 import com.group7.gallerium.fragments.AlbumFragment;
 import com.group7.gallerium.fragments.FavoriteFragment;
 import com.group7.gallerium.fragments.MediaFragment;
+import com.group7.gallerium.fragments.SecureFragment;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
@@ -64,13 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
         bottom_nav.setOnItemSelectedListener(navItem -> {
             switch (navItem.getItemId()) {
-                case R.id.photo_nav_item -> view_pager.setCurrentItem(0);
+                case R.id.photo_nav_item -> view_pager.setCurrentItem(0, false);
 
-                case R.id.album_nav_item -> view_pager.setCurrentItem(1);
+                case R.id.album_nav_item -> view_pager.setCurrentItem(1, false);
 
-                case R.id.secured_nav_item -> view_pager.setCurrentItem(2);
+                case R.id.secured_nav_item -> view_pager.setCurrentItem(2, false);
 
-                case R.id.fav_nav_item -> view_pager.setCurrentItem(3);
+                case R.id.fav_nav_item -> view_pager.setCurrentItem(3, false);
 
                 default -> throw new IllegalStateException("Unexpected value: " + navItem.getItemId());
             }
@@ -109,6 +110,10 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(6);
+            } else if(view_pager.getCurrentItem() == 2){
+                var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation();
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
@@ -126,7 +131,11 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(3);
-            }   else if(view_pager.getCurrentItem() == 3){
+            } else if(view_pager.getCurrentItem() == 2){
+                var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
+                assert myFragment != null;
+                myFragment.changeOrientation();
+            } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 assert myFragment != null;
                 myFragment.changeOrientation(3);

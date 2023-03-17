@@ -95,7 +95,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void onResume() {
         super.onResume();
         Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
-        adapter.setData(getListCategory());
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             changeOrientation(6);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -140,13 +139,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         //recyclerViewSetting();
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
-        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar));
         recyclerView.setItemViewCacheSize(4);
 
         bottomSheetConfig();
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottom_sheet.setVisibility(View.GONE);
         bottomSheetButtonConfig();
+        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
+
         callback = new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -283,6 +283,13 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
+        if (bottomSheetDialog != null) {
+            bottomSheetDialog.cancel();
+            selectedMedia.clear();
+            mode.finish();
+            bottom_sheet.setVisibility(View.GONE);
+            requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+        }
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
