@@ -3,48 +3,49 @@
     android:id="@+id/more_bottom_sheet"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:background="@color/primary_color_dark"
     app:behavior_hideable="true"
     android:paddingBottom="20dp"
     android:paddingStart="40dp"
     android:paddingEnd="60dp"
     android:paddingTop="10dp"
     android:orientation="vertical"
-    app:layout_behavior="android.support.design.widget.BottomSheetBehavior">
+    app:layout_behavior="android.support.design.widget.BottomSheetBehavior"
+    android:background="@color/primary_color_dark"
+    style="@style/MoreBottomSheetParent">
     <TextView
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:id="@+id/add_to_album_item"
         android:enabled="true"
         android:text="@string/add_to_album"
         android:tooltipText="@string/add_to_album"
         android:foreground="?android:attr/selectableItemBackground"
-        style="@style/MoreBottomSheet"/>
+        style="@style/MoreBottomSheetText"/>
 
     <TextView
         android:id="@+id/change_name_item"
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
         android:text="@string/change_name"
         android:tooltipText="@string/change_name"
-        style="@style/MoreBottomSheet" />
+        style="@style/MoreBottomSheetText" />
     <TextView
-        android:layout_height="wrap_content"
+        android:layout_height="match_parent"
         android:layout_width="wrap_content"
         android:id="@+id/set_sys_background_item"
         android:text="@string/set_background"
         android:tooltipText="@string/set_background"
         android:foreground="?android:attr/selectableItemBackground"
-        style="@style/MoreBottomSheet"
+        style="@style/MoreBottomSheetText"
         />
 
     <TextView
         android:id="@+id/show_details_item"
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:foreground="?android:attr/selectableItemBackground"
         android:text="@string/details"
         android:tooltipText="@string/details"
-        style="@style/MoreBottomSheet" />
+        style="@style/MoreBottomSheetText" />
 </LinearLayout>
