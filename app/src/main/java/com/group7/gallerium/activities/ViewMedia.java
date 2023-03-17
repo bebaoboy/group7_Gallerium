@@ -333,8 +333,18 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 }
 
                 case R.id.more_nav_item -> {
-                   bottomSheet.setVisibility(View.VISIBLE);
-                   behavior.setState(BottomSheetBehavior.STATE_EXPANDED);
+
+                    if (bottomSheet.getVisibility() == View.VISIBLE) {
+                        behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        behavior.setPeekHeight(0);
+                        behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                        bottomSheet.setVisibility(View.GONE);
+                    } else if (bottomSheet.getVisibility() == View.GONE) {
+                        bottomSheet.setVisibility(View.VISIBLE);
+                        behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
+                        behavior.setPeekHeight(700);
+                        behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
+                    }
                 }
 
                 case R.id.delete_nav_item ->{

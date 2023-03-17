@@ -44,6 +44,16 @@
         <item name="android:padding">2dp</item>
     </style>
 
+    <style name="MoreBottomSheetParent">
+        <item name="background">@color/primary_color_dark</item>
+    </style>
+
+    <style name="MoreBottomSheetText">
+        <item name="android:textColor">@color/less_white</item>
+        <item name="android:fontFamily">@font/primary_font_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_marginVertical">10dp</item>
+    </style>
 
     <style name="Toolbar">
         <item name="android:background">@color/primary_color_dark_bg</item>
