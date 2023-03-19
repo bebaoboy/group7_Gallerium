@@ -1,8 +1,14 @@
 package com.group7.gallerium.activities;
 
+import static android.app.WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER;
+
 import android.app.Activity;
+import android.app.WallpaperManager;
+import android.content.ContentValues;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.database.Cursor;
 import android.graphics.Color;
 import android.media.ExifInterface;
 import android.media.MediaPlayer;
@@ -10,6 +16,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -155,6 +162,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         btnSetBackGround.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
+            File wallpaperFile = new File(mediaPath);
+            Uri contentURI = getImageContentUri(this, wallpaperFile.getAbsolutePath());
+            WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
+            intent = new Intent(wallpaperManager.getCropAndSetWallpaperIntent(contentURI));
+            startActivity(intent);
         });
         btnShowDetails.setOnClickListener((v) -> {
             Uri mediaUri = Uri.parse("file://" + mediaPath);
@@ -162,6 +174,27 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
         });
+    }
+
+    public static Uri getImageContentUri(Context context, String absPath) {
+        Cursor cursor = context.getContentResolver().query(
+                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                , new String[] { MediaStore.Images.Media._ID }
+                , MediaStore.Images.Media.DATA + "=? "
+                , new String[] { absPath }, null);
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI , Integer.toString(id));
+
+        } else if (!absPath.isEmpty()) {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Images.Media.DATA, absPath);
+            return context.getContentResolver().insert(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        } else {
+            return null;
+        }
     }
 
     void bottomSheetDialogConfig() {

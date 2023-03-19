@@ -99,6 +99,8 @@ public class FileUtils {
     }
 
     public Uri getUri(Context context, String inputPath, int mediaType) {
+
+        
         ContentValues values = new ContentValues();
         if (mediaType == 1) {
             values.put(MediaStore.Images.Media.DATA, inputPath);
