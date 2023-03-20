@@ -1,7 +1,8 @@
 buildscript {
     repositories {
         google()
-        maven { url "https://www.jitpack.io" }
+        maven { url "https://www.jitpack.io"}
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         mavenCentral()
     }
     dependencies {
@@ -15,6 +16,7 @@ allprojects {
     repositories {
         //jcenter()
         maven { url "https://www.jitpack.io" }
+        maven { url "https://oss.sonatype.org/content/repositories/snapshots" }
         mavenCentral()
         google() // Google's Maven repository
         flatDir {

@@ -254,7 +254,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private void deleteMedia() {
         for(Media media: selectedMedia) {
-            fileUtils.delete(launcher, media.getPath(), context);
+           // fileUtils.delete(launcher, media.getPath(), context);
         }
         adapter.setData(getListCategory());
         selectedMedia.clear();
@@ -286,8 +286,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         if (bottomSheetDialog != null) {
             bottomSheetDialog.cancel();
             selectedMedia.clear();
-            mode.finish();
-            bottom_sheet.setVisibility(View.GONE);
+            if (mode != null) mode.finish();
+            if( bottom_sheet!= null) bottom_sheet.setVisibility(View.GONE);
             requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
         }
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -445,6 +445,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
         bottomSheetDialog.cancel();
         adapter.setData(getListCategory());
+        recyclerView.setAdapter(adapter);
         selectedMedia.clear();
         mode.finish();
         bottom_sheet.setVisibility(View.GONE);

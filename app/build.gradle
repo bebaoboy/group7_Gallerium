@@ -55,4 +55,5 @@ dependencies {
 
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
     implementation 'com.github.valkriaine:Bouncy:2.3'
+    implementation "com.anggrayudi:storage:1.2.1"
 }
