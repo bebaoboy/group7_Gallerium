@@ -264,7 +264,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private void deleteMedia() {
         for(Media media: selectedMedia) {
-            fileUtils.delete(launcher, media.getPath(), context);
+           // fileUtils.delete(launcher, media.getPath(), context);
         }
         callback.onDestroyActionMode(mode);
     }
