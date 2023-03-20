@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    tools:context=".activities.CameraActivity"
-    android:background="@color/black">
+    tools:context=".activities.CameraActivity">
 
     <Button
         android:id="@+id/capture_button"
@@ -18,13 +17,23 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintTop_toBottomOf="@+id/previewView"/>
 
+    <Button
+        android:id="@+id/camera_switch"
+        android:layout_width="60dp"
+        android:layout_height="60dp"
+        android:background="@drawable/ic_cameraswitch"
+        app:layout_constraintBottom_toBottomOf="parent"
+        android:layout_marginEnd="20dp"
+        app:layout_constraintStart_toEndOf="@id/capture_button"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintTop_toBottomOf="@id/previewView" />
+
     <androidx.camera.view.PreviewView
         android:id="@+id/previewView"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginBottom="100dp"
         android:layout_marginTop="30dp"
-        android:background="@color/white"
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="parent"

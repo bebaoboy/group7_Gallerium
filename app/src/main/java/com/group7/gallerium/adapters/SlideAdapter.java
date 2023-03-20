@@ -66,7 +66,6 @@ public class SlideAdapter extends PagerAdapter {
         if (m.getType() == 1) {
             view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
             img = view.findViewById(R.id.imageView);
-            img.setMaximumScale(10);
             Glide.with(context).load(path).into(img);
 
             img.setOnClickListener((view1)->{

@@ -45,6 +45,8 @@ public class AlbumFragment extends Fragment{
     private Toolbar toolbar;
     private Context context;
 
+    private int spanCount = 3;
+
     private ArrayList<Album> albumList = new ArrayList<>();
     private int mediaAmount = 0;
 
@@ -71,11 +73,11 @@ public class AlbumFragment extends Fragment{
     public void onResume() {
         super.onResume();
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            changeOrientation(6);
+            //changeOrientation(6);
             ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
         else {
-            changeOrientation(3);
+            //changeOrientation(3);
             ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
       }
@@ -90,9 +92,17 @@ public class AlbumFragment extends Fragment{
     }
 
     public void changeOrientation(int spanCount) {
-        GridLayoutManager layoutManager = new GridLayoutManager(context, 1);
-        album_rec.setLayoutManager(layoutManager);
-        adapter = new AlbumCategoryAdapter(context, spanCount);
+        if (spanCount != this.spanCount)
+        {
+            this.spanCount = spanCount;
+            adapter = new AlbumCategoryAdapter(context, spanCount);
+            refresh();
+        }
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+    }
+
+    public void refresh(){
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPosition(0);
         AccessMediaFile.refreshAllMedia();
         ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
         if (listMediaTemp.size() != mediaAmount)
@@ -102,13 +112,19 @@ public class AlbumFragment extends Fragment{
         categorizeAlbum();
         adapter.setData(albumCategories);
         album_rec.setAdapter(adapter);
-        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
-
 
     @Override
     public void onStart() {
         super.onStart();
+        GridLayoutManager layoutManager = new GridLayoutManager(context, 1);
+        album_rec.setLayoutManager(layoutManager);
+        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            changeOrientation(6);
+        } else {
+            changeOrientation(3);
+        }
+        refresh();
         albumListTask = new AlbumListTask();
         //progressDialog = new ProgressDialog(AlbumFragment.this.getContext());
         //progressDialog.setTitle("Loading (0%)");
@@ -335,13 +351,6 @@ public class AlbumFragment extends Fragment{
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
-            if (listMediaTemp.size() != mediaAmount)
-            {
-                albumList = getAllAlbum(listMediaTemp);
-            }
-            categorizeAlbum();
-            adapter.setData(albumCategories);
             return null;
         }
     }

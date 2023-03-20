@@ -98,12 +98,12 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onResume() {
         super.onResume();
-        Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            changeOrientation(6);
+            //changeOrientation(6);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         } else {
-            changeOrientation(3);
+            //changeOrientation(3);
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
     }
@@ -117,6 +117,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
             offset = firstChild.getTop();
         }
+        adapter.setData(getListCategory());
     }
 
     private final ActivityResultLauncher<IntentSenderRequest> launcher = registerForActivityResult(
@@ -130,7 +131,13 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onStart() {
         super.onStart();
-        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+            changeOrientation(6);
+        } else {
+            changeOrientation(3);
+        }
+        refresh();
     }
 
     @Override
@@ -286,11 +293,20 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     public void changeOrientation(int spanCount) {
-        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
-        adapter.setData(getListCategory());
+        if (spanCount != this.spanCount) {
+            this.spanCount = spanCount;
+            adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+            refresh();
+        }
         recyclerView.setAdapter(adapter);
         callback.onDestroyActionMode(mode);
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+    }
+
+    public void refresh() {
+        Log.d("refresh", "");
+        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
+        adapter.setData(getListCategory());
     }
 
     void recyclerViewSetting() {
