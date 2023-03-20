@@ -18,6 +18,7 @@ import android.os.storage.StorageManager;
 import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -138,8 +139,10 @@ public class FileUtils {
                 } catch (IOException e) {
                     e.printStackTrace();
                 }
-                // Toast.makeText(context, "Move file " + newPath, Toast.LENGTH_SHORT).show();
+                 Toast.makeText(context, "Move file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
+
             }
+            delete(null, inputPath, context);
 
 //        catch (FileNotFoundException fnfe1) {
 //            Log.e("tag", fnfe1.getMessage());
@@ -159,7 +162,6 @@ public class FileUtils {
 //       return MediaStore.Files.getContentUri(inputPath);
 //    }
 
-    @RequiresApi(api = Build.VERSION_CODES.Q)
     public Uri getUriOfMedia(Context context, String inputPath, String outputPath) {
         Cursor cursor = null;
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
@@ -190,28 +192,35 @@ public class FileUtils {
                 return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
 
         } else if (!inputPath.isEmpty()) {
-            ContentValues values = new ContentValues();
-            var resolver = context.getContentResolver();
-            if(mediaType == 1) {
-                Uri picCollection =  MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
-                values.put(MediaStore.Images.Media.DISPLAY_NAME, "test.jpg");
-                values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
-                values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
-                values.put(MediaStore.Images.Media.IS_PENDING,0);
-                Uri finaluri = resolver.insert(picCollection, values);
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues values = new ContentValues();
+                var resolver = context.getContentResolver();
+                if (mediaType == 1) {
+                    Uri picCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+                    values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
+                    values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    Uri finaluri = resolver.insert(picCollection, values);
 
-                return finaluri;
-            }else{
-                Uri vidCollection =  MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
-                values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
-                values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
-                values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
-                values.put(MediaStore.Video.Media.IS_PENDING,1);
-                Uri finaluri = resolver.insert(vidCollection, values);
-                values.clear();
-                values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                resolver.update(vidCollection, values, null, null);
-                return finaluri;
+                    return finaluri;
+                } else {
+                    Uri vidCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
+                    values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
+                    values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
+                    values.put(MediaStore.Video.Media.IS_PENDING, 1);
+                    Uri finaluri = resolver.insert(vidCollection, values);
+                    values.clear();
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    resolver.update(vidCollection, values, null, null);
+                    return finaluri;
+                }
+            } else {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, media.getPath());
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             }
         } else {
             return null;
@@ -264,42 +273,56 @@ public class FileUtils {
      * SDK version is >= 29(Q)? use {@link SecurityException} and again request for delete.
      * SDK version is >= 30(R)? use {@link //MediaStore#createDeleteRequest(ContentResolver, Collection)}.
      */
-//    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
-//
-//        Uri uri = getUri(context, path, AccessMediaFile.getMediaWithPath(path).getType());
-//        ContentResolver contentResolver = context.getContentResolver();
-//
-//        try {
-//            //delete object using resolver
-//            contentResolver.delete(uri, null, null);
-//
-//        } catch (SecurityException e) {
-//
-//            PendingIntent pendingIntent = null;
-//
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//
-//                ArrayList<Uri> collection = new ArrayList<>();
-//                collection.add(uri);
-//                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
-//
-//            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//
-//                //if exception is recoverable then again send delete request using intent
-//                if (e instanceof RecoverableSecurityException) {
-//                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
-//                    pendingIntent = exception.getUserAction().getActionIntent();
-//                }
-//            }
-//
-//            if (pendingIntent != null) {
-//                IntentSender sender = pendingIntent.getIntentSender();
-//                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
-//                launcher.launch(request);
-//            }
-//        }
-//        AccessMediaFile.removeMediaFromAllMedia(path);
-//    }
+    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
+
+        String[] parse = path.substring(0, path.lastIndexOf("/")).split("/");
+        var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+
+        String relativePath = "";
+        for (var item : dirList) {
+            relativePath += item + "/";
+            Log.d("Item", item);
+        }
+
+        Uri uri = getUriOfMedia(context, path, relativePath);
+        ContentResolver contentResolver = context.getContentResolver();
+        PendingIntent pendingIntent = null;
+
+
+        try {
+            //delete object using resolver
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                ArrayList<Uri> collection = new ArrayList<>();
+                collection.add(uri);
+                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+
+            } else
+                contentResolver.delete(uri, null, null);
+
+
+        } catch (Exception e) {
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                //if exception is recoverable then again send delete request using intent
+                if (e instanceof RecoverableSecurityException) {
+                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                    pendingIntent = exception.getUserAction().getActionIntent();
+                }
+            }
+
+
+        } finally {
+            if (pendingIntent != null) {
+                IntentSender sender = pendingIntent.getIntentSender();
+                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                launcher.launch(request);
+            }
+        }
+        // AccessMediaFile.removeMediaFromAllMedia(path);
+    }
 
     public  void updateInfoFile(String password) throws FileNotFoundException {
         File info = new File(Environment.getExternalStorageDirectory()+File.separator+".secret"+ File.separator+"info.txt");

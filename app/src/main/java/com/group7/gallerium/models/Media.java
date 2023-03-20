@@ -15,6 +15,7 @@ public class Media {
 
     private long duration;
     private long size;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
 
     private String title;
     private int width;
@@ -46,7 +47,7 @@ public class Media {
     }
 
     public String getDateTaken() {
-        return new SimpleDateFormat("EEE, dd-MM-yyyy").format(dateTaken);
+        return dateFormat.format(dateTaken);
     }
 
     public long getRawDate() {

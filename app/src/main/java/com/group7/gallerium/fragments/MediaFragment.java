@@ -93,6 +93,20 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
         fileUtils = new FileUtils();
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(context.getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+
+                        for(Media media: selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(media.getPath());
+                        }
+                    }
+                    callback.onDestroyActionMode(mode);
+                    adapter.setData(getListCategory());
+                    recyclerView.setAdapter(adapter);
+                });
     }
 
     @Override
@@ -119,13 +133,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
     }
 
-    private final ActivityResultLauncher<IntentSenderRequest> launcher = registerForActivityResult(
-            new ActivityResultContracts.StartIntentSenderForResult(),
-            result -> {
-                if (result.getResultCode() == Activity.RESULT_OK) {
-                    Toast.makeText(context.getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-                }
-            });
+    private  ActivityResultLauncher<IntentSenderRequest> launcher;
 
     @Override
     public void onStart() {
@@ -264,9 +272,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private void deleteMedia() {
         for(Media media: selectedMedia) {
-           // fileUtils.delete(launcher, media.getPath(), context);
+            fileUtils.delete(launcher, media.getPath(), context);
         }
-        callback.onDestroyActionMode(mode);
     }
 
     @Override
@@ -457,6 +464,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             fileUtils.moveFile(media.getPath(), name, albumPath, context);
         }
         callback.onDestroyActionMode(mode);
+        adapter.setData(getListCategory());
+        recyclerView.setAdapter(adapter);
     }
 
 
