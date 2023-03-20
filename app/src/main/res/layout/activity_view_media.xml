@@ -17,13 +17,14 @@
 
     <androidx.coordinatorlayout.widget.CoordinatorLayout
         android:layout_width="match_parent"
-        android:layout_height="0dp"
-        app:layout_constraintBottom_toTopOf="@+id/view_photo_bottom_navigation"
+        android:layout_height="match_parent"
+        app:layout_constraintBottom_toTopOf="parent"
         app:layout_constraintTop_toTopOf="parent">
 
         <androidx.constraintlayout.widget.ConstraintLayout
             android:layout_width="match_parent"
             android:layout_height="match_parent">
+
             <FrameLayout
                 android:id="@+id/frame_viewPager"
                 android:layout_width="match_parent"
@@ -46,10 +47,9 @@
             layout="@layout/more_bottom_sheet"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            app:layout_anchorGravity="bottom"
-            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior"
             android:visibility="gone"
-            />
+            app:layout_anchorGravity="bottom"
+            app:layout_behavior="com.google.android.material.bottomsheet.BottomSheetBehavior" />
 
     </androidx.coordinatorlayout.widget.CoordinatorLayout>
 

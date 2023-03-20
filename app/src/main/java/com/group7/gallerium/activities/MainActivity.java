@@ -65,13 +65,13 @@ public class MainActivity extends AppCompatActivity {
 
         bottom_nav.setOnItemSelectedListener(navItem -> {
             switch (navItem.getItemId()) {
-                case R.id.photo_nav_item -> view_pager.setCurrentItem(0, false);
+                case R.id.photo_nav_item -> setCurrentPage(0);
 
-                case R.id.album_nav_item -> view_pager.setCurrentItem(1, false);
+                case R.id.album_nav_item -> setCurrentPage(1);
 
-                case R.id.secured_nav_item -> view_pager.setCurrentItem(2, false);
+                case R.id.secured_nav_item -> setCurrentPage(2);
 
-                case R.id.fav_nav_item -> view_pager.setCurrentItem(3, false);
+                case R.id.fav_nav_item -> setCurrentPage(3);
 
                 default -> throw new IllegalStateException("Unexpected value: " + navItem.getItemId());
             }
@@ -99,46 +99,78 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
-        if(newConfig.orientation == Configuration.ORIENTATION_LANDSCAPE){
+        changeOrientation(newConfig.orientation, false);
+    }
+
+    private void setCurrentPage(int page) {
+        view_pager.setCurrentItem(page, false);
+        changeOrientation(getResources().getConfiguration().orientation, true);
+    }
+
+    private void changeOrientation(int orientation, boolean refresh) {
+        if(orientation == Configuration.ORIENTATION_LANDSCAPE){
             Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "landscape");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(6);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(6);
+                    if (refresh) myFragment.refresh();
+                }
             } else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(6);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(6);
+                    if (refresh) myFragment.refresh();
+                }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation();
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation();
+                }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(6);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(6);
+                    if (refresh) myFragment.refresh();
+                }
             }
 
-        }else {
+        }
+        else {
             Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "portrait");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(3);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(3);
+                    if (refresh) myFragment.refresh();
+                }
             }  else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(3);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(3);
+                    if (refresh) myFragment.refresh();
+                }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation();
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation();
+                }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
-                assert myFragment != null;
-                myFragment.changeOrientation(3);
+                if (myFragment != null)
+                {
+                    myFragment.changeOrientation(3);
+                    if (refresh) myFragment.refresh();
+                }
             }
         }
     }
