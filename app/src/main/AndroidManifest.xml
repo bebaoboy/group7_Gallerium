@@ -61,6 +61,9 @@
         android:theme="@style/Theme.Group7_PhotoViewer"
         tools:targetApi="33">
         <activity
+            android:name=".activities.CameraActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.WallpaperPreview"
             android:exported="false" />
         <activity

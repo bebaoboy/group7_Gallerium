@@ -2,6 +2,7 @@ package com.group7.gallerium.fragments;
 
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
@@ -13,6 +14,7 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.Button;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -30,6 +32,7 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
+import com.group7.gallerium.activities.CameraActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Album;
@@ -54,6 +57,7 @@ import java.util.stream.Collectors;
 public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
+    private MenuItem cameraButton;
     private Context context;
     private ArrayList<Media> listMedia;
     private ArrayList<Media> selectedMedia;
@@ -192,10 +196,16 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             public void onDestroyActionMode(ActionMode actionMode) {
                 selectedMedia.clear();
                 adapter.setMultipleEnabled(false);
+                if (actionMode != null) {
+                    actionMode.finish();
+                }
                 mode = null;
                 requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
                 behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 bottom_sheet.setVisibility(View.GONE);
+                if (bottomSheetDialog != null) {
+                    bottomSheetDialog.cancel();
+                }
             }
         };
 
@@ -256,11 +266,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         for(Media media: selectedMedia) {
             fileUtils.delete(launcher, media.getPath(), context);
         }
-        adapter.setData(getListCategory());
-        selectedMedia.clear();
-        mode.finish();
-        bottom_sheet.setVisibility(View.GONE);
-        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+        callback.onDestroyActionMode(mode);
     }
 
     @Override
@@ -283,13 +289,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView.setAdapter(adapter);
-        if (bottomSheetDialog != null) {
-            bottomSheetDialog.cancel();
-            selectedMedia.clear();
-            mode.finish();
-            bottom_sheet.setVisibility(View.GONE);
-            requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
-        }
+        callback.onDestroyActionMode(mode);
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
@@ -306,6 +306,19 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         toolbar.inflateMenu(R.menu.menu_photo);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
+        cameraButton = toolbar.getMenu().findItem(R.id.take_photo_tb_item);
+        cameraButton.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(@NonNull MenuItem menuItem) {
+                enableCamera();
+                return false;
+            }
+        });
+    }
+
+    private void enableCamera() {
+        Intent intent = new Intent(getActivity(), CameraActivity.class);
+        startActivity(intent);
     }
 
 //    ArrayList<String> getListMedia(){
@@ -443,12 +456,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             String name = subDir[subDir.length - 1];
             fileUtils.moveFile(media.getPath(), name, albumPath, context);
         }
-        bottomSheetDialog.cancel();
-        adapter.setData(getListCategory());
-        selectedMedia.clear();
-        mode.finish();
-        bottom_sheet.setVisibility(View.GONE);
-        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+        callback.onDestroyActionMode(mode);
     }
 
 
@@ -465,7 +473,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             albumAdapter.setViewType(1);
             albumAdapter.setData(albumCategories);
             addAlbumRecyclerView.setAdapter(albumAdapter);
-            ((LinearLayoutManager) Objects.requireNonNull(addAlbumRecyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
             bottomSheetDialog.show();
         }
 
