@@ -1,5 +1,6 @@
 package com.group7.gallerium.fragments;
 
+import android.app.Activity;
 import android.content.Context;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
@@ -15,6 +16,9 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
@@ -69,11 +73,28 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
 
+    private ActivityResultLauncher<IntentSenderRequest> launcher;
+
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
         selectedMedia = new ArrayList<>();
+
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(context.getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+
+                        for(Media media: selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(media.getPath());
+                        }
+                    }
+                    callback.onDestroyActionMode(mode);
+                    adapter.setData(getListCategory());
+                    recyclerView.setAdapter(adapter);
+                });
     }
 
     @Override
@@ -420,7 +441,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         for (Media media : selectedMedia) {
             String[] subDir = media.getPath().split("/");
             String name = subDir[subDir.length - 1];
-            fileUtils.moveFile(media.getPath(), name, albumPath, context);
+            fileUtils.moveFile(media.getPath(), launcher, albumPath, context);
         }
         bottomSheetDialog.cancel();
         adapter.setData(getListCategory());

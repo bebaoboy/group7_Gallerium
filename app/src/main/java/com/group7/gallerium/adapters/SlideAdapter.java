@@ -36,6 +36,10 @@ public class SlideAdapter extends PagerAdapter {
         notifyDataSetChanged();
     }
 
+    public void removePath(String path){
+        paths.remove(path);
+    }
+
     public SlideAdapter(Context context) {
         this.context = context;
     }

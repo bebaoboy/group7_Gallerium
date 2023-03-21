@@ -5,8 +5,10 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -281,6 +283,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         for(Media media: selectedMedia) {
             fileUtils.delete(launcher, media.getPath(), context);
         }
+        refresh();
+        callback.onDestroyActionMode(mode);
+
     }
 
     @Override
@@ -476,8 +481,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         FileUtils fileUtils = new FileUtils();
         for (Media media : selectedMedia) {
             String[] subDir = media.getPath().split("/");
-            String name = subDir[subDir.length - 1];
-            fileUtils.moveFile(media.getPath(), name, albumPath, context);
+            fileUtils.moveFile(media.getPath(), launcher, albumPath, context);
         }
         callback.onDestroyActionMode(mode);
         adapter.setData(getListCategory());

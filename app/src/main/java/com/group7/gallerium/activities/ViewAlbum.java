@@ -1,10 +1,14 @@
 package com.group7.gallerium.activities;
 
+import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -57,6 +61,8 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     private ActionMode mode;
 
     private ActionMode.Callback callback;
+
+    private ActivityResultLauncher<IntentSenderRequest> launcher;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -131,6 +137,20 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             }
         };
 
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+
+                        for(Media media: selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(media.getPath());
+                        }
+                    }
+                    callback.onDestroyActionMode(mode);
+                    adapter.setData(getListCategory());
+                    album_rec_item.setAdapter(adapter);
+                });
     }
 
     @Override
@@ -273,7 +293,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     public void moveMedia(String albumPath) {
         FileUtils fileUtils = new FileUtils();
         for(Media media: selectedMedia) {
-            fileUtils.moveFile(media.getPath(), "", albumPath, this);
+            fileUtils.moveFile(media.getPath(), launcher, albumPath, this);
         }
     }
 }

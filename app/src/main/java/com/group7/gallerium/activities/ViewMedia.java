@@ -30,6 +30,8 @@ import android.widget.Toast;
 import android.widget.VideoView;
 
 import androidx.activity.result.ActivityResultLauncher;
+import androidx.activity.result.IntentSenderRequest;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
@@ -85,6 +87,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private TextView btnSetBackGround, btnAddToAlbum;
     private TextView btnShowDetails, btnRename;
 
+    private  ActivityResultLauncher<IntentSenderRequest> launcher;
+    private FileUtils fileUtils;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -114,6 +119,21 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         bottomSheetButtonConfig();
 
         bottom_nav.setBackgroundTintList(null);
+
+        fileUtils = new FileUtils();
+
+        launcher = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+
+                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                    }
+                    slideAdapter.removePath(mediaPath);
+                    finish();
+                });
+
     }
 
     private void bottomSheetConfig() {
@@ -375,30 +395,32 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     } else if (bottomSheet.getVisibility() == View.GONE) {
                         bottomSheet.setVisibility(View.VISIBLE);
                         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
-                        behavior.setPeekHeight(700);
+                        behavior.setPeekHeight(820);
                         behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
                 }
 
                 case R.id.delete_nav_item ->{
                     String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
-                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
+//
+//                    builder.setTitle("Confirm");
+//                    builder.setMessage("Do you want to delete this " + type + "?");
+//                    builder.setPositiveButton("YES", (dialog, which) -> {
+//                        FileUtils fileUtils = new FileUtils();
+//                        fileUtils.deleteFile(mediaPath);
+//                        dialog.dismiss();
+//                        finish();
+//                    });
+//
+//                    builder.setNegativeButton("NO", (dialog, which) -> {
+//                        dialog.dismiss();
+//                    });
+//
+//                    AlertDialog alert = builder.create();
+//                    alert.show();
 
-                    builder.setTitle("Confirm");
-                    builder.setMessage("Do you want to delete this " + type + "?");
-                    builder.setPositiveButton("YES", (dialog, which) -> {
-                        FileUtils fileUtils = new FileUtils();
-                        fileUtils.deleteFile(mediaPath);
-                        dialog.dismiss();
-                        finish();
-                    });
-
-                    builder.setNegativeButton("NO", (dialog, which) -> {
-                        dialog.dismiss();
-                    });
-
-                    AlertDialog alert = builder.create();
-                    alert.show();
+                    fileUtils.delete(launcher, mediaPath, this);
                 }
 
 //                case R.id.view_photo_secured_nav_item->{

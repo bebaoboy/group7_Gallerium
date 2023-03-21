@@ -1,7 +1,5 @@
 package com.group7.gallerium.utilities;
 
-import static android.content.Context.STORAGE_SERVICE;
-
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.content.ContentResolver;
@@ -14,22 +12,13 @@ import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.storage.StorageManager;
-import android.os.storage.StorageVolume;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
-import androidx.annotation.NonNull;
-import androidx.annotation.RequiresApi;
-import androidx.documentfile.provider.DocumentFile;
 
-import com.anggrayudi.storage.callback.FileCallback;
-import com.anggrayudi.storage.file.DocumentFileUtils;
-import com.anggrayudi.storage.media.MediaFile;
-import com.anggrayudi.storage.media.MediaFileUtils;
 import com.group7.gallerium.models.Media;
 
 import java.io.BufferedReader;
@@ -45,9 +34,7 @@ import java.io.OutputStream;
 import java.io.OutputStreamWriter;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.List;
 import java.util.Objects;
-import java.util.UUID;
 import java.util.stream.Collectors;
 
 public class FileUtils {
@@ -83,7 +70,7 @@ public class FileUtils {
 
     }
 
-    public void moveFile(String inputPath, String inputFileName, String outputPath, Context context) {
+    public void moveFile(String inputPath, ActivityResultLauncher<IntentSenderRequest> launcher, String outputPath, Context context) {
 
 //        var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
 //        DocumentFile file = DocumentFile.fromFile(new File(inputPath));
@@ -124,7 +111,7 @@ public class FileUtils {
             var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 //outputFolderUri = getUriOfFolder(context, outputPath);
-                outputFile = getUriOfMedia(context, inputPath, relativePath);
+                outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
 
                 try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
@@ -142,7 +129,7 @@ public class FileUtils {
                  Toast.makeText(context, "Move file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
 
             }
-            delete(null, inputPath, context);
+            delete(launcher, inputPath, context);
 
 //        catch (FileNotFoundException fnfe1) {
 //            Log.e("tag", fnfe1.getMessage());
@@ -162,7 +149,7 @@ public class FileUtils {
 //       return MediaStore.Files.getContentUri(inputPath);
 //    }
 
-    public Uri getUriOfMedia(Context context, String inputPath, String outputPath) {
+    public Uri insertMediaToMediaStore(Context context, String inputPath, String outputPath) {
         Cursor cursor = null;
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
         String[] parse = media.getPath().split("/");
@@ -273,18 +260,60 @@ public class FileUtils {
      * SDK version is >= 29(Q)? use {@link SecurityException} and again request for delete.
      * SDK version is >= 30(R)? use {@link //MediaStore#createDeleteRequest(ContentResolver, Collection)}.
      */
-    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
+
+    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context){
+        Media media = AccessMediaFile.getMediaWithPath(path);
+        ContentResolver contentResolver = context.getContentResolver();
+        try {
+            MediaScannerConnection.scanFile(context, new String[]{path},
+                    new String[]{media.getMimeType()}, (s, uri) -> {
+                        try {
+                            contentResolver.delete(uri, null, null);
+
+                        } catch (SecurityException e) {
+
+                            PendingIntent pendingIntent = null;
+
+                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                                ArrayList<Uri> collection = new ArrayList<>();
+                                collection.add(uri);
+                                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+
+                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                                //if exception is recoverable then again send delete request using intent
+                                if (e instanceof RecoverableSecurityException) {
+                                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                                    pendingIntent = exception.getUserAction().getActionIntent();
+                                }
+                            }
+
+                            if (pendingIntent != null) {
+                                IntentSender sender = pendingIntent.getIntentSender();
+                                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                                launcher.launch(request);
+                            }
+                        }
+                    });
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+    }
+
+    public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
 
         String[] parse = path.substring(0, path.lastIndexOf("/")).split("/");
         var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
 
+        Media media = AccessMediaFile.getMediaWithPath(path);
         String relativePath = "";
         for (var item : dirList) {
             relativePath += item + "/";
             Log.d("Item", item);
         }
 
-        Uri uri = getUriOfMedia(context, path, relativePath);
+        Uri uri = insertMediaToMediaStore(context, path, relativePath);
         ContentResolver contentResolver = context.getContentResolver();
         PendingIntent pendingIntent = null;
 
@@ -299,8 +328,13 @@ public class FileUtils {
                 pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
 
             } else
-                contentResolver.delete(uri, null, null);
-
+                try {
+                    MediaScannerConnection.scanFile(context, new String[] { path },
+                            new String[]{media.getMimeType()}, (path1, uri1) -> context.getContentResolver()
+                                    .delete(uri1, null, null));
+                } catch (Exception e) {
+                    e.printStackTrace();
+                }
 
         } catch (Exception e) {
 
