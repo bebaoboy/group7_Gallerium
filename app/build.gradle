@@ -65,4 +65,7 @@ dependencies {
     implementation "androidx.camera:camera-view:${camerax_version}"
     implementation "androidx.camera:camera-extensions:${camerax_version}"
     implementation "com.anggrayudi:storage:1.2.1"
+
+    implementation 'com.github.wynneplaga:MaterialScrollbar2:1.0.5'
+    implementation 'com.simplecityapps:recyclerview-fastscroll:2.0.1'
 }

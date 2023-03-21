@@ -116,14 +116,14 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             } else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -136,7 +136,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             }
 
@@ -149,14 +149,14 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             }  else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -169,7 +169,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh();
+                    if (refresh) myFragment.refresh(refresh);
                 }
             }
         }

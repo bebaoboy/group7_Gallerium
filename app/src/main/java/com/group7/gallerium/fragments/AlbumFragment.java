@@ -84,6 +84,10 @@ public class AlbumFragment extends Fragment{
 
     public void onPause() {
         super.onPause();
+        saveScroll();
+    }
+
+    private void saveScroll() {
         View firstChild = album_rec.getChildAt(0);
         if (firstChild != null) {
             firstVisiblePosition = album_rec.getChildAdapterPosition(firstChild);
@@ -92,6 +96,7 @@ public class AlbumFragment extends Fragment{
     }
 
     public void changeOrientation(int spanCount) {
+        saveScroll();
         if (spanCount != this.spanCount)
         {
             this.spanCount = spanCount;
@@ -102,16 +107,31 @@ public class AlbumFragment extends Fragment{
     }
 
     public void refresh(){
-        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPosition(0);
-        AccessMediaFile.refreshAllMedia();
-        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
-        if (listMediaTemp.size() != mediaAmount)
-        {
-            albumList = getAllAlbum(listMediaTemp);
-        }
-        categorizeAlbum();
-        adapter.setData(albumCategories);
-        album_rec.setAdapter(adapter);
+//        AccessMediaFile.refreshAllMedia();
+//        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+//        if (listMediaTemp.size() != mediaAmount)
+//        {
+//            albumList = getAllAlbum(listMediaTemp);
+//        }
+//        categorizeAlbum();
+//        adapter.setData(albumCategories);
+//        album_rec.setAdapter(adapter);
+        albumListTask = new AlbumListTask();
+        albumListTask.execute();
+    }
+
+    public void refresh(boolean scroll){
+//        AccessMediaFile.refreshAllMedia();
+//        ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+//        if (listMediaTemp.size() != mediaAmount)
+//        {
+//            albumList = getAllAlbum(listMediaTemp);
+//        }
+//        categorizeAlbum();
+//        adapter.setData(albumCategories);
+//        album_rec.setAdapter(adapter);
+        albumListTask = new AlbumListTask(scroll);
+        albumListTask.execute();
     }
 
     @Override
@@ -124,24 +144,23 @@ public class AlbumFragment extends Fragment{
         } else {
             changeOrientation(3);
         }
-        refresh();
         albumListTask = new AlbumListTask();
         //progressDialog = new ProgressDialog(AlbumFragment.this.getContext());
         //progressDialog.setTitle("Loading (0%)");
         // progressDialog.show();
-        new CountDownTimer(delaySecond, delaySecond / 100) {
-            int counter = 0;
-            @Override
-            public void onTick(long l) {
-                counter += delaySecond / 100;
-                //progressDialog.setTitle("Loading (" + counter + "%)");
-            }
-
-            @Override
-            public void onFinish() {
-                //progressDialog.dismiss();
-            }
-        }.start();
+//        new CountDownTimer(delaySecond, delaySecond / 100) {
+//            int counter = 0;
+//            @Override
+//            public void onTick(long l) {
+//                counter += delaySecond / 100;
+//                //progressDialog.setTitle("Loading (" + counter + "%)");
+//            }
+//
+//            @Override
+//            public void onFinish() {
+//                //progressDialog.dismiss();
+//            }
+//        }.start();
 
         albumListTask.execute();
     }
@@ -336,21 +355,38 @@ public class AlbumFragment extends Fragment{
 
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
+        boolean scroll = false;
+        public AlbumListTask(){}
+        public AlbumListTask(boolean s) {scroll=s;}
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            AccessMediaFile.refreshAllMedia();
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
+            adapter.setData(albumCategories);
             album_rec.setAdapter(adapter);
-            ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            Log.d("refresh", "refresh album frag ");
             // album_rec.addOnScrollListener(new ToolbarScrollListener(toolbar));
+            if (scroll) {
+                ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPosition(0);
+            }
+            else {
+                ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            }
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+            if (listMediaTemp.size() != mediaAmount)
+            {
+                albumList = getAllAlbum(listMediaTemp);
+            }
+            categorizeAlbum();
             return null;
         }
     }

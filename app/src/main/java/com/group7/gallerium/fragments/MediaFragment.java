@@ -25,6 +25,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -63,7 +64,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private Context context;
     private ArrayList<Media> listMedia;
     private ArrayList<Media> selectedMedia;
-
+    private ArrayList<MediaCategory> mediaCategories;
     private ArrayList<Album> albumList;
     private ArrayList<AlbumCategory> albumCategories;
     private MediaCategoryAdapter adapter;
@@ -88,6 +89,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private BottomSheetDialog bottomSheetDialog;
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
+    private MediaFragment.MediaListTask mediaListTask;
+
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -96,6 +99,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         selectedMedia = new ArrayList<>();
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
+        mediaCategories = new ArrayList<>();
         fileUtils = new FileUtils();
         launcher = registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
@@ -107,9 +111,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                             AccessMediaFile.removeMediaFromAllMedia(media.getPath());
                         }
                     }
-                    callback.onDestroyActionMode(mode);
-                    adapter.setData(getListCategory());
-                    recyclerView.setAdapter(adapter);
+                    refresh();
                 });
     }
 
@@ -130,12 +132,16 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onPause() {
         super.onPause();
+        saveScroll();
+    }
+
+    private void saveScroll() {
         View firstChild = recyclerView.getChildAt(0);
         if (firstChild != null) {
             firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
             offset = firstChild.getTop();
+            // Log.d("pos", firstVisiblePosition + "");
         }
-        adapter.setData(getListCategory());
     }
 
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
@@ -143,13 +149,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onStart() {
         super.onStart();
-        //Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
         if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
             changeOrientation(6);
         } else {
             changeOrientation(3);
         }
-        refresh();
+        mediaListTask = new MediaListTask();
+        mediaListTask.execute();
     }
 
     @Override
@@ -162,7 +169,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         //recyclerViewSetting();
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
-        recyclerView.setItemViewCacheSize(4);
+        recyclerView.setItemViewCacheSize(2);
 
         bottomSheetConfig();
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -312,20 +319,26 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     public void changeOrientation(int spanCount) {
+        saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
             adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
             refresh();
         }
-        recyclerView.setAdapter(adapter);
         callback.onDestroyActionMode(mode);
-        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
     }
 
     public void refresh() {
         Log.d("refresh", "");
-        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
-        adapter.setData(getListCategory());
+        mediaListTask = new MediaListTask();
+        mediaListTask.execute();
+    }
+
+    public void refresh(boolean scroll) {
+        Log.d("refresh with result", "");
+        mediaListTask = new MediaListTask(scroll);
+        mediaListTask.execute();
     }
 
     void recyclerViewSetting() {
@@ -333,7 +346,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);
-        recyclerView.setItemViewCacheSize(20);
+        recyclerView.setItemViewCacheSize(3);
     }
 
     void toolbarSetting() {
@@ -396,7 +409,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     @NonNull
-    private List<MediaCategory> getListCategory() {
+    private ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         listMedia = AccessMediaFile.getAllMedia(getContext());
@@ -495,9 +508,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 fileUtils.copyFile(media.getPath(), albumPath, context);
             }
         }
-        callback.onDestroyActionMode(mode);
-        adapter.setData(getListCategory());
-        recyclerView.setAdapter(adapter);
+        refresh();
     }
 
 
@@ -627,6 +638,38 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 albumList.add(album);
                 //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
             }
+        }
+    }
+    public class MediaListTask extends AsyncTask<Void, Integer, Void> {
+        boolean scroll = false;
+        public MediaListTask(boolean scroll) {
+            this.scroll = scroll;
+        }
+
+        public MediaListTask() {}
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            AccessMediaFile.refreshAllMedia();
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            adapter.setData(mediaCategories);
+            recyclerView.setAdapter(adapter);
+            Log.d("refresh", "refresh media adapter");
+            if (scroll) {
+                ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
+            } else {
+                ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            mediaCategories = getListCategory();
+            return null;
         }
     }
 }

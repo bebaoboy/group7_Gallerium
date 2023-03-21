@@ -108,4 +108,26 @@
         <item name="android:textColor">@color/title_dark</item>
         <item name="android:foreground">?android:attr/selectableItemBackground</item>
     </style>
+
+    <style name="scrollbar_shape_style">
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb</item>
+        <item name="android:scrollbarTrackVertical">@drawable/scrollbar_track</item>
+        <item name="msb_textColor">@color/white</item>
+        <item name="msb_handleColor">@color/title_light</item>
+        <item name="android:scrollbarSize">1dp</item>
+    </style>
+
+    <style name="Fastscrollbar"   xmlns:app="http://schemas.android.com/apk/res-auto">
+        <item name="fastScrollPopupTextColor">@color/white</item>
+        <item name="fastScrollPopupBgColor">@color/primary_color_dark</item>
+        <item name="fastScrollThumbColor">@color/primary_color_dark</item>
+        <item name="fastScrollVerticalThumbDrawable">@drawable/scrollbar_thumb</item>
+        <item name="fastScrollPopupTextSize">15sp</item>
+        <item name="fastScrollTrackColor">@android:color/transparent</item>
+        <item name="android:scrollbarSize">2dp</item>
+        <item name="fastScrollAutoHide">true</item>
+        <item name="fastScrollAutoHideDelay">1500</item>
+        <item name="fastScrollPopupPosition">adjacent</item>
+        <item name="fastScrollPopupTextVerticalAlignmentMode">font_metrics</item>
+    </style>
 </resources>
