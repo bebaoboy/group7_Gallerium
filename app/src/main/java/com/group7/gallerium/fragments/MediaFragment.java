@@ -76,6 +76,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private int firstVisiblePosition;
     private int offset;
     private boolean isAllChecked = false;
+
+    private boolean changeMode = false;
     private ActionMode mode;
     private ActionMode.Callback callback;
 
@@ -265,7 +267,12 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
 
+        btnCopy.setOnClickListener((v)->{
+            changeMode = false;
+            openAlbumSelectView();
+        });
         btnMove.setOnClickListener((v) -> {
+            changeMode = true;
             openAlbumSelectView();
         });
         btnShare.setOnClickListener((v) -> {
@@ -479,9 +486,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void moveMedia(String albumPath) {
         FileUtils fileUtils = new FileUtils();
-        for (Media media : selectedMedia) {
-            String[] subDir = media.getPath().split("/");
-            fileUtils.moveFile(media.getPath(), launcher, albumPath, context);
+        if(changeMode) {
+            for (Media media : selectedMedia) {
+                fileUtils.moveFile(media.getPath(), launcher, albumPath, context);
+            }
+        }else{
+            for (Media media : selectedMedia) {
+                fileUtils.copyFile(media.getPath(), albumPath, context);
+            }
         }
         callback.onDestroyActionMode(mode);
         adapter.setData(getListCategory());
