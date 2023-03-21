@@ -49,4 +49,7 @@
     <string name="sample_file_path">Bộ nhớ trong/DCIM/ScreenShot/photo 1.png</string>
     <string name="location">Vị trí</string>
     <string name="apply">Áp dụng</string>
+    <string name="exif_value">Dữ liệu EXIF</string>
+    <string name="exif_value_sample">Redmi Note 9, Xiaomi \n f/1.89 ISO11228 \n 5.43mm Không đèn flash</string>
+    <string name="exif_place_holder">%1$s, %2$s\n %3$fmm %4$s %5$s %6s</string>
 </resources>

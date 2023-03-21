@@ -21,6 +21,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/taken_datetime"
@@ -33,10 +34,19 @@
             android:layout_margin="10dp"/>
     </LinearLayout>
 
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/file_name"
@@ -48,10 +58,18 @@
             android:text="@string/sample_file_name"
             android:layout_margin="10dp"/>
     </LinearLayout>
+
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/file_size"
@@ -63,11 +81,17 @@
             android:text="@string/sample_file_size"
             android:layout_margin="10dp"/>
     </LinearLayout>
-
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/resolution"
@@ -79,10 +103,17 @@
             android:text="@string/sample_resolution"
             android:layout_margin="10dp"/>
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/file_path"
@@ -94,10 +125,40 @@
             android:text="@string/sample_file_path"
             android:layout_margin="10dp"/>
     </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
+
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content">
         <TextView
+            style="@style/TextDetails"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/exif_value"
+            android:layout_margin="10dp"/>
+        <TextView
+            android:id="@+id/exif_value"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="@string/exif_value_sample"
+            android:layout_margin="10dp"/>
+    </LinearLayout>
+    <View
+        android:layout_width="match_parent"
+        android:layout_height="1dp"
+        android:layout_marginStart="20dp"
+        android:layout_marginEnd="20dp"
+        android:background="@color/title_dark" />
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content">
+        <TextView
+            style="@style/TextDetails"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/location"
