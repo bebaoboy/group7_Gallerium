@@ -18,12 +18,16 @@ import com.group7.gallerium.activities.ViewAlbum;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
+import com.wynneplaga.materialScrollBar2.inidicators.CustomIndicator;
+import com.wynneplaga.materialScrollBar2.inidicators.DateTimeIndicator;
 
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
-public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCategoryAdapter.CategoryViewHolder> {
+public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCategoryAdapter.CategoryViewHolder> implements FastScrollRecyclerView.SectionedAdapter{
 
     private MediaAdapter mediaAdapter;
     private SelectMediaInterface selectMediaInterface;
@@ -105,7 +109,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(24);
+        holder.rcvPictures.setItemViewCacheSize(6);
     }
 
     @Override
@@ -129,6 +133,12 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     public void setAllChecked(boolean value) {
         mediaAdapter.setAllChecked(value);
         notifyDataSetChanged();
+    }
+
+    @NonNull
+    @Override
+    public String getSectionName(int position) {
+        return getItem(position).getNameCategory();
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

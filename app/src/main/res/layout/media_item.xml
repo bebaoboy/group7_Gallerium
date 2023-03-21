@@ -36,7 +36,7 @@
         android:layout_height="20dp"
         android:layout_gravity="bottom|end"
         android:src="@drawable/ic_fav_solid"
-        android:visibility="invisible"
+        android:visibility="gone"
         app:tint="@color/red" />
 
     <CheckBox

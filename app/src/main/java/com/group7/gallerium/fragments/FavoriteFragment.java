@@ -114,6 +114,10 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     @Override
     public void onPause() {
         super.onPause();
+        saveScroll();
+    }
+
+    private void saveScroll() {
         View firstChild = recyclerView.getChildAt(0);
         if (firstChild != null) {
             firstVisiblePosition = recyclerView.getChildAdapterPosition(firstChild);
@@ -130,7 +134,6 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         } else {
             changeOrientation(3);
         }
-        refresh();
     }
 
     @Override
@@ -271,6 +274,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     }
 
     public void changeOrientation(int spanCount) {
+        saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
             adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
@@ -290,6 +294,10 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
 
     public void refresh() {
+        adapter.setData(getListCategory());
+    }
+
+    public void refresh(boolean scroll) {
         ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
         adapter.setData(getListCategory());
     }

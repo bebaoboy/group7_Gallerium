@@ -33,12 +33,10 @@
     </LinearLayout>
 
 
-    <com.factor.bouncy.BouncyRecyclerView
+    <androidx.recyclerview.widget.RecyclerView
         android:id="@+id/photos_recview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
         android:layout_marginTop="8dp"
-        app:recyclerview_fling_animation_size=".3"
-        app:recyclerview_overscroll_animation_size=".3"
         android:nestedScrollingEnabled="false"/>
 </LinearLayout>

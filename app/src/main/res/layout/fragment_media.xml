@@ -20,7 +20,8 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
+    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+        style="@style/Fastscrollbar"
         android:id="@+id/photo_recyclerview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
@@ -31,6 +32,19 @@
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         android:overScrollMode="ifContentScrolls"
         />
+
+<!--        <com.wynneplaga.materialScrollBar2.MaterialScrollBar-->
+<!--            android:id="@+id/dragScrollBar"-->
+<!--            android:layout_width="wrap_content"-->
+<!--            app:msb_recyclerView="@id/photo_recyclerview"-->
+<!--            app:msb_indicatorType="custom"-->
+<!--            android:fadeScrollbars="true"-->
+<!--            android:scrollbarAlwaysDrawVerticalTrack="false"-->
+<!--            android:layout_height="match_parent"-->
+<!--            android:layout_marginVertical="60dp"-->
+<!--            style="@style/scrollbar_shape_style"/>-->
+
+
     </FrameLayout>
     <include
         android:layout_height="wrap_content"

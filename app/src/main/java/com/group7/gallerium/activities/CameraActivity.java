@@ -1,26 +1,5 @@
 package com.group7.gallerium.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.camera.core.Camera;
-import androidx.camera.core.CameraSelector;
-import androidx.camera.core.CameraX;
-import androidx.camera.core.ImageAnalysis;
-import androidx.camera.core.ImageCapture;
-import androidx.camera.core.ImageCaptureException;
-import androidx.camera.core.ImageProxy;
-import androidx.camera.core.Preview;
-import androidx.camera.core.ZoomState;
-import androidx.camera.video.Quality;
-import androidx.camera.video.QualitySelector;
-import androidx.camera.video.VideoCapture;
-import androidx.camera.lifecycle.ProcessCameraProvider;
-import androidx.camera.video.Recorder;
-import androidx.camera.view.PreviewView;
-import androidx.core.content.ContextCompat;
-import androidx.lifecycle.LifecycleOwner;
-
 import android.content.ContentValues;
 import android.os.Build;
 import android.os.Bundle;
@@ -32,15 +11,31 @@ import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.Button;
-import android.widget.TextView;
 import android.widget.Toast;
+
+import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.content.res.AppCompatResources;
+import androidx.camera.core.Camera;
+import androidx.camera.core.CameraSelector;
+import androidx.camera.core.ImageAnalysis;
+import androidx.camera.core.ImageCapture;
+import androidx.camera.core.ImageCaptureException;
+import androidx.camera.core.ImageProxy;
+import androidx.camera.core.Preview;
+import androidx.camera.core.ZoomState;
+import androidx.camera.lifecycle.ProcessCameraProvider;
+import androidx.camera.video.Quality;
+import androidx.camera.video.QualitySelector;
+import androidx.camera.video.Recorder;
+import androidx.camera.video.VideoCapture;
+import androidx.camera.view.PreviewView;
+import androidx.core.content.ContextCompat;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.group7.gallerium.R;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
-import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
 public class CameraActivity extends AppCompatActivity {
@@ -49,6 +44,7 @@ public class CameraActivity extends AppCompatActivity {
     private ProcessCameraProvider processCameraProvider;
     private ListenableFuture<ProcessCameraProvider> cameraProviderFuture;
     private Button btnCapture, btnSwitch, btnFlash;
+    private int flashMode = ImageCapture.FLASH_MODE_AUTO;
     private CameraSelector lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA;
     private ImageAnalysis imageAnalysis;
     private OrientationEventListener orientationEventListener;
@@ -79,6 +75,13 @@ public class CameraActivity extends AppCompatActivity {
                 flipCamera();
             }
         });
+        btnFlash = findViewById(R.id.flash);
+        btnFlash.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                flashOption();
+            }
+        });
         startCamera();
     }
 
@@ -100,10 +103,32 @@ public class CameraActivity extends AppCompatActivity {
 
     private void flipCamera() {
         if (lensFacing == CameraSelector.DEFAULT_FRONT_CAMERA)
+        {
             lensFacing = CameraSelector.DEFAULT_BACK_CAMERA;
+            btnFlash.setEnabled(false);
+        }
         else if (lensFacing == CameraSelector.DEFAULT_BACK_CAMERA)
+        {
             lensFacing = CameraSelector.DEFAULT_FRONT_CAMERA;
+            btnFlash.setEnabled(true);
+        }
         startCamera();
+    }
+
+    private void flashOption() {
+        if (flashMode == ImageCapture.FLASH_MODE_AUTO) {
+            flashMode = ImageCapture.FLASH_MODE_ON;
+            btnFlash.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_flash_on));
+        } else if (flashMode == ImageCapture.FLASH_MODE_ON) {
+            flashMode = ImageCapture.FLASH_MODE_OFF;
+            btnFlash.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_flash_off));
+        } else if (flashMode == ImageCapture.FLASH_MODE_OFF) {
+            flashMode = ImageCapture.FLASH_MODE_AUTO;
+            btnFlash.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_flash_auto));
+        }
+        processCameraProvider.unbind(imageCapture);
+        imageCapture.setFlashMode(flashMode);
+        processCameraProvider.bindToLifecycle(this, lensFacing, imageCapture);
     }
 
 
@@ -161,7 +186,7 @@ public class CameraActivity extends AppCompatActivity {
         imageCapture =
                 new ImageCapture.Builder()
                         .setTargetRotation(previewView.getDisplay().getRotation())
-                        .setFlashMode(ImageCapture.FLASH_MODE_AUTO)
+                        .setFlashMode(flashMode)
                         .setJpegQuality(100)
                         .build();
         recorder = new Recorder.Builder()

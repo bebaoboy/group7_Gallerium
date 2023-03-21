@@ -142,7 +142,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         Media media = getItem(position);
-        if (media == null) {
+        if (media == null || media.getPath() == null) {
             return;
         }
 
@@ -152,37 +152,34 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
         // Log.d("gallerium", media.getMimeType());
         String[] gifList = {"image/gif"};
-        if (Arrays.asList(gifList).contains(media.getMimeType())) {
-            Glide.with(context).asGif().load("file://" + media.getThumbnail())
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .listener(new RequestListener<GifDrawable>() {
-                        @Override
-                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                            return false;
-                        }
-
-                        @Override
-                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-                            return false;
-                        }
-                    })
-                    .into(holder.image);
-        }
-       else {
+//        if (Arrays.asList(gifList).contains(media.getMimeType())) {
+//            Glide.with(context).load("file://" + media.getThumbnail())
+//                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+////                    .listener(new RequestListener<GifDrawable>() {
+////                        @Override
+////                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+////                            return false;
+////                        }
+////
+////                        @Override
+////                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+////                            return false;
+////                        }
+////                    })
+//                    .into(holder.image);
+//        }
+//       else {
             Glide.with(context).load("file://" + media.getThumbnail())
                     //.dontAnimate()
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                     .into(holder.image);
-        }
+//        }
 
        if (AccessMediaFile.isFavMediaContains(media.getPath())) {
            holder.fav_icon.setVisibility(View.VISIBLE);
        }
-       else {
-           holder.fav_icon.setVisibility(View.GONE);
-       }
 
-        if(media.getType() == 3) holder.play_icon.setVisibility(View.VISIBLE);
+        if(media.getType() != 1) holder.play_icon.setVisibility(View.VISIBLE);
 
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
