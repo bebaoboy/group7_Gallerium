@@ -111,6 +111,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                             AccessMediaFile.removeMediaFromAllMedia(media.getPath());
                         }
                     }
+                    callback.onDestroyActionMode(mode);
                     refresh();
                 });
     }
@@ -155,8 +156,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         } else {
             changeOrientation(3);
         }
-        mediaListTask = new MediaListTask();
-        mediaListTask.execute();
+        refresh();
     }
 
     @Override
@@ -169,7 +169,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         //recyclerViewSetting();
         adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
-        recyclerView.setItemViewCacheSize(2);
+        recyclerView.setItemViewCacheSize(4);
 
         bottomSheetConfig();
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
