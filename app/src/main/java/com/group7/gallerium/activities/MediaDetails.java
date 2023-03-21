@@ -24,7 +24,7 @@ public class MediaDetails extends AppCompatActivity {
     private String mediaPath;
     private TextView txtMediaTakenTime, txtMediaPath;
     private TextView txtMediaName, txtMediaSize;
-    private TextView txtMediaResolution;
+    private TextView txtMediaResolution, txtExifData;
 
     private Toolbar toolbar;
 
@@ -46,14 +46,15 @@ public class MediaDetails extends AppCompatActivity {
         Uri mediaUri = Uri.parse("file://" +  mediaPath);
         File file = new File(mediaPath);
         float fileSizeInBytes = file.length();
-        float fileSizeInKb = fileSizeInBytes/ 1024;
-        float fileSizeInMb = fileSizeInKb / 1024;
+        float fileSizeInKb = Math.round(fileSizeInBytes / 1024);
+        float fileSizeInMb = Math.round(fileSizeInKb/1024);
         if(mediaUri != null) {
             txtMediaTakenTime = (TextView) findViewById(R.id.media_taken_time);
             txtMediaPath = (TextView) findViewById(R.id.media_path);
             txtMediaResolution = (TextView) findViewById(R.id.media_resolution);
             txtMediaSize = (TextView) findViewById(R.id.media_size);
             txtMediaName = (TextView) findViewById(R.id.media_name);
+            txtExifData = (TextView) findViewById(R.id.exif_value);
 
             Media media = AccessMediaFile.getMediaWithPath(mediaPath);
             String[] subDir = media.getPath().split("/");
@@ -74,10 +75,28 @@ public class MediaDetails extends AppCompatActivity {
                                     Integer.parseInt(exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)),
                                     1
                             ));
-                    txtMediaSize.setText("" + fileSizeInMb);
+                    if(fileSizeInMb < 1)
+                        txtMediaSize.setText("" + fileSizeInKb + "KB");
+                    else
+                        txtMediaSize.setText("" + fileSizeInMb + "MB");
                     txtMediaPath.setText(mediaPath);
-                    txtMediaTakenTime.setText(media.getDateTaken());
+                    txtMediaTakenTime.setText(media.getDateTimeTaken());
 
+                    String flashValue = exifInterface.getAttribute(ExifInterface.TAG_FLASH) == "0" ? "Không có flash": ExifInterface.TAG_FLASH;
+
+                    if(exifInterface.getAttribute(ExifInterface.TAG_MAKE) != null) {
+                        String focal = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+                        String[] values = focal.split("/");
+                        float value = Float.parseFloat(values[0]) / Float.parseFloat(values[1]);
+//                        txtExifData.setText(String.format(getResources().getString(R.string.exif_place_holder),
+//                                exifInterface.getAttribute(ExifInterface.TAG_MAKE),
+//                                exifInterface.getAttribute(ExifInterface.TAG_MODEL),
+//                                value,
+//                                "",
+//                                "",
+//                                flashValue));
+//                    }
+                    }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
                     Toast.makeText(getApplicationContext(),

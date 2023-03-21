@@ -31,6 +31,11 @@
         <item name="android:subtitleTextAppearance">@style/ToolbarFont</item>
     </style>
 
+    <style name="TextDetails" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/primary_color_dark</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
 
     <style name="ViewPhotoItem" parent="Theme.AppCompat.DayNight.NoActionBar">
 
