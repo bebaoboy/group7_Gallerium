@@ -229,4 +229,8 @@ public class CameraActivity extends AppCompatActivity {
         );
     }
 
+    private void captureVideo() {
+
+    }
+
 }

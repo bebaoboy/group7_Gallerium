@@ -2,6 +2,7 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.drawable.Drawable;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -11,13 +12,20 @@ import android.widget.CompoundButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
 import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
+import com.bumptech.glide.request.target.Target;
 import com.google.android.material.checkbox.MaterialCheckBox;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
@@ -27,6 +35,8 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -140,30 +150,34 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
           //  Log.d("selected media size", " " + selectedMedia.size());
             holder.select.setChecked(selectedMedia.contains(media));
         }
+
         // Log.d("gallerium", media.getMimeType());
-        String[] gifList = {"image/gif"};
-//        if (Arrays.asList(gifList).contains(media.getMimeType())) {
-//            Glide.with(context).load("file://" + media.getThumbnail())
-//                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
-////                    .listener(new RequestListener<GifDrawable>() {
-////                        @Override
-////                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-////                            return false;
-////                        }
-////
-////                        @Override
-////                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-////                            return false;
-////                        }
-////                    })
-//                    .into(holder.image);
-//        }
-//       else {
-            Glide.with(context).load("file://" + media.getThumbnail())
-                    //.dontAnimate()
-                    .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+        if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
+            Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                    .skipMemoryCache(true)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+//                    .listener(new RequestListener<GifDrawable>() {
+//                        @Override
+//                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+//                            return false;
+//                        }
+//
+//                        @Override
+//                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+//                            return false;
+//                        }
+//                    })
                     .into(holder.image);
-//        }
+        } else {
+            Glide.with(context).load("file://" + media.getThumbnail())
+                    .dontAnimate()
+                    .skipMemoryCache(true)
+                    .sizeMultiplier(0.9f)
+                    .diskCacheStrategy(DiskCacheStrategy.ALL)
+                    .into(holder.image);
+            Log.d("abc", "");
+        }
+
 
        if (AccessMediaFile.isFavMediaContains(media.getPath())) {
            holder.fav_icon.setVisibility(View.VISIBLE);
@@ -226,7 +240,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView fav_icon;
         ImageView play_icon;
 
-        MaterialCheckBox select;
+        AppCompatCheckBox select;
         MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);

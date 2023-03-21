@@ -126,6 +126,7 @@
         <item name="fastScrollPopupTextColor">@color/white</item>
         <item name="fastScrollPopupBgColor">@color/primary_color_dark</item>
         <item name="fastScrollThumbColor">@color/primary_color_dark</item>
+        <item name="fastScrollEnableThumbInactiveColor">false</item>
         <item name="fastScrollVerticalThumbDrawable">@drawable/scrollbar_thumb</item>
         <item name="fastScrollPopupTextSize">15sp</item>
         <item name="fastScrollTrackColor">@android:color/transparent</item>

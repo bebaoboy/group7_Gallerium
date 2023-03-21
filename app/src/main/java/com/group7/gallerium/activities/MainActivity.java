@@ -226,6 +226,7 @@ public class MainActivity extends AppCompatActivity {
             grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
             permission.checkResult(requestCode, permissions, grantResults);
         }
+        setCurrentPage(0);
     }
 }
 
