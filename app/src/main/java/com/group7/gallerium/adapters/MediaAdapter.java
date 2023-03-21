@@ -7,42 +7,32 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CheckBox;
 import android.widget.CompoundButton;
 import android.widget.ImageView;
-import android.widget.RadioButton;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
-
 import com.bumptech.glide.Glide;
-
-import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.GlideException;
-import com.bumptech.glide.load.resource.gif.GifDrawable;
-import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.target.Target;
+import com.google.android.material.checkbox.MaterialCheckBox;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
-import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
-import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
 public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolder> {
     public static final DiffUtil.ItemCallback<Media> DIFF_CALLBACK =
-            new DiffUtil.ItemCallback<Media>() {
+            new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
                     return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
@@ -236,7 +226,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView fav_icon;
         ImageView play_icon;
 
-        CheckBox select;
+        MaterialCheckBox select;
         MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);

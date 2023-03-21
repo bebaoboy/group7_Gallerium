@@ -41,6 +41,11 @@
 
     </style>
 
+    <style name="selectCheckBox">
+        <item name="colorAccent">@color/white</item>
+        <item name="buttonTint">@color/primary_color_dark</item>
+    </style>
+
     <style name="PhotoCardView" parent="Widget.MaterialComponents.CardView">
         <item name="cardBackgroundColor">@color/white</item>
     </style>

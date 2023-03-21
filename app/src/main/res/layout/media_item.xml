@@ -39,10 +39,13 @@
         android:visibility="gone"
         app:tint="@color/red" />
 
-    <CheckBox
+    <com.google.android.material.checkbox.MaterialCheckBox
         android:id="@+id/selectButton"
-        android:layout_width="36dp"
-        android:layout_height="29dp"
-        android:visibility="gone" />
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        style="@style/selectCheckBox"
+        android:checked="true"
+        android:visibility="visible"
+        />
 </com.google.android.material.card.MaterialCardView>
 

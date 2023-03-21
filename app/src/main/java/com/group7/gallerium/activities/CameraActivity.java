@@ -185,7 +185,7 @@ public class CameraActivity extends AppCompatActivity {
         preview.setSurfaceProvider(previewView.getSurfaceProvider());
         imageCapture =
                 new ImageCapture.Builder()
-                        .setTargetRotation(previewView.getDisplay().getRotation())
+                        .setTargetRotation(getWindowManager().getDefaultDisplay().getRotation())
                         .setFlashMode(flashMode)
                         .setJpegQuality(100)
                         .build();
