@@ -72,27 +72,6 @@ public class FileUtils {
 
     public void moveFile(String inputPath, ActivityResultLauncher<IntentSenderRequest> launcher, String outputPath, Context context) {
 
-//        var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
-//        DocumentFile file = DocumentFile.fromFile(new File(inputPath));
-//        Uri outputFile = getUri(context, outputPath, type);
-//        DocumentFileUtils.moveFileTo(file, context, new MediaFile(context, outputFile), new FileCallback() {
-//            @Override
-//            public void onCompleted(@NonNull Object result) {
-//                super.onCompleted(result);
-//            }
-//
-//            @Override
-//            public void onConflict(@NonNull DocumentFile destinationFile, @NonNull FileConflictAction action) {
-//                super.onConflict(destinationFile, action);
-//            }
-//
-//            @Override
-//            public long onStart(@NonNull Object file, @NonNull Thread workerThread) {
-//                return super.onStart(file, workerThread);
-//            }
-//        });
-//        file.moveTo(outputPath);
-
         InputStream in = null;
         Uri outputFile, outputFolderUri;
 
@@ -213,45 +192,53 @@ public class FileUtils {
             return null;
         }
     }
-//    public void copyFile(String inputPath, String inputFileName, String outputPath, Context context) {
-//
-//        InputStream in = null;
-//        Uri outputFile, inputFile, mediaSource;
-//
-//        try {
-//            String parentPath = inputPath.substring(0, inputPath.lastIndexOf("/"));
-//            Log.d("Parent path", parentPath);
-//
-//            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
-////            inputFile = getUriOfMedia(context, inputPath, type);
-////            outputFile = getUri(context, outputPath, type);
-////            mediaSource = getUri(context, parentPath, type);
-//
-//
-//            Log.d("parent uri", Uri.parse("content:" + File.separator + inputPath).toString());
-//            try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
-//
-//                OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
-//
-//                byte[] buf = new byte[1024];
-//                int len;
-//                while ((len = inputStream.read(buf)) > 0) {
-//                    out.write(buf, 0, len); //write input file data to output file
-//                }
-//
-//            } catch (IOException e) {
-//                e.printStackTrace();
-//            }
-//            // Toast.makeText(context, "Move file " + newPath, Toast.LENGTH_SHORT).show();
+    public void copyFile(String inputPath, String outputPath, Context context) {
+
+        InputStream in = null;
+        Uri outputFile, outputFolderUri;
+
+        try {
+            String parentPath = outputPath;
+            Log.d("Parent path", parentPath);
+            String[] parse = parentPath.split("/");
+            var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+
+            String relativePath="";
+            for(var item: dirList){
+                relativePath += item + "/";
+                Log.d("Item", item);
+            }
+            Log.d("relativePath", relativePath);
+            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                //outputFolderUri = getUriOfFolder(context, outputPath);
+                outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+
+                try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                    OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                    byte[] buf = new byte[8096];
+                    int len;
+                    while ((len = inputStream.read(buf)) > 0) {
+                        out.write(buf, 0, len); //write input file data to output file
+                    }
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(context, "Copy file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
+
+            }
+
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
 //        }
-//
-////        catch (FileNotFoundException fnfe1) {
-////            Log.e("tag", fnfe1.getMessage());
-////        }
-//        catch (Exception e) {
-//            Log.e("tag", e.getMessage());
-//        }
-//    }
+        }
+        catch(Exception e){
+            Log.e("tag", e.getMessage());
+        }
+    }
 
     /**
      * Delete file.
