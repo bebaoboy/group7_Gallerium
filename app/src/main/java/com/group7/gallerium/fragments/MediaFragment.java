@@ -533,6 +533,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             }
         }
         refresh();
+        callback.onDestroyActionMode(mode);
     }
 
 

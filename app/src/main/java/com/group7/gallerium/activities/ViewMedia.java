@@ -218,6 +218,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         addPhotoBottomDialogFragment.setTitle("Đổi tên");
 
         addPhotoBottomDialogFragment.setLauncher(launcherModified);
+
     }
 
     public static Uri getImageContentUri(Context context, String absPath) {
