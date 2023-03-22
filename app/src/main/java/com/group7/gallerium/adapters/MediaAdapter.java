@@ -20,6 +20,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.RequestBuilder;
+import com.bumptech.glide.TransitionOptions;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
@@ -165,15 +166,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<GifDrawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                // Log.d("def", "");
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                    med[position] = true;
-
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -187,14 +187,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<Drawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                    med[position] = true;
-
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -213,7 +213,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<GifDrawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                // Log.d("def", "");
+                                med[position] = false;
                                 return false;
                             }
 
@@ -221,7 +221,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
                                 med[position] = true;
-
                                 return false;
                             }
                         })
@@ -235,6 +234,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<Drawable>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                med[position] = false;
                                 return false;
                             }
 
@@ -242,7 +242,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
                                 med[position] = true;
-
                                 return false;
                             }
                         })

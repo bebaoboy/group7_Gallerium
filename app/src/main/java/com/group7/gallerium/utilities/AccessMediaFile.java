@@ -143,11 +143,11 @@ public class AccessMediaFile {
     private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
-            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn;
+            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn, sizeColumn;
             int count, type, width, height;
             String mimeType;
             String absolutePath, id, dateText, title;
-            long dateTaken, videoLength=0;
+            long dateTaken, videoLength=0, size;
             HashMap<String, Media> listMedia = new HashMap<>();
 
 
@@ -171,6 +171,7 @@ public class AccessMediaFile {
             videoLengthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION);
             widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
             heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
+            sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
 
             dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
             int dt = 0;
@@ -203,6 +204,7 @@ public class AccessMediaFile {
                 }
                 width = cursor.getInt(widthColumn);
                 height = cursor.getInt(heightColumn);
+                size = cursor.getLong(sizeColumn);
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -214,6 +216,7 @@ public class AccessMediaFile {
                 media.setDuration(videoLength);
                 media.setWidth(width);
                 media.setHeight(height);
+                media.setSize(size);
 
                 if (media.getPath().equals("")) {
                     continue;

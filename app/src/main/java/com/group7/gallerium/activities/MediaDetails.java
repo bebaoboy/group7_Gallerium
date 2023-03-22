@@ -44,10 +44,10 @@ public class MediaDetails extends AppCompatActivity {
 
     private void applyData() {
         Uri mediaUri = Uri.parse("file://" +  mediaPath);
-        File file = new File(mediaPath);
-        float fileSizeInBytes = file.length();
-        float fileSizeInKb = Math.round(fileSizeInBytes / 1024);
-        float fileSizeInMb = Math.round(fileSizeInKb/1024);
+//        File file = new File(mediaPath);
+//        float fileSizeInBytes = file.length();
+//        float fileSizeInKb = Math.round(fileSizeInBytes / 1024);
+//        float fileSizeInMb = Math.round(fileSizeInKb/1024);
         if(mediaUri != null) {
             txtMediaTakenTime = (TextView) findViewById(R.id.media_taken_time);
             txtMediaPath = (TextView) findViewById(R.id.media_path);
@@ -60,9 +60,7 @@ public class MediaDetails extends AppCompatActivity {
             String[] subDir = media.getPath().split("/");
             String name = subDir[subDir.length - 1];
             if(media.getType() == 1) {
-                ParcelFileDescriptor parcelFileDescriptor = null;
-                try {
-                    parcelFileDescriptor = getContentResolver().openFileDescriptor(mediaUri, "r");
+                try (ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(mediaUri, "r")){
                     FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
 
                     ExifInterface exifInterface = new ExifInterface(fileDescriptor);
@@ -75,10 +73,11 @@ public class MediaDetails extends AppCompatActivity {
                                     Integer.parseInt(exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)),
                                     1
                             ));
-                    if(fileSizeInMb < 1)
-                        txtMediaSize.setText("" + fileSizeInKb + "KB");
-                    else
-                        txtMediaSize.setText("" + fileSizeInMb + "MB");
+//                    if(fileSizeInMb < 1)
+//                        txtMediaSize.setText("" + fileSizeInKb + "KB");
+//                    else
+//                        txtMediaSize.setText("" + fileSizeInMb + "MB");
+                    txtMediaSize.setText(media.getSize());
                     txtMediaPath.setText(mediaPath);
                     txtMediaTakenTime.setText(media.getDateTimeTaken());
 
@@ -88,14 +87,17 @@ public class MediaDetails extends AppCompatActivity {
                         String focal = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
                         String[] values = focal.split("/");
                         float value = Float.parseFloat(values[0]) / Float.parseFloat(values[1]);
-//                        txtExifData.setText(String.format(getResources().getString(R.string.exif_place_holder),
-//                                exifInterface.getAttribute(ExifInterface.TAG_MAKE),
-//                                exifInterface.getAttribute(ExifInterface.TAG_MODEL),
-//                                value,
-//                                "",
-//                                "",
-//                                flashValue));
-//                    }
+                        txtExifData.setText(String.format(getResources().getString(R.string.exif_place_holder),
+                                exifInterface.getAttribute(ExifInterface.TAG_MAKE),
+                                exifInterface.getAttribute(ExifInterface.TAG_MODEL),
+                                value,
+                                "",
+                                "",
+                                flashValue));
+
+                    }
+                    else {
+                        txtExifData.setText("");
                     }
                 } catch (FileNotFoundException e) {
                     e.printStackTrace();
@@ -108,6 +110,19 @@ public class MediaDetails extends AppCompatActivity {
                             "Something wrong:\n" + e.toString(),
                             Toast.LENGTH_LONG).show();
                 }
+            } else {
+                    txtMediaName.setText(name);
+                    txtMediaResolution.setText(
+                            String.format(getResources().getString(
+                                            R.string.resolution_placeholder),
+                                    media.getHeight(),
+                                    media.getWidth(),
+                                    1
+                            ));
+                    txtMediaSize.setText(media.getSize());
+                    txtMediaPath.setText(mediaPath);
+                    txtMediaTakenTime.setText(media.getDateTimeTaken());
+                    txtExifData.setText("");
             }
         }
     }

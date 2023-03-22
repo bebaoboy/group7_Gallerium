@@ -295,7 +295,8 @@ public class AlbumFragment extends Fragment{
                     }
                     else
                     {
-                        album.setName(album1.getName() + " (" + parent + ")");
+                        album.setName(album.getName() + " (" + parent + ")");
+                        album1.setName(album1.getName() + " (" + parent1 + ")");
                     }
                     break;
                 }

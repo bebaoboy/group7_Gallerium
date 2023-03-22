@@ -249,10 +249,13 @@ public class MainActivity extends AppCompatActivity {
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
-            grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
+            //grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
             for(int i = 0; i < grantResults.length; i++) {
                 if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
-                    if (Objects.equals(permissions[i], Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+                    if (Objects.equals(permissions[i], Manifest.permission.MANAGE_EXTERNAL_STORAGE) ||
+                            Objects.equals(permissions[i], Manifest.permission.READ_MEDIA_IMAGES) ||
+                            Objects.equals(permissions[i], Manifest.permission.READ_MEDIA_VIDEO) ||
+                            Objects.equals(permissions[i], Manifest.permission.READ_MEDIA_AUDIO)) {
                         grantResults[i] = PackageManager.PERMISSION_GRANTED;
                     }
                 }
