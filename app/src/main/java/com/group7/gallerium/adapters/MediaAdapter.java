@@ -23,6 +23,7 @@ import com.bumptech.glide.RequestBuilder;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
 import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
@@ -61,6 +62,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private List<MediaCategory> listMediaCategory;
     private Intent intent;
     private ArrayList<String> listPath;
+    private boolean[] med;
 
     private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
@@ -89,6 +91,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     }
     public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
+        med = new boolean[this.listMedia.size()];
+        Arrays.fill(med, false);
         submitList(listMedia);
     }
 
@@ -152,30 +156,48 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
 
         // Log.d("gallerium", media.getMimeType());
-        if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-            Glide.with(context).asGif().load("file://" + media.getThumbnail())
-                    .skipMemoryCache(true)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-//                    .listener(new RequestListener<GifDrawable>() {
-//                        @Override
-//                        public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-//                            return false;
-//                        }
-//
-//                        @Override
-//                        public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-//                            return false;
-//                        }
-//                    })
-                    .into(holder.image);
-        } else {
-            Glide.with(context).load("file://" + media.getThumbnail())
-                    .dontAnimate()
-                    .skipMemoryCache(true)
-                    .sizeMultiplier(0.9f)
-                    .diskCacheStrategy(DiskCacheStrategy.ALL)
-                    .into(holder.image);
-            Log.d("abc", "");
+        if (!med[position]) {
+            if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
+                Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<GifDrawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                // Log.d("def", "");
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                    med[position] = true;
+
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+            } else {
+                Glide.with(context).load("file://" + media.getThumbnail())
+                        .dontAnimate()
+                        .sizeMultiplier(0.9f)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                    med[position] = true;
+
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+                Log.d("abc", "");
+            }
         }
 
 

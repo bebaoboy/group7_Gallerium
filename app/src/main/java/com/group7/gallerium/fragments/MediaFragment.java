@@ -86,6 +86,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
     private MediaFragment.MediaListTask mediaListTask;
+    private boolean isPendingForIntent = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -107,6 +108,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                             selectedMedia.remove(0);
                         }
                     }
+                    isPendingForIntent = false;
                     callback.onDestroyActionMode(mode);
                     refresh();
                 });
@@ -305,11 +307,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             @Override
             protected Void doInBackground(Void... voids) {
                 int oldSize = selectedMedia.size();
-                while(oldSize == selectedMedia.size() && selectedMedia.size() > 0) {
+                while(!isPendingForIntent && oldSize == selectedMedia.size() && selectedMedia.size() > 0) {
                     if (fileUtils.delete(launcher, selectedMedia.get(0).getPath(), context) > 0) {
                         AccessMediaFile.removeMediaFromAllMedia(selectedMedia.get(0).getPath());
                         selectedMedia.remove(0);
                         oldSize = selectedMedia.size();
+                    }
+                    else {
+                        isPendingForIntent = true;
                     }
                 }
                 return null;

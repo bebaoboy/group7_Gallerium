@@ -103,8 +103,6 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         }
 
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
-        gridLayoutManager.setInitialPrefetchItemCount(100);
-        gridLayoutManager.setItemPrefetchEnabled(true);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
 
         mediaAdapter = new MediaAdapter(context.getApplicationContext(), this.selectMediaInterface);
@@ -112,7 +110,6 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
         holder.rcvPictures.setItemViewCacheSize(10000);
-        holder.rcvPictures.setHasFixedSize(true);
     }
 
     @Override
