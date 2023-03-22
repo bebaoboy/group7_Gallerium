@@ -46,6 +46,7 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.google.android.material.navigation.NavigationBarView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.SlideAdapter;
+import com.group7.gallerium.fragments.ActionBottomDialogFragment;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
@@ -88,6 +89,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private TextView btnShowDetails, btnRename;
 
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
+    private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
 
     @Override
@@ -127,6 +129,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                        slideAdapter.removePath(mediaPath);
+                        finish();
+                    }
+                });
+
+        launcherModified = registerForActivityResult(
+                new ActivityResultContracts.StartIntentSenderForResult(),
+                result -> {
+                    if (result.getResultCode() == Activity.RESULT_OK) {
+                        Toast.makeText(getApplicationContext(), "renamed", Toast.LENGTH_SHORT).show();
                         AccessMediaFile.removeMediaFromAllMedia(mediaPath);
                         slideAdapter.removePath(mediaPath);
                         finish();
@@ -177,6 +190,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         btnRename.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
+            rename();
         });
         btnSetBackGround.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -193,6 +207,18 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
         });
+    }
+
+    void rename(){
+        ActionBottomDialogFragment addPhotoBottomDialogFragment =
+                ActionBottomDialogFragment.newInstance();
+        addPhotoBottomDialogFragment.show(getSupportFragmentManager(),
+                ActionBottomDialogFragment.TAG);
+        addPhotoBottomDialogFragment.setPath(mediaPath);
+        addPhotoBottomDialogFragment.setTitle("Đổi tên");
+
+        addPhotoBottomDialogFragment.setLauncher(launcherModified);
+
     }
 
     public static Uri getImageContentUri(Context context, String absPath) {

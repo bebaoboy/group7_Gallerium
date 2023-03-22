@@ -100,6 +100,11 @@
         <item name="android:textStyle">bold</item>
     </style>
 
+    <style name="BottomSheetDialogThemeNoFloating" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateVisible</item>
+    </style>
+
     <style name="selectCheckBox">
         <item name="colorAccent">@color/white</item>
         <item name="buttonTint">@color/primary_color_light</item>

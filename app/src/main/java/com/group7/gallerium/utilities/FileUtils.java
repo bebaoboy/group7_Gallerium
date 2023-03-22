@@ -240,6 +240,38 @@ public class FileUtils {
         }
     }
 
+    public Uri getUri(String path, int type, Context context) {
+        ContentResolver contentResolver = context.getContentResolver();
+        try {
+            Cursor cursor;
+            if (type == 1) {
+                cursor = context.getContentResolver().query(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        , new String[]{MediaStore.Images.Media._ID}
+                        , MediaStore.Images.Media.DATA + "=? "
+                        , new String[]{path}, null);
+            } else {
+                cursor = context.getContentResolver().query(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        , new String[]{MediaStore.Video.Media._ID}
+                        , MediaStore.Video.Media.DATA + "=? "
+                        , new String[]{path}, null);
+            }
+
+            if (cursor != null && cursor.moveToFirst()) {
+                int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+                cursor.close();
+                if (type == 1)
+                    return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+                else
+                    return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+        return null;
+    }
+
     /**
      * Delete file.
      * <p>
@@ -369,6 +401,48 @@ public class FileUtils {
             }
         }
         // AccessMediaFile.removeMediaFromAllMedia(path);
+    }
+
+    public void renameFile(String name, int type, String path, Context context, ActivityResultLauncher<IntentSenderRequest> launcher) {
+        ContentValues values = new ContentValues();
+        ContentResolver resolver = context.getContentResolver();
+        Uri uri = getUri(path, type, context);
+        if (type == 1) {
+            values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+        } else {
+            values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
+        }
+
+        try {
+            resolver.update(uri, values, null, null);
+        } catch (SecurityException e) {
+
+            PendingIntent pendingIntent = null;
+
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                ArrayList<Uri> collection = new ArrayList<>();
+                collection.add(uri);
+                pendingIntent = MediaStore.createWriteRequest(context.getContentResolver(), collection);
+
+            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                //if exception is recoverable then again send delete request using intent
+                if (e instanceof RecoverableSecurityException) {
+                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                    pendingIntent = exception.getUserAction().getActionIntent();
+                }
+            }
+
+            if (pendingIntent != null) {
+                IntentSender sender = pendingIntent.getIntentSender();
+                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                launcher.launch(request);
+            }
+
+        } catch (Exception e) {
+            Log.d("Tag", e.getMessage());
+        }
     }
 
     public  void updateInfoFile(String password) throws FileNotFoundException {

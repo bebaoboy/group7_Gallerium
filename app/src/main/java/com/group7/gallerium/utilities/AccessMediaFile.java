@@ -108,6 +108,7 @@ public class AccessMediaFile {
     }
     public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
         allMedia.remove(path);
+        refreshAllMedia();
     }
 
     public static ArrayList<Media> getAllMedia(Context context) {
@@ -170,7 +171,7 @@ public class AccessMediaFile {
             }
             var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
             titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
-            if (cursor.getCount() < allMedia.size()) {
+            if (!allMediaPresent || cursor.getCount() != allMedia.size()) {
                 cached = false;
                 allMedia.clear();
             }
