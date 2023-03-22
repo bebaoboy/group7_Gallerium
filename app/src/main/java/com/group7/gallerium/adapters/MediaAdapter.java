@@ -87,13 +87,15 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     public void deleteMedia(Media media){
         int position = this.getCurrentList().indexOf(media);
         this.getCurrentList().remove(media);
+        med = new boolean[this.getCurrentList().size()];
+        Arrays.fill(med, false);
         notifyItemRemoved(position);
     }
     public void setListImages(ArrayList<Media> media) {
         this.listMedia = media;
-        med = new boolean[this.listMedia.size()];
-        Arrays.fill(med, false);
         submitList(listMedia);
+        med = new boolean[this.getCurrentList().size()];
+        Arrays.fill(med, false);
     }
 
     public void setListCategory(ArrayList<MediaCategory> categories) {
@@ -176,7 +178,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                             }
                         })
                         .into(holder.image);
-            } else {
+            }
+            else {
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
                         .sizeMultiplier(0.9f)
@@ -191,6 +194,54 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
                                     med[position] = true;
+
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+                Log.d("abc", "");
+            }
+        }
+
+        if (holder.image.getDrawable() != null) {
+            Log.d("draw", holder.image.getDrawable().toString());
+        } else {
+            Log.d("draw", "nulll");
+            if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
+                Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<GifDrawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                // Log.d("def", "");
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[position] = true;
+
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+            }
+            else {
+                Glide.with(context).load("file://" + media.getThumbnail())
+                        .dontAnimate()
+                        .sizeMultiplier(0.9f)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<Drawable>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[position] = true;
 
                                 return false;
                             }

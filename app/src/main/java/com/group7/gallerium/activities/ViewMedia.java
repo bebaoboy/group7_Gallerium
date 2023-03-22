@@ -70,7 +70,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private String mediaName;
     private Intent intent;
 
-    private  ActivityResultLauncher<Intent> editResult;
+    private ActivityResultLauncher<Intent> editResult;
     private ArrayList<String> listPath;
     private MediaItemInterface mediaItemInterface;
     private ViewPager viewPager;
@@ -91,6 +91,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
+    private ActionBottomDialogFragment addPhotoBottomDialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -139,10 +140,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "renamed", Toast.LENGTH_SHORT).show();
-                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
-                        slideAdapter.removePath(mediaPath);
-                        finish();
+                        Toast.makeText(getApplicationContext(), "renaming", Toast.LENGTH_SHORT).show();
+                        addPhotoBottomDialogFragment.renameAgain();
                     }
                 });
 
@@ -156,6 +155,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
+
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN ->
                             Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
@@ -210,7 +210,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     void rename(){
-        ActionBottomDialogFragment addPhotoBottomDialogFragment =
+        addPhotoBottomDialogFragment =
                 ActionBottomDialogFragment.newInstance();
         addPhotoBottomDialogFragment.show(getSupportFragmentManager(),
                 ActionBottomDialogFragment.TAG);
@@ -218,7 +218,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         addPhotoBottomDialogFragment.setTitle("Đổi tên");
 
         addPhotoBottomDialogFragment.setLauncher(launcherModified);
-
     }
 
     public static Uri getImageContentUri(Context context, String absPath) {
@@ -333,10 +332,18 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
+                if (addPhotoBottomDialogFragment != null) {
+                    if (addPhotoBottomDialogFragment.getOldPath().equals(listPath.get(position))) {
+                        listPath.set(position, addPhotoBottomDialogFragment.getPath());
+                        addPhotoBottomDialogFragment = null;
+                    }
+                }
                 mediaPath = listPath.get(position);
                 final Media m = AccessMediaFile.getMediaWithPath(mediaPath);
-                assert m != null;
-                setTitleToolbar(m);
+                if (m!=null) {
+                    //assert m != null;
+                    setTitleToolbar(m);
+                }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
                 }
@@ -346,6 +353,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
                 }
+
                 favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);

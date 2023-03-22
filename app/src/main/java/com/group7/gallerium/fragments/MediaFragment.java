@@ -301,6 +301,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             protected void onPostExecute(Void unused) {
                 super.onPostExecute(unused);
                 callback.onDestroyActionMode(mode);
+                isPendingForIntent = false;
                 refresh();
             }
 

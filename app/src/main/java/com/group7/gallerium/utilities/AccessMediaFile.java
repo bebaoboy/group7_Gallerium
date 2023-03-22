@@ -19,6 +19,7 @@ import java.util.LinkedHashMap;
 import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -101,6 +102,13 @@ public class AccessMediaFile {
     }
     public static void refreshAllMedia(){
         allMediaPresent = false;
+    }
+    public static String renameMedia(String path, String fullName) {
+        var newPath = path.substring(0, path.lastIndexOf("/")) + "/" + fullName;
+        allMedia.put(newPath, allMedia.remove(path));
+        Objects.requireNonNull(allMedia.get(newPath)).setPath(newPath);
+        Objects.requireNonNull(allMedia.get(newPath)).setTitle(fullName);
+        return newPath;
     }
     public static void updateNewMedia(){
         addNewestMediaOnly = true;

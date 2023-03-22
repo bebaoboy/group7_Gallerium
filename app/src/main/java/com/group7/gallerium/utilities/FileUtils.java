@@ -407,14 +407,18 @@ public class FileUtils {
         ContentValues values = new ContentValues();
         ContentResolver resolver = context.getContentResolver();
         Uri uri = getUri(path, type, context);
-        if (type == 1) {
-            values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
-        } else {
-            values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
-        }
-
         try {
+            values.put(MediaStore.Images.Media.IS_PENDING, 1);
             resolver.update(uri, values, null, null);
+            values.clear();
+            if (type == 1) {
+                values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
+            } else {
+                values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
+            }
+            values.put(MediaStore.Images.Media.IS_PENDING, 0);
+            resolver.update(uri, values, null, null);
+
         } catch (SecurityException e) {
 
             PendingIntent pendingIntent = null;

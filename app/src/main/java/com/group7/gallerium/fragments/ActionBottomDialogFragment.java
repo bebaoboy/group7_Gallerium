@@ -7,7 +7,9 @@ import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
@@ -20,13 +22,14 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 
 import java.io.File;
+import java.util.Objects;
 
 public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
     Context context;
     View view;
 
     String titleText;
-    String path, name;
+    String path, oldPath, name, ext;
 
     FileUtils fileUtils;
     TextView title;
@@ -67,12 +70,41 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
         });
 
         verifiedButton.setOnClickListener((v)->{
-            if(title.getText().equals("Đổi tên")){
-                fileUtils.renameFile(changeText.getText().toString(), AccessMediaFile.getMediaWithPath(path).getType(), path,  context, launcher);
-            }
+            rename();
         });
 
         return view;
+    }
+
+    public void rename() {
+        if(title.getText().equals("Đổi tên") && changeText.getText().toString().length() > 0){
+            fileUtils.renameFile(changeText.getText().toString() + "." + ext, AccessMediaFile.getMediaWithPath(path).getType(), path,  context, launcher);
+        }
+        Toast.makeText(context, "renamed", Toast.LENGTH_SHORT).show();
+        path = AccessMediaFile.renameMedia(path, changeText.getText().toString() + "." + ext);
+        name = changeText.getText().toString();
+        dismiss();
+    }
+
+    public void renameAgain() {
+        if(title.getText().equals("Đổi tên") && changeText.getText().toString().length() > 0){
+            fileUtils.renameFile(changeText.getText().toString() + "." + ext, AccessMediaFile.getMediaWithPath(path).getType(), oldPath,  context, launcher);
+        }
+        Toast.makeText(context, "renamed", Toast.LENGTH_SHORT).show();
+        path = AccessMediaFile.renameMedia(path, changeText.getText().toString() + "." + ext);
+        name = changeText.getText().toString();
+    }
+
+    public String getName() {
+        return name;
+    }
+
+    public String getPath() {
+        return path;
+    }
+
+    public String getOldPath() {
+        return oldPath;
     }
 
     public void setTitle(String name){
@@ -81,8 +113,11 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
 
     public void setPath(String path){
         this.path = path;
+        this.oldPath = path;
         String[] subDirs = path.split("/");
-        name = subDirs[subDirs.length -1];
+        var n = subDirs[subDirs.length -1];
+        name = n.substring(0, n.lastIndexOf("."));
+        ext = n.substring(n.lastIndexOf(".") + 1);
     }
 
     public void setLauncher(ActivityResultLauncher<IntentSenderRequest> launcher) {
