@@ -134,6 +134,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         } else {
             changeOrientation(3);
         }
+        refresh();
     }
 
     @Override

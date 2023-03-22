@@ -127,11 +127,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-
                         AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                        slideAdapter.removePath(mediaPath);
+                        finish();
                     }
-                    slideAdapter.removePath(mediaPath);
-                    finish();
                 });
 
     }
@@ -420,7 +419,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 //                    AlertDialog alert = builder.create();
 //                    alert.show();
 
-                    fileUtils.delete(launcher, mediaPath, this);
+                    if (fileUtils.delete(launcher, mediaPath, this) > 0) {
+                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                        slideAdapter.removePath(mediaPath);
+                        finish();
+                    }
                 }
 
 //                case R.id.view_photo_secured_nav_item->{

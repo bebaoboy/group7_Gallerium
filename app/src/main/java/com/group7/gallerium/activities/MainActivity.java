@@ -1,10 +1,15 @@
 package com.group7.gallerium.activities;
 
+import android.Manifest;
 import android.app.Activity;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -17,6 +22,7 @@ import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
+import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter;
 import com.group7.gallerium.fragments.AlbumFragment;
@@ -26,6 +32,8 @@ import com.group7.gallerium.fragments.SecureFragment;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
+
+import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
     BottomNavigationView bottom_nav;
@@ -103,8 +111,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void setCurrentPage(int page) {
+        changeOrientation(getResources().getConfiguration().orientation, page == view_pager.getCurrentItem());
         view_pager.setCurrentItem(page, false);
-        changeOrientation(getResources().getConfiguration().orientation, true);
     }
 
     private void changeOrientation(int orientation, boolean refresh) {
@@ -213,17 +221,43 @@ public class MainActivity extends AppCompatActivity {
     @Override
     public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
         if (android.os.Build.VERSION.SDK_INT >= 33) {
+            super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED) {
                 Log.d("permission", "permission denied - requesting it");
                 // String[] permissions2 = {android.Manifest.permission.READ_MEDIA_AUDIO, android.Manifest.permission.READ_MEDIA_IMAGES, Manifest.permission.READ_MEDIA_VIDEO};
                 // requestPermissions(permissions2, 1);
-                super.onRequestPermissionsResult(requestCode, permissions, grantResults);
-                permission.checkResult(requestCode, permissions, grantResults);
             }
+            for(int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    grantResults[i] = PackageManager.PERMISSION_GRANTED;
+                    if (!Environment.isExternalStorageManager() && Objects.equals(permissions[i], Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+                        try {
+                            Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
+                            Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                            startActivity(intent);
+                        } catch (Exception ex){
+                            Intent intent = new Intent();
+                            intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                            startActivity(intent);
+                        }
+                    }
+                }
+
+            }
+            permission.checkResult(requestCode, permissions, grantResults);
+
         } else {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
 
             grantResults[0] = grantResults[1] = grantResults[2] = PackageManager.PERMISSION_GRANTED;
+            for(int i = 0; i < grantResults.length; i++) {
+                if (grantResults[i] == PackageManager.PERMISSION_DENIED) {
+                    if (Objects.equals(permissions[i], Manifest.permission.MANAGE_EXTERNAL_STORAGE)) {
+                        grantResults[i] = PackageManager.PERMISSION_GRANTED;
+                    }
+                }
+
+            }
             permission.checkResult(requestCode, permissions, grantResults);
         }
         setCurrentPage(0);

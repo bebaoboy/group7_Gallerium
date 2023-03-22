@@ -87,7 +87,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
     private MediaFragment.MediaListTask mediaListTask;
 
-
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -103,14 +102,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(context.getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
 
-                        for(Media media: selectedMedia) {
-                            AccessMediaFile.removeMediaFromAllMedia(media.getPath());
+                        if(selectedMedia.size() > 0) {
+                            AccessMediaFile.removeMediaFromAllMedia(selectedMedia.get(0).getPath());
+                            selectedMedia.remove(0);
                         }
                     }
                     callback.onDestroyActionMode(mode);
                     refresh();
                 });
     }
+
+
 
     @Override
     public void onResume() {
@@ -291,12 +293,31 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     private void deleteMedia() {
-        for(Media media: selectedMedia) {
-            fileUtils.delete(launcher, media.getPath(), context);
-        }
-        refresh();
-        callback.onDestroyActionMode(mode);
+        saveScroll();
+        new AsyncTask<Void, Integer, Void>() {
+            @Override
+            protected void onPostExecute(Void unused) {
+                super.onPostExecute(unused);
+                callback.onDestroyActionMode(mode);
+                refresh();
+            }
 
+            @Override
+            protected Void doInBackground(Void... voids) {
+                int oldSize = selectedMedia.size();
+                while(oldSize == selectedMedia.size() && selectedMedia.size() > 0) {
+                    if (fileUtils.delete(launcher, selectedMedia.get(0).getPath(), context) > 0) {
+                        AccessMediaFile.removeMediaFromAllMedia(selectedMedia.get(0).getPath());
+                        selectedMedia.remove(0);
+                        oldSize = selectedMedia.size();
+                    }
+                }
+                return null;
+            }
+//
+//        refresh();
+//        callback.onDestroyActionMode(mode);
+        }.execute();
     }
 
     @Override

@@ -37,10 +37,7 @@
         android:requestLegacyExternalStorage="true"
         tools:replace="android:maxSdkVersion" />
     <uses-permission
-        android:name="android.permission.MANAGE_EXTERNAL_STORAGE"
-        android:maxSdkVersion="32"
-        android:requestLegacyExternalStorage="true"
-        tools:replace="android:maxSdkVersion" />
+        android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
     <uses-permission android:name="android.permission.INTERNET" />

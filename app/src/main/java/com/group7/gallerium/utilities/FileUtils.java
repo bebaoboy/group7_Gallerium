@@ -248,44 +248,70 @@ public class FileUtils {
      * SDK version is >= 30(R)? use {@link //MediaStore#createDeleteRequest(ContentResolver, Collection)}.
      */
 
-    public void delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context){
+    public int delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context){
         Media media = AccessMediaFile.getMediaWithPath(path);
         ContentResolver contentResolver = context.getContentResolver();
+        boolean returnVal = false;
+        Uri uri = Uri.EMPTY;
         try {
-            MediaScannerConnection.scanFile(context, new String[]{path},
-                    new String[]{media.getMimeType()}, (s, uri) -> {
-                        try {
-                            contentResolver.delete(uri, null, null);
+            Cursor cursor;
+            if(media.getType() == 1) {
+               cursor  = context.getContentResolver().query(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                        , new String[]{MediaStore.Images.Media._ID}
+                        , MediaStore.Images.Media.DATA + "=? "
+                        , new String[]{path}, null);
+            } else {
+                cursor  = context.getContentResolver().query(
+                        MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                        , new String[]{MediaStore.Video.Media._ID}
+                        , MediaStore.Video.Media.DATA + "=? "
+                        , new String[]{path}, null);
+            }
 
-                        } catch (SecurityException e) {
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            cursor.close();
+            if(media.getType() == 1)
+                uri = ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            else
+                uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+            try {
+                int row = contentResolver.delete(uri, null, null);
+                return row;
+            }
+            catch (SecurityException e) {
 
-                            PendingIntent pendingIntent = null;
+                PendingIntent pendingIntent = null;
 
-                            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
 
-                                ArrayList<Uri> collection = new ArrayList<>();
-                                collection.add(uri);
-                                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+                    ArrayList<Uri> collection = new ArrayList<>();
+                    collection.add(uri);
+                    pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
 
-                            } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
 
-                                //if exception is recoverable then again send delete request using intent
-                                if (e instanceof RecoverableSecurityException) {
-                                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
-                                    pendingIntent = exception.getUserAction().getActionIntent();
-                                }
-                            }
+                    //if exception is recoverable then again send delete request using intent
+                    if (e instanceof RecoverableSecurityException) {
+                        RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                        pendingIntent = exception.getUserAction().getActionIntent();
+                    }
+                }
 
-                            if (pendingIntent != null) {
-                                IntentSender sender = pendingIntent.getIntentSender();
-                                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
-                                launcher.launch(request);
-                            }
-                        }
-                    });
+                if (pendingIntent != null) {
+                    IntentSender sender = pendingIntent.getIntentSender();
+                    IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                    launcher.launch(request);
+                }
+                return 0;
+            }
+        }
+
         }catch (Exception e){
             Log.d("tag", e.getMessage());
         }
+        return 0;
     }
 
     public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
