@@ -102,8 +102,8 @@ public class AlbumFragment extends Fragment{
             this.spanCount = spanCount;
             adapter = new AlbumCategoryAdapter(context, spanCount);
             refresh();
+            ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
-        ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     public void refresh(){

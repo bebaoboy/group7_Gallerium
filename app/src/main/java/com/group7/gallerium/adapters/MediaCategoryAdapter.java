@@ -109,7 +109,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(10000);
+        holder.rcvPictures.setItemViewCacheSize(24);
     }
 
     @Override

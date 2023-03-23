@@ -157,12 +157,16 @@ public class FileUtils {
             else
                 return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
 
-        } else if (!inputPath.isEmpty()) {
+        }
+        else if (!inputPath.isEmpty()) {
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 ContentValues values = new ContentValues();
                 var resolver = context.getContentResolver();
                 if (mediaType == 1) {
                     Uri picCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    if(Objects.equals(outputPath, "Download/")) {
+                        picCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                    }
                     values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
                     values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
                     values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
@@ -172,6 +176,9 @@ public class FileUtils {
                     return finaluri;
                 } else {
                     Uri vidCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    if(Objects.equals(outputPath, "Download/")) {
+                        vidCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                    }
                     values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
                     values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
                     values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
@@ -229,6 +236,114 @@ public class FileUtils {
                 }
                 Toast.makeText(context, "Copy file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
 
+            }
+
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
+//        }
+        }
+        catch(Exception e){
+            Log.e("tag", e.getMessage());
+        }
+    }
+
+    public void moveFileMultiple(ArrayList<Media> medias, ActivityResultLauncher<IntentSenderRequest> launcher, String outputPath, Context context) {
+        if (medias.size() <= 0) return;
+        if (medias.size() <= 1){
+            moveFile(medias.get(0).getPath(), launcher, outputPath, context);
+        }
+        InputStream in = null;
+        Uri outputFile, outputFolderUri;
+
+        try {
+            String parentPath = outputPath;
+            Log.d("Parent path", parentPath);
+            String[] parse = parentPath.split("/");
+            var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+
+            String relativePath="";
+            for(var item: dirList){
+                relativePath += item + "/";
+                Log.d("Item", item);
+            }
+            Log.d("relativePath", relativePath);
+            for(var m : medias) {
+                String inputPath = m.getPath();
+                var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    //outputFolderUri = getUriOfFolder(context, outputPath);
+                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+
+                    try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                        OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                        byte[] buf = new byte[8096];
+                        int len;
+                        while ((len = inputStream.read(buf)) > 0) {
+                            out.write(buf, 0, len); //write input file data to output file
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(context, "Move file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
+                }
+            }
+            deleteMultiple(launcher, medias, context);
+
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
+//        }
+        }
+        catch(Exception e){
+            Log.e("tag", e.getMessage());
+        }
+    }
+
+    public void copyFileMultiple(ArrayList<Media> medias, String outputPath, Context context) {
+        if (medias.size() <= 0) return;
+        if (medias.size() <= 1){
+            copyFile(medias.get(0).getPath(), outputPath, context);
+            return;
+        }
+        InputStream in = null;
+        Uri outputFile, outputFolderUri;
+
+        try {
+            String parentPath = outputPath;
+            Log.d("Parent path", parentPath);
+            String[] parse = parentPath.split("/");
+            var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+
+            String relativePath="";
+            for(var item: dirList){
+                relativePath += item + "/";
+                Log.d("Item", item);
+            }
+            Log.d("relativePath", relativePath);
+            for(var m : medias) {
+                String inputPath = m.getPath();
+                var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                    //outputFolderUri = getUriOfFolder(context, outputPath);
+                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+
+                    try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                        OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                        byte[] buf = new byte[8096];
+                        int len;
+                        while ((len = inputStream.read(buf)) > 0) {
+                            out.write(buf, 0, len); //write input file data to output file
+                        }
+
+                    } catch (IOException e) {
+                        e.printStackTrace();
+                    }
+                    Toast.makeText(context, "Move file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
+                }
             }
 
 //        catch (FileNotFoundException fnfe1) {
@@ -345,6 +460,56 @@ public class FileUtils {
         }
         return 0;
     }
+
+    public int deleteMultiple(ActivityResultLauncher<IntentSenderRequest> launcher, ArrayList<Media> medias, Context context){
+        if (medias.size() <= 0) return 1;
+        if (medias.size() <= 1) return delete(launcher, medias.get(0).getPath(), context);
+
+        ContentResolver contentResolver = context.getContentResolver();
+        ArrayList<Uri> collection = new ArrayList<>();
+        for(var m : medias) {
+            collection.add(getUri(m.getPath(), m.getType(), context));
+        }
+
+        try {
+            try {
+                int row = 0;
+                for (var uri : collection) {
+                    row += contentResolver.delete(uri, null, null);
+                }
+                return row;
+            } catch (SecurityException e) {
+
+                PendingIntent pendingIntent = null;
+
+                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+
+                    pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+
+                } else if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+
+                    //if exception is recoverable then again send delete request using intent
+                    if (e instanceof RecoverableSecurityException) {
+                        RecoverableSecurityException exception = (RecoverableSecurityException) e;
+                        pendingIntent = exception.getUserAction().getActionIntent();
+                    }
+                }
+
+                if (pendingIntent != null) {
+                    IntentSender sender = pendingIntent.getIntentSender();
+                    IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+                    launcher.launch(request);
+                }
+                return 0;
+            }
+
+
+        } catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+        return 0;
+    }
+
 
     public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
 

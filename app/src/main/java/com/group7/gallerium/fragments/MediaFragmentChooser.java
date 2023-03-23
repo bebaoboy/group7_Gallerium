@@ -1,10 +1,12 @@
 package com.group7.gallerium.fragments;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -23,6 +25,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.view.KeyEventDispatcher;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -53,7 +56,7 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 
-public class MediaFragment extends Fragment  implements SelectMediaInterface {
+public class MediaFragmentChooser extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
     private MenuItem cameraButton;
@@ -85,13 +88,18 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private BottomSheetDialog bottomSheetDialog;
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
-    private MediaFragment.MediaListTask mediaListTask;
+    private MediaFragmentChooser.MediaListTask mediaListTask;
     private boolean isPendingForIntent = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+
+        // Get the intent that started this activity
+        Intent intent = getActivity().getIntent();
+        Uri data = intent.getData();
+
         selectedMedia = new ArrayList<>();
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
@@ -229,7 +237,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 }
             }
         };
-
         return view;
     }
 
@@ -269,23 +276,52 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
 
-        btnCopy.setOnClickListener((v)->{
-            changeMode = false;
-            openAlbumSelectView();
+        btnShare.setText("Hoàn tất");
+        btnShare.setOnClickListener(new View.OnClickListener() {
+            @Override
+            public void onClick(View view) {
+                if (selectedMedia.size() <= 0) return;
+                // Create intent to deliver some kind of result data
+                Intent result = new Intent(getActivity().getIntent().getAction());
+                ArrayList<Uri> uris = new ArrayList<>();
+                for(var m : selectedMedia) {
+                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), getContext()));
+                }
+                ClipData clipData = null;
+                for (Uri u : uris) {
+                    if (clipData == null)
+                        clipData = ClipData.newRawUri(null, u);
+                    else
+                        clipData.addItem(new ClipData.Item(u));
+                }
+                result.setClipData(clipData);
+                result.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                getActivity().setResult(Activity.RESULT_OK, result);
+                getActivity().finish();
+            }
         });
-        btnMove.setOnClickListener((v) -> {
-            changeMode = true;
-            openAlbumSelectView();
-        });
-        btnShare.setOnClickListener((v) -> {
+        btnCopy.setVisibility(View.GONE);
+        btnMove.setVisibility(View.GONE);
+        btnCreative.setVisibility(View.GONE);
+        btnDelete.setVisibility(View.GONE);
 
-        });
-        btnDelete.setOnClickListener((v) -> {
-            deleteMedia();
-        });
-        btnCreative.setOnClickListener((v) -> {
-
-        });
+//        btnCopy.setOnClickListener((v)->{
+//            changeMode = false;
+//            openAlbumSelectView();
+//        });
+//        btnMove.setOnClickListener((v) -> {
+//            changeMode = true;
+//            openAlbumSelectView();
+//        });
+//        btnShare.setOnClickListener((v) -> {
+//
+//        });
+//        btnDelete.setOnClickListener((v) -> {
+//            deleteMedia();
+//        });
+//        btnCreative.setOnClickListener((v) -> {
+//
+//        });
     }
 
     private void deleteMedia() {
@@ -324,14 +360,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     void openAlbumSelectView() {
-        Log.d("Open bottom sheet", "true");
-        View viewDialog = LayoutInflater.from(context).inflate(R.layout.add_to_album_bottom_dialog, null);
-        addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
-        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 1));
-        bottomSheetDialog = new BottomSheetDialog(context);
-        bottomSheetDialog.setContentView(viewDialog);
-        AlbumListTask albumAsyncTask = new AlbumListTask();
-        albumAsyncTask.execute();
+//        Log.d("Open bottom sheet", "true");
+//        View viewDialog = LayoutInflater.from(context).inflate(R.layout.add_to_album_bottom_dialog, null);
+//        addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
+//        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 1));
+//        bottomSheetDialog = new BottomSheetDialog(context);
+//        bottomSheetDialog.setContentView(viewDialog);
+//        AlbumListTask albumAsyncTask = new AlbumListTask();
+//        albumAsyncTask.execute();
     }
 
     public void changeOrientation(int spanCount) {
@@ -534,7 +570,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            albumAdapter = new AlbumCategoryAdapter(context, MediaFragment.this, 3);
+            albumAdapter = new AlbumCategoryAdapter(context, MediaFragmentChooser.this, 3);
             albumAdapter.setViewType(1);
             albumAdapter.setData(albumCategories);
             addAlbumRecyclerView.setAdapter(albumAdapter);
@@ -677,6 +713,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             } else {
                 ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
             }
+            //showAllSelect();
         }
 
         @Override
