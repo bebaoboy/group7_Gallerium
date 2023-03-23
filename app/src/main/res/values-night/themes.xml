@@ -1,4 +1,4 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
     <style name="Theme.Group7_PhotoViewer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
@@ -133,7 +133,7 @@
         <item name="android:scrollbarSize">1dp</item>
     </style>
 
-    <style name="Fastscrollbar"   xmlns:app="http://schemas.android.com/apk/res-auto">
+    <style name="Fastscrollbar">
         <item name="fastScrollPopupTextColor">@color/white</item>
         <item name="fastScrollPopupBgColor">@color/primary_color_dark</item>
         <item name="fastScrollThumbColor">@color/primary_color_dark</item>

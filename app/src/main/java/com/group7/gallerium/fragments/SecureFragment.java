@@ -18,12 +18,9 @@ import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.LinearLayoutManager;
 
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
-
-import java.util.Objects;
 
 public class SecureFragment extends Fragment {
     private View view;
@@ -86,7 +83,7 @@ public class SecureFragment extends Fragment {
 
     void toolbarSetting(){
         toolbar = view.findViewById(R.id.toolbar_secure);
-        toolbar.inflateMenu(R.menu.menu_secure);
+        toolbar.inflateMenu(R.menu.menu_top_secure);
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
         scroll.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {

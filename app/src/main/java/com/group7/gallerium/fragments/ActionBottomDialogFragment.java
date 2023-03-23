@@ -2,6 +2,8 @@ package com.group7.gallerium.fragments;
 
 import android.content.Context;
 import android.os.Bundle;
+import android.os.Environment;
+import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -71,18 +73,24 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
         });
 
         verifiedButton.setOnClickListener((v)->{
-            rename();
+            performAction();
         });
         return view;
     }
 
-    public void rename() {
-        if(title.getText().equals("Đổi tên") && changeText.getText().toString().length() > 0){
-            fileUtils.renameFile(changeText.getText().toString() + "." + ext, AccessMediaFile.getMediaWithPath(path).getType(), path,  context, launcher);
+    public void performAction() {
+        if(titleText.equals("Đổi tên") && changeText.getText().toString().length() > 0) {
+            fileUtils.renameFile(changeText.getText().toString() + "." + ext, AccessMediaFile.getMediaWithPath(path).getType(), path, context, launcher);
+
+            Toast.makeText(context, "renamed", Toast.LENGTH_SHORT).show();
+            path = AccessMediaFile.renameMedia(path, changeText.getText().toString() + "." + ext);
+            name = changeText.getText().toString();
+        }else if(titleText.equals("Nhập tên album") && changeText.getText().toString().length() > 0){
+            var dir = Environment.getExternalStorageDirectory();
+            String relativePath = "Pictures/owner/" + changeText.getText().toString();
+            String path = dir.getPath() + File.separator + relativePath;
+            fileUtils.createDir(context, path, changeText.getText().toString(), relativePath);
         }
-        Toast.makeText(context, "renamed", Toast.LENGTH_SHORT).show();
-        path = AccessMediaFile.renameMedia(path, changeText.getText().toString() + "." + ext);
-        name = changeText.getText().toString();
         dismiss();
     }
 
@@ -109,6 +117,7 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
 
     public void setTitle(String name){
         titleText = name;
+        Log.d("change", "true");
     }
 
     public void setPath(String path){

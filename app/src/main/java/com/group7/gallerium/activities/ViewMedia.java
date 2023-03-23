@@ -1,7 +1,5 @@
 package com.group7.gallerium.activities;
 
-import static android.app.WallpaperManager.ACTION_CROP_AND_SET_WALLPAPER;
-
 import android.app.Activity;
 import android.app.WallpaperManager;
 import android.content.ContentValues;
@@ -10,12 +8,9 @@ import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.media.ExifInterface;
 import android.media.MediaPlayer;
 import android.net.Uri;
-import android.os.Build;
 import android.os.Bundle;
-import android.os.ParcelFileDescriptor;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
@@ -33,7 +28,6 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
-import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.viewpager.widget.ViewPager;
@@ -53,9 +47,6 @@ import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MediaItemInterface;
 
 import java.io.File;
-import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
@@ -91,7 +82,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
-    private ActionBottomDialogFragment addPhotoBottomDialogFragment;
+    private ActionBottomDialogFragment renameBottomDialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -141,7 +132,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(getApplicationContext(), "renaming", Toast.LENGTH_SHORT).show();
-                        addPhotoBottomDialogFragment.renameAgain();
+                        renameBottomDialogFragment.renameAgain();
                     }
                 });
 
@@ -210,14 +201,14 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     void rename(){
-        addPhotoBottomDialogFragment =
+        renameBottomDialogFragment =
                 ActionBottomDialogFragment.newInstance();
-        addPhotoBottomDialogFragment.show(getSupportFragmentManager(),
+        renameBottomDialogFragment.show(getSupportFragmentManager(),
                 ActionBottomDialogFragment.TAG);
-        addPhotoBottomDialogFragment.setPath(mediaPath);
-        addPhotoBottomDialogFragment.setTitle("Đổi tên");
+        renameBottomDialogFragment.setPath(mediaPath);
+        renameBottomDialogFragment.setTitle("Đổi tên");
 
-        addPhotoBottomDialogFragment.setLauncher(launcherModified);
+        renameBottomDialogFragment.setLauncher(launcherModified);
 
     }
 
@@ -287,7 +278,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     private void toolbarSetting() {
         // Toolbar events
-        toolbar.inflateMenu(R.menu.menu_view_photo);
+        toolbar.inflateMenu(R.menu.menu_top_view_photo);
         favBtn = toolbar.getMenu().findItem(R.id.add_fav);
         toolbar.setTitle("hello");
         toolbar.setTitleTextAppearance(getApplicationContext(), R.style.ToolbarTitleMediaView);
@@ -333,10 +324,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
             public void onPageScrolled(int position, float positionOffset, int positionOffsetPixels) {
-                if (addPhotoBottomDialogFragment != null) {
-                    if (addPhotoBottomDialogFragment.getOldPath().equals(listPath.get(position))) {
-                        listPath.set(position, addPhotoBottomDialogFragment.getPath());
-                        addPhotoBottomDialogFragment = null;
+                if (renameBottomDialogFragment != null) {
+                    if (renameBottomDialogFragment.getOldPath().equals(listPath.get(position))) {
+                        listPath.set(position, renameBottomDialogFragment.getPath());
+                        renameBottomDialogFragment = null;
                     }
                 }
                 mediaPath = listPath.get(position);

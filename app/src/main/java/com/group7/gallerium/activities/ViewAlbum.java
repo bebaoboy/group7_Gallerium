@@ -24,15 +24,14 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.fragments.ActionBottomDialogFragment;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
-import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
-import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -52,6 +51,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
 
     private Toolbar toolbar;
     private RecyclerView album_rec_item;
+
     private int firstVisiblePosition;
     private int offset;
 
@@ -203,7 +203,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
 
     void toolbarSetting(){
         toolbar = findViewById(R.id.toolbar_view_album);
-        toolbar.inflateMenu(R.menu.menu_view_album);
+        toolbar.inflateMenu(R.menu.menu_top_view_album);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(this, R.style.ToolbarTitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
