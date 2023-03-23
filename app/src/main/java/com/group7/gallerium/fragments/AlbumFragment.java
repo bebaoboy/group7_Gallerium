@@ -3,11 +3,15 @@ package com.group7.gallerium.fragments;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.res.Configuration;
+import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
-import android.os.CountDownTimer;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
@@ -20,22 +24,17 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
-import com.group7.gallerium.adapters.AlbumAdapter;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
-import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
-import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -61,6 +60,8 @@ public class AlbumFragment extends Fragment{
     private int firstVisiblePosition;
     private int offset;
 
+
+    private ActionBottomDialogFragment createAlbumBottomDialogFragment;
 
     public AlbumFragment() {}
 
@@ -184,9 +185,67 @@ public class AlbumFragment extends Fragment{
 
     void toolbarSetting(){
 
-        toolbar.inflateMenu(R.menu.menu_album);
+        toolbar.inflateMenu(R.menu.menu_top_album);
         toolbar.setTitle(R.string.album);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
+
+        MenuItem createAlbumButton = toolbar.getMenu().findItem(R.id.create_album_tb_item);
+
+        createAlbumButton.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                openBottomDialog();
+                return true;
+            }
+        });
+    }
+
+    public void openBottomDialog(){
+        createAlbumBottomDialogFragment = ActionBottomDialogFragment.newInstance();
+        createAlbumBottomDialogFragment.show(getParentFragmentManager(),
+                ActionBottomDialogFragment.TAG);
+        createAlbumBottomDialogFragment.setTitle("Nhập tên album");
+    }
+
+    public void rescanForUnAddedAlbum(){
+        Cursor cursor =  context.getContentResolver().query(
+                MediaStore.Files.getContentUri("external")
+                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+       // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+        String name;
+        try {
+            if (cursor != null) {
+                Log.d("size", "" + cursor.getCount());
+
+                ArrayList<Album> temp = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(pathColumn);
+                    Log.d("path", path);
+                    name = cursor.getString(nameColumn);
+                    Log.d("name", name);
+                    String[] subDirs = path.split("/");
+                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                    Album album = new Album(null, name);
+                    album.setPath(path);
+                    temp.add(album);
+                }
+                for(Album album: albumList){
+                    for(int i=0;i<temp.size();i++){
+                        if(temp.get(i).getPath().equals(album.getPath())){
+                            temp.remove(i);
+                        }
+                    }
+                }
+                if(temp.size() >0)albumList.addAll(temp);
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
     }
 
     public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
@@ -249,6 +308,7 @@ public class AlbumFragment extends Fragment{
 //        categoryList.get("Mặc định").getList().add(image);
 //        categoryList.get("Mặc định").getList().add(video);
 
+        rescanForUnAddedAlbum();
         for (Album album : albumList) {
             String path = album.getPath();
             subDir = path.split("/");

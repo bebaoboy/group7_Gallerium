@@ -63,6 +63,6 @@
         app:labelVisibilityMode="unlabeled"
         app:layout_constraintBottom_toBottomOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        app:menu="@menu/view_photo_nav" />
+        app:menu="@menu/menu_bottom_view_photo" />
 
 </androidx.constraintlayout.widget.ConstraintLayout>

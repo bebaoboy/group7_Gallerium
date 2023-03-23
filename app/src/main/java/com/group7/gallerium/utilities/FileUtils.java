@@ -135,7 +135,6 @@ public class FileUtils {
         String name = parse[parse.length - 1];
         int mediaType = media.getType();
         if (mediaType == 1) {
-
             cursor = context.getContentResolver().query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI
                     , new String[]{MediaStore.Images.Media._ID}
@@ -190,6 +189,22 @@ public class FileUtils {
             }
         } else {
             return null;
+        }
+    }
+
+    public Uri createDir(Context context, String path, String name, String relativePath) {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            var resolver = context.getContentResolver();
+            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
+            Uri finaluri = resolver.insert(collection, values);
+            return finaluri;
+        }else{
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Files.FileColumns.DATA, path);
+            return context.getContentResolver().insert(
+                    MediaStore.Files.getContentUri("external"), values);
         }
     }
     public void copyFile(String inputPath, String outputPath, Context context) {
