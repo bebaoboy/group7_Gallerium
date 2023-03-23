@@ -67,7 +67,7 @@ public class AddToAlbumAdapter extends ListAdapter<Album, AddToAlbumAdapter.Albu
         holder.amountPic.setText(String.valueOf(album.getListMedia().size()));
         holder.albumName.setText(album.getName());
 
-        Glide.with(context).load(album.getAvatar().getPath()).into(holder.albumAvatar);
+        if(album.getAvatar() !=null)Glide.with(context).load(album.getAvatar().getPath()).into(holder.albumAvatar);
 
         holder.albumAvatar.setOnClickListener((view -> {
             selectMediaInterface.moveMedia(album.getPath());

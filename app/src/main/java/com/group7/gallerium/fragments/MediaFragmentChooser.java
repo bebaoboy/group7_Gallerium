@@ -403,7 +403,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
 
     void toolbarSetting() {
         toolbar = view.findViewById(R.id.toolbar_photo);
-        toolbar.inflateMenu(R.menu.menu_photo);
+        toolbar.inflateMenu(R.menu.menu_top_photo);
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
         cameraButton = toolbar.getMenu().findItem(R.id.take_photo_tb_item);

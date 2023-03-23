@@ -4,9 +4,12 @@ import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -551,6 +554,47 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
     }
 
+    public void rescanForUnAddedAlbum(){
+        Cursor cursor =  context.getContentResolver().query(
+                MediaStore.Files.getContentUri("external")
+                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+        String name;
+        try {
+            if (cursor != null) {
+                Log.d("size", "" + cursor.getCount());
+
+                ArrayList<Album> temp = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(pathColumn);
+                    Log.d("path", path);
+                    name = cursor.getString(nameColumn);
+                    Log.d("name", name);
+                    String[] subDirs = path.split("/");
+                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                    Album album = new Album(null, name);
+                    album.setPath(path);
+                    temp.add(album);
+                }
+                for(Album album: albumList){
+                    for(int i=0;i<temp.size();i++){
+                        if(temp.get(i).getPath().equals(album.getPath())){
+                            temp.remove(i);
+                        }
+                    }
+                }
+                if(temp.size() >0)albumList.addAll(temp);
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+    }
+
     public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia) {
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
@@ -583,6 +627,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
 
+        rescanForUnAddedAlbum();
         for (Album album : albumList) {
             String path = album.getPath();
             subDir = path.split("/");
