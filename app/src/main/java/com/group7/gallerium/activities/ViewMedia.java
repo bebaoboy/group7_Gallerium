@@ -186,10 +186,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         btnSetBackGround.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
-            File wallpaperFile = new File(mediaPath);
-            Uri contentURI = getImageContentUri(this, wallpaperFile.getAbsolutePath());
-            WallpaperManager wallpaperManager = WallpaperManager.getInstance(this);
-            intent = new Intent(wallpaperManager.getCropAndSetWallpaperIntent(contentURI));
+            Uri contentURI = fileUtils.getUri(mediaPath, AccessMediaFile.getMediaWithPath(mediaPath).getType(), getApplicationContext());
+//            try {
+//                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+//                intent = wallpaperManager.getCropAndSetWallpaperIntent(contentURI);
+//            } catch (Exception e) {
+                intent = new Intent(Intent.ACTION_ATTACH_DATA);
+                intent.setDataAndType(contentURI, "image/*");
+                intent.putExtra("jpg", "image/*");
+                startActivity(Intent.createChooser(intent,
+                        "Set picture as: "));
+//            }
             startActivity(intent);
         });
         btnShowDetails.setOnClickListener((v) -> {
@@ -210,27 +217,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
         renameBottomDialogFragment.setLauncher(launcherModified);
 
-    }
-
-    public static Uri getImageContentUri(Context context, String absPath) {
-        Cursor cursor = context.getContentResolver().query(
-                MediaStore.Images.Media.EXTERNAL_CONTENT_URI
-                , new String[] { MediaStore.Images.Media._ID }
-                , MediaStore.Images.Media.DATA + "=? "
-                , new String[] { absPath }, null);
-
-        if (cursor != null && cursor.moveToFirst()) {
-            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
-            return Uri.withAppendedPath(MediaStore.Images.Media.EXTERNAL_CONTENT_URI , Integer.toString(id));
-
-        } else if (!absPath.isEmpty()) {
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Images.Media.DATA, absPath);
-            return context.getContentResolver().insert(
-                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
-        } else {
-            return null;
-        }
     }
 
     void bottomSheetDialogConfig() {
@@ -344,6 +330,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                     videoView.stopPlayback();
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
+                }
+                if (AccessMediaFile.getMediaWithPath(mediaPath).getType() != 1) {
+                    btnSetBackGround.setVisibility(View.GONE);
+                } else {
+                    btnSetBackGround.setVisibility(View.VISIBLE);
                 }
 
                 favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);

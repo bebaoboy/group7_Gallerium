@@ -69,8 +69,8 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaResolution.setText(
                             String.format(getResources().getString(
                                     R.string.resolution_placeholder),
-                                    Integer.parseInt(exifInterface.getAttribute(ExifInterface.TAG_IMAGE_LENGTH)),
-                                    Integer.parseInt(exifInterface.getAttribute(ExifInterface.TAG_IMAGE_WIDTH)),
+                                    media.getHeight(),
+                                    media.getWidth(),
                                     1
                             ));
 //                    if(fileSizeInMb < 1)
