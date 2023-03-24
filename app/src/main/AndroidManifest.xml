@@ -112,7 +112,21 @@
             android:exported="false" />
         <activity
             android:name=".activities.ViewMedia"
-            android:exported="false" />
+            android:exported="true"
+            android:label="Xem ảnh / video">
+            <intent-filter>
+                <action android:name="android.intent.action.EDIT" />
+                <action android:name="android.intent.action.VIEW" />
+
+
+                <category android:name="android.intent.category.DEFAULT" />
+                <category android:name="android.intent.category.BROWSABLE" />
+                <data android:scheme="content"/>
+                <data android:scheme="file"/>
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.ChooserActivity"
             android:exported="true">
