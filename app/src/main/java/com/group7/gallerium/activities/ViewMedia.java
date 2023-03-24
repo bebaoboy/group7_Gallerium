@@ -1,20 +1,13 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
-import android.app.WallpaperManager;
-import android.content.ContentValues;
-import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
-import android.media.MediaPlayer;
 import android.net.Uri;
 import android.os.Bundle;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
-import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.widget.ImageView;
@@ -37,7 +30,6 @@ import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.navigation.NavigationBarView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.SlideAdapter;
 import com.group7.gallerium.fragments.ActionBottomDialogFragment;
@@ -50,39 +42,39 @@ import java.io.File;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 
+@SuppressWarnings("rawtypes")
 public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
-    private MenuItem favBtn;
-    private MediaController videoController;
+    MenuItem favBtn;
+    MediaController videoController;
     private int mediaPos;
-    private String mediaPath;
-    private String mediaName;
+    String mediaPath;
     private Intent intent;
 
     private ActivityResultLauncher<Intent> editResult;
-    private ArrayList<String> listPath;
+    ArrayList<String> listPath;
     private MediaItemInterface mediaItemInterface;
     private ViewPager viewPager;
     private SlideAdapter slideAdapter;
 
-    private VideoView videoView;
-    private ImageView playButton;
-    private ImageView img;
+    VideoView videoView;
+    ImageView playButton;
+    ImageView img;
 
-    private LinearLayout bottomSheet;
-    private BottomSheetBehavior behavior;
+    LinearLayout bottomSheet;
+    BottomSheetBehavior behavior;
 
     private BottomSheetDialog bottomSheetDialog;
 
-    private TextView btnSetBackGround, btnAddToAlbum;
+    TextView btnSetBackGround, btnAddToAlbum;
     private TextView btnShowDetails, btnRename;
 
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
-    private ActionBottomDialogFragment renameBottomDialogFragment;
+    ActionBottomDialogFragment renameBottomDialogFragment;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -200,8 +192,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
             startActivity(intent);
         });
         btnShowDetails.setOnClickListener((v) -> {
-            Uri mediaUri = Uri.parse("file://" + mediaPath);
-            showDetails(mediaUri);
+            showDetails();
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
         });
@@ -219,35 +210,29 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
 
     }
 
-    void bottomSheetDialogConfig() {
+//    void bottomSheetDialogConfig() {
+//
+//        View moreBottomView = LayoutInflater.from(this).inflate(R.layout.more_bottom_sheet,
+//                (LinearLayout)findViewById(R.id.more_bottom_sheet),  false);
+//        bottomSheetDialog = new BottomSheetDialog(this);
+//        bottomSheetDialog.setContentView(moreBottomView);
+//
+//        btnAddToAlbum = moreBottomView.findViewById(R.id.add_to_album_item);
+//        btnRename = moreBottomView.findViewById(R.id.change_name_item);
+//        btnSetBackGround = moreBottomView.findViewById(R.id.set_sys_background_item);
+//        btnShowDetails = moreBottomView.findViewById(R.id.show_details_item);
+//
+//        btnAddToAlbum.setOnClickListener((v) -> bottomSheetDialog.cancel());
+//        btnRename.setOnClickListener((v) -> bottomSheetDialog.cancel());
+//        btnSetBackGround.setOnClickListener((v) -> bottomSheetDialog.cancel());
+//        btnShowDetails.setOnClickListener((v) -> {
+//            Uri mediaUri = Uri.parse("file://" + mediaPath);
+//            showDetails(mediaUri);
+//            bottomSheetDialog.cancel();
+//        });
+//    }
 
-        View moreBottomView = LayoutInflater.from(this).inflate(R.layout.more_bottom_sheet,
-                (LinearLayout)findViewById(R.id.more_bottom_sheet),  false);
-        bottomSheetDialog = new BottomSheetDialog(this);
-        bottomSheetDialog.setContentView(moreBottomView);
-
-        btnAddToAlbum = moreBottomView.findViewById(R.id.add_to_album_item);
-        btnRename = moreBottomView.findViewById(R.id.change_name_item);
-        btnSetBackGround = moreBottomView.findViewById(R.id.set_sys_background_item);
-        btnShowDetails = moreBottomView.findViewById(R.id.show_details_item);
-
-        btnAddToAlbum.setOnClickListener((v) -> {
-            bottomSheetDialog.cancel();
-        });
-        btnRename.setOnClickListener((v) -> {
-            bottomSheetDialog.cancel();
-        });
-        btnSetBackGround.setOnClickListener((v) -> {
-            bottomSheetDialog.cancel();
-        });
-        btnShowDetails.setOnClickListener((v) -> {
-            Uri mediaUri = Uri.parse("file://" + mediaPath);
-            showDetails(mediaUri);
-            bottomSheetDialog.cancel();
-        });
-    }
-
-    void showDetails(Uri uri){
+    void showDetails(){
        Intent intent = new Intent(this, MediaDetails.class);
        intent.putExtra("media_path", mediaPath);
        startActivity(intent);
@@ -271,21 +256,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         toolbar.setSubtitleTextAppearance(getApplicationContext(), R.style.ToolbarSubtitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
-        favBtn.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-
-            @Override
-            public boolean onMenuItemClick(@NonNull MenuItem menuItem) {
-                if (menuItem.getItemId() == R.id.add_fav) {
-                    if (AccessMediaFile.isFavMediaContains(mediaPath)) {
-                        AccessMediaFile.removeFromFavMedia(mediaPath);
-                        menuItem.setIcon(R.drawable.ic_fav_empty);
-                    } else {
-                        AccessMediaFile.addToFavMedia(mediaPath);
-                        menuItem.setIcon(R.drawable.ic_fav_solid);
-                    }
+        favBtn.setOnMenuItemClickListener(menuItem -> {
+            if (menuItem.getItemId() == R.id.add_fav) {
+                if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+                    AccessMediaFile.removeFromFavMedia(mediaPath);
+                    menuItem.setIcon(R.drawable.ic_fav_empty);
+                } else {
+                    AccessMediaFile.addToFavMedia(mediaPath);
+                    menuItem.setIcon(R.drawable.ic_fav_solid);
                 }
-                return menuItem.isChecked();
             }
+            return menuItem.isChecked();
         });
     }
 
@@ -353,9 +334,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         });
     }
 
-    public void setTitleToolbar(Media m) {
+    public void setTitleToolbar(@NonNull Media m) {
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
-        this.mediaName = name;
         toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
         toolbar.setSubtitle(name);
         if (AccessMediaFile.isFavMediaContains(mediaPath)) {
@@ -366,7 +346,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     protected void onPause() {
         super.onPause();
         var favList = AccessMediaFile.getFavMedia();
-        Log.d("fav", "fav amount pause = " + favList.size());
+        //Log.d("fav", "fav amount pause = " + favList.size());
         favList.forEach(x -> Log.d("fav", x));
         SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
@@ -378,8 +358,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     public void bottomNavCustom() {
-        bottom_nav.setOnItemSelectedListener((NavigationBarView.OnItemSelectedListener) item -> {
-            Uri targetUri = Uri.parse("file://" + mediaPath);
+        bottom_nav.setOnItemSelectedListener(item -> {
 
             switch (item.getItemId()){
                 case R.id.edit_nav_item->{
@@ -417,7 +396,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
                 }
 
                 case R.id.delete_nav_item ->{
-                    String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
+                    //String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
 //                    builder.setTitle("Confirm");
@@ -509,7 +488,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     @Override
-    public void showVideoPlayer(VideoView videoView, ImageView img2, ImageView btn, TextView duration, Media m) {
+    public void showVideoPlayer(@NonNull VideoView videoView, @NonNull ImageView img2, @NonNull ImageView btn, @NonNull TextView duration, @NonNull Media m) {
         Uri uri = Uri.parse(mediaPath);
 
         // sets the resource from the
@@ -527,16 +506,13 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
         videoController.setVisibility(View.VISIBLE);
         duration.setText(m.getDuration());
 
-        videoView.setOnCompletionListener(new MediaPlayer.OnCompletionListener() {
-            @Override
-            public void onCompletion(MediaPlayer mediaPlayer) {
-                // showActionBar(true);
-                videoController.setVisibility(View.GONE);
-                videoView.setMediaController(videoController);
-                videoView.setVisibility(View.GONE);
-                img.setVisibility(View.VISIBLE);
-                playButton.setVisibility(View.VISIBLE);
-            }
+        videoView.setOnCompletionListener(mediaPlayer -> {
+            // showActionBar(true);
+            videoController.setVisibility(View.GONE);
+            videoView.setMediaController(videoController);
+            videoView.setVisibility(View.GONE);
+            img.setVisibility(View.VISIBLE);
+            playButton.setVisibility(View.VISIBLE);
         });
         setDimension(videoView, m);
 
@@ -554,12 +530,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface{
     }
 
     @Override
-    public void setVideoView(VideoView videoView) {
+    public void setVideoView(@NonNull VideoView videoView) {
         this.videoView = videoView;
     }
 
     @Override
-    public void setImageViewAndButton(ImageView img, ImageView playButton) {
+    public void setImageViewAndButton(@NonNull ImageView img, @NonNull ImageView playButton) {
         this.img = img;
         this.playButton = playButton;
         this.img.setVisibility(View.VISIBLE);

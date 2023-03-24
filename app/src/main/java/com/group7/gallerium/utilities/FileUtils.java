@@ -8,7 +8,6 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.IntentSender;
 import android.database.Cursor;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
@@ -18,6 +17,7 @@ import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
+import androidx.annotation.NonNull;
 
 import com.group7.gallerium.models.Media;
 
@@ -25,7 +25,6 @@ import java.io.BufferedReader;
 import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
-import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.FileReader;
 import java.io.IOException;
@@ -38,59 +37,36 @@ import java.util.Objects;
 import java.util.stream.Collectors;
 
 public class FileUtils {
-    public void deleteFile(String Path) {
-        try {
-            // delete the original file
-            new File(Path).delete();
-        }
-        catch (Exception e) {
-            Log.e("tag", e.getMessage());
-        }
-    }
 
-    public static void deleteRecursive(File fileOrDirectory) {
+//    public void moveFile1(String inputPath, String inputFilename, String outputPath, Context context){
+//        String[] subDirs = inputPath.split("/");
+//        String parent = subDirs[subDirs.length - 2];
+//        String root = subDirs[2];
+//
+//      var contentUri = MediaStore.Files.getContentUri("external");
+//        var selectionArgs = new ArrayList<String>();
+//      selectionArgs.add(Environment.DIRECTORY_DCIM + "/parent/");
+//
+//    }
 
-        if (fileOrDirectory.isDirectory())
-            for (File child : Objects.requireNonNull(fileOrDirectory.listFiles()))
-                deleteRecursive(child);
+    public void moveFile(@NonNull String inputPath, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String outputPath, @NonNull Context context) {
 
-        fileOrDirectory.delete();
-
-    }
-
-    public void moveFile1(String inputPath, String inputFilename, String outputPath, Context context){
-        String[] subDirs = inputPath.split("/");
-        String parent = subDirs[subDirs.length - 2];
-        String root = subDirs[2];
-
-      var contentUri = MediaStore.Files.getContentUri("external");
-      var selection = MediaStore.MediaColumns.RELATIVE_PATH + "=?";
-      var selectionArgs = new ArrayList<String>();
-      selectionArgs.add(Environment.DIRECTORY_DCIM + "/parent/");
-
-    }
-
-    public void moveFile(String inputPath, ActivityResultLauncher<IntentSenderRequest> launcher, String outputPath, Context context) {
-
-        InputStream in = null;
-        Uri outputFile, outputFolderUri;
+        Uri outputFile;
 
         try {
-            String parentPath = outputPath;
-            Log.d("Parent path", parentPath);
-            String[] parse = parentPath.split("/");
+            Log.d("Parent path", outputPath);
+            String[] parse = outputPath.split("/");
             var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
 
-            String relativePath="";
+            StringBuilder relativePath= new StringBuilder();
             for(var item: dirList){
-                relativePath += item + "/";
+                relativePath.append(item).append("/");
                 Log.d("Item", item);
             }
-            Log.d("relativePath", relativePath);
-            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+            Log.d("relativePath", relativePath.toString());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 //outputFolderUri = getUriOfFolder(context, outputPath);
-                outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+                outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
 
                 try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
@@ -101,6 +77,7 @@ public class FileUtils {
                     while ((len = inputStream.read(buf)) > 0) {
                         out.write(buf, 0, len); //write input file data to output file
                     }
+                    out.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -128,8 +105,8 @@ public class FileUtils {
 //       return MediaStore.Files.getContentUri(inputPath);
 //    }
 
-    public Uri insertMediaToMediaStore(Context context, String inputPath, String outputPath) {
-        Cursor cursor = null;
+    public Uri insertMediaToMediaStore(@NonNull Context context, @NonNull String inputPath, @NonNull String outputPath) {
+        Cursor cursor;
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
         String[] parse = media.getPath().split("/");
         String name = parse[parse.length - 1];
@@ -170,9 +147,8 @@ public class FileUtils {
                     values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
                     values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                    Uri finaluri = resolver.insert(picCollection, values);
 
-                    return finaluri;
+                    return resolver.insert(picCollection, values);
                 } else {
                     Uri vidCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
                     if(Objects.equals(outputPath, "Download/")) {
@@ -199,42 +175,44 @@ public class FileUtils {
         }
     }
 
-    public Uri createDir(Context context, String path, String name, String relativePath) {
-        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-            ContentValues values = new ContentValues();
-            var resolver = context.getContentResolver();
-            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL);
-            values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
-            Uri finaluri = resolver.insert(collection, values);
-            return finaluri;
-        }else{
-            ContentValues values = new ContentValues();
-            values.put(MediaStore.Files.FileColumns.DATA, path);
-            return context.getContentResolver().insert(
-                    MediaStore.Files.getContentUri("external"), values);
-        }
-    }
-    public void copyFile(String inputPath, String outputPath, Context context) {
-
-        InputStream in = null;
-        Uri outputFile, outputFolderUri;
+    public void createDir(@NonNull Context context, @NonNull String path, @NonNull String name, @NonNull String relativePath) {
 
         try {
-            String parentPath = outputPath;
-            Log.d("Parent path", parentPath);
-            String[] parse = parentPath.split("/");
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues values = new ContentValues();
+                var resolver = context.getContentResolver();
+                Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+                values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
+                resolver.insert(collection, values);
+            } else {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Files.FileColumns.DATA, path);
+                context.getContentResolver().insert(
+                        MediaStore.Files.getContentUri("external"), values);
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+            Toast.makeText(context, "Can't create folder " + name + "\n access denied", Toast.LENGTH_LONG).show();
+        }
+    }
+    public void copyFile(@NonNull String inputPath, @NonNull String outputPath, @NonNull Context context) {
+
+        Uri outputFile;
+
+        try {
+            Log.d("Parent path", outputPath);
+            String[] parse = outputPath.split("/");
             var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
 
-            String relativePath="";
+            StringBuilder relativePath= new StringBuilder();
             for(var item: dirList){
-                relativePath += item + "/";
+                relativePath.append(item).append("/");
                 Log.d("Item", item);
             }
-            Log.d("relativePath", relativePath);
-            var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
+            Log.d("relativePath", relativePath.toString());
             if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                 //outputFolderUri = getUriOfFolder(context, outputPath);
-                outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+                outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
 
                 try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
@@ -245,6 +223,7 @@ public class FileUtils {
                     while ((len = inputStream.read(buf)) > 0) {
                         out.write(buf, 0, len); //write input file data to output file
                     }
+                    out.close();
 
                 } catch (IOException e) {
                     e.printStackTrace();
@@ -262,32 +241,29 @@ public class FileUtils {
         }
     }
 
-    public void moveFileMultiple(ArrayList<Media> medias, ActivityResultLauncher<IntentSenderRequest> launcher, String outputPath, Context context) {
+    public void moveFileMultiple(@NonNull ArrayList<Media> medias, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String outputPath, @NonNull Context context) {
         if (medias.size() <= 0) return;
         if (medias.size() <= 1){
             moveFile(medias.get(0).getPath(), launcher, outputPath, context);
         }
-        InputStream in = null;
-        Uri outputFile, outputFolderUri;
+        Uri outputFile;
 
         try {
-            String parentPath = outputPath;
-            Log.d("Parent path", parentPath);
-            String[] parse = parentPath.split("/");
+            Log.d("Parent path", outputPath);
+            String[] parse = outputPath.split("/");
             var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
 
-            String relativePath="";
+            StringBuilder relativePath= new StringBuilder();
             for(var item: dirList){
-                relativePath += item + "/";
+                relativePath.append(item).append("/");
                 Log.d("Item", item);
             }
-            Log.d("relativePath", relativePath);
+            Log.d("relativePath", relativePath.toString());
             for(var m : medias) {
                 String inputPath = m.getPath();
-                var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     //outputFolderUri = getUriOfFolder(context, outputPath);
-                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
 
                     try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
@@ -298,6 +274,7 @@ public class FileUtils {
                         while ((len = inputStream.read(buf)) > 0) {
                             out.write(buf, 0, len); //write input file data to output file
                         }
+                        out.close();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -316,33 +293,30 @@ public class FileUtils {
         }
     }
 
-    public void copyFileMultiple(ArrayList<Media> medias, String outputPath, Context context) {
+    public void copyFileMultiple(@NonNull ArrayList<Media> medias, @NonNull String outputPath, @NonNull Context context) {
         if (medias.size() <= 0) return;
         if (medias.size() <= 1){
             copyFile(medias.get(0).getPath(), outputPath, context);
             return;
         }
-        InputStream in = null;
-        Uri outputFile, outputFolderUri;
+        Uri outputFile;
 
         try {
-            String parentPath = outputPath;
-            Log.d("Parent path", parentPath);
-            String[] parse = parentPath.split("/");
+            Log.d("Parent path", outputPath);
+            String[] parse = outputPath.split("/");
             var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
 
-            String relativePath="";
+            StringBuilder relativePath= new StringBuilder();
             for(var item: dirList){
-                relativePath += item + "/";
+                relativePath.append(item).append("/");
                 Log.d("Item", item);
             }
-            Log.d("relativePath", relativePath);
+            Log.d("relativePath", relativePath.toString());
             for(var m : medias) {
                 String inputPath = m.getPath();
-                var type = AccessMediaFile.getMediaWithPath(inputPath).getType();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     //outputFolderUri = getUriOfFolder(context, outputPath);
-                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath);
+                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
 
                     try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
@@ -353,6 +327,7 @@ public class FileUtils {
                         while ((len = inputStream.read(buf)) > 0) {
                             out.write(buf, 0, len); //write input file data to output file
                         }
+                        out.close();
 
                     } catch (IOException e) {
                         e.printStackTrace();
@@ -370,8 +345,8 @@ public class FileUtils {
         }
     }
 
-    public Uri getUri(String path, int type, Context context) {
-        ContentResolver contentResolver = context.getContentResolver();
+    @NonNull
+    public Uri getUri(@NonNull String path, int type, @NonNull Context context) {
         try {
             Cursor cursor;
             if (type == 1) {
@@ -410,11 +385,10 @@ public class FileUtils {
      * SDK version is >= 30(R)? use {@link //MediaStore#createDeleteRequest(ContentResolver, Collection)}.
      */
 
-    public int delete(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context){
+    public int delete(@NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String path, @NonNull Context context){
         Media media = AccessMediaFile.getMediaWithPath(path);
         ContentResolver contentResolver = context.getContentResolver();
-        boolean returnVal = false;
-        Uri uri = Uri.EMPTY;
+        Uri uri;
         try {
             Cursor cursor;
             if(media.getType() == 1) {
@@ -439,8 +413,7 @@ public class FileUtils {
             else
                 uri = ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
             try {
-                int row = contentResolver.delete(uri, null, null);
-                return row;
+                return contentResolver.delete(uri, null, null);
             }
             catch (SecurityException e) {
 
@@ -476,7 +449,7 @@ public class FileUtils {
         return 0;
     }
 
-    public int deleteMultiple(ActivityResultLauncher<IntentSenderRequest> launcher, ArrayList<Media> medias, Context context){
+    public int deleteMultiple(@NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull ArrayList<Media> medias, @NonNull Context context){
         if (medias.size() <= 0) return 1;
         if (medias.size() <= 1) return delete(launcher, medias.get(0).getPath(), context);
 
@@ -526,64 +499,64 @@ public class FileUtils {
     }
 
 
-    public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, Context context) {
+//    public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, @NonNull Context context) {
+//
+//        String[] parse = path.substring(0, path.lastIndexOf("/")).split("/");
+//        var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+//
+//        Media media = AccessMediaFile.getMediaWithPath(path);
+//        StringBuilder relativePath = new StringBuilder();
+//        for (var item : dirList) {
+//            relativePath.append(item).append("/");
+//            Log.d("Item", item);
+//        }
+//
+//        Uri uri = insertMediaToMediaStore(context, path, relativePath.toString());
+//        ContentResolver contentResolver = context.getContentResolver();
+//        PendingIntent pendingIntent = null;
+//
+//
+//        try {
+//            //delete object using resolver
+//
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//
+//                ArrayList<Uri> collection = new ArrayList<>();
+//                collection.add(uri);
+//                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
+//
+//            } else
+//                try {
+//                    MediaScannerConnection.scanFile(context, new String[] { path },
+//                            new String[]{media.getMimeType()}, (path1, uri1) -> context.getContentResolver()
+//                                    .delete(uri1, null, null));
+//                } catch (Exception e) {
+//                    e.printStackTrace();
+//                }
+//
+//        } catch (Exception e) {
+//
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+//
+//                //if exception is recoverable then again send delete request using intent
+//                if (e instanceof RecoverableSecurityException) {
+//                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
+//                    pendingIntent = exception.getUserAction().getActionIntent();
+//                }
+//            }
+//
+//
+//        } finally {
+//            if (pendingIntent != null) {
+//                IntentSender sender = pendingIntent.getIntentSender();
+//                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
+//                launcher.launch(request);
+//            }
+//        }
+//        // AccessMediaFile.removeMediaFromAllMedia(path);
+//    }
 
-        String[] parse = path.substring(0, path.lastIndexOf("/")).split("/");
-        var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
-
-        Media media = AccessMediaFile.getMediaWithPath(path);
-        String relativePath = "";
-        for (var item : dirList) {
-            relativePath += item + "/";
-            Log.d("Item", item);
-        }
-
-        Uri uri = insertMediaToMediaStore(context, path, relativePath);
-        ContentResolver contentResolver = context.getContentResolver();
-        PendingIntent pendingIntent = null;
-
-
-        try {
-            //delete object using resolver
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-
-                ArrayList<Uri> collection = new ArrayList<>();
-                collection.add(uri);
-                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
-
-            } else
-                try {
-                    MediaScannerConnection.scanFile(context, new String[] { path },
-                            new String[]{media.getMimeType()}, (path1, uri1) -> context.getContentResolver()
-                                    .delete(uri1, null, null));
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
-
-        } catch (Exception e) {
-
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-
-                //if exception is recoverable then again send delete request using intent
-                if (e instanceof RecoverableSecurityException) {
-                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
-                    pendingIntent = exception.getUserAction().getActionIntent();
-                }
-            }
-
-
-        } finally {
-            if (pendingIntent != null) {
-                IntentSender sender = pendingIntent.getIntentSender();
-                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
-                launcher.launch(request);
-            }
-        }
-        // AccessMediaFile.removeMediaFromAllMedia(path);
-    }
-
-    public void renameFile(String name, int type, String path, Context context, ActivityResultLauncher<IntentSenderRequest> launcher) {
+    public void renameFile(@NonNull String name, int type, @NonNull String path, @NonNull Context context, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher) {
         ContentValues values = new ContentValues();
         ContentResolver resolver = context.getContentResolver();
         Uri uri = getUri(path, type, context);
@@ -629,11 +602,10 @@ public class FileUtils {
         }
     }
 
-    public  void updateInfoFile(String password) throws FileNotFoundException {
+    public  void updateInfoFile(@NonNull String password) {
         File info = new File(Environment.getExternalStorageDirectory()+File.separator+".secret"+ File.separator+"info.txt");
         try{
             BufferedReader br = new BufferedReader(new FileReader(info));
-            String info_password = br.readLine();
             String info_question = br.readLine();
             String info_answer = br.readLine();
             br.close();
@@ -645,8 +617,6 @@ public class FileUtils {
             bw.newLine();
             bw.write(info_answer);
             bw.close();
-        } catch (FileNotFoundException e) {
-            e.printStackTrace();
         } catch (IOException e) {
             e.printStackTrace();
         }

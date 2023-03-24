@@ -1,16 +1,16 @@
 package com.group7.gallerium.utilities;
 
-import android.widget.Button;
 import android.widget.ImageView;
-import android.widget.MediaController;
 import android.widget.TextView;
 import android.widget.VideoView;
+
+import androidx.annotation.NonNull;
 
 import com.group7.gallerium.models.Media;
 
 public interface MediaItemInterface {
     void showActionBar(boolean trigger);
-    void showVideoPlayer(VideoView videoView, ImageView img2, ImageView btn, TextView duration, Media m);
-    void setVideoView(VideoView videoView);
-    void setImageViewAndButton(ImageView img, ImageView playButton);
+    void showVideoPlayer(@NonNull VideoView videoView, @NonNull ImageView img2, @NonNull ImageView btn, @NonNull TextView duration, @NonNull Media m);
+    void setVideoView(@NonNull VideoView videoView);
+    void setImageViewAndButton(@NonNull ImageView img, @NonNull ImageView playButton);
 }

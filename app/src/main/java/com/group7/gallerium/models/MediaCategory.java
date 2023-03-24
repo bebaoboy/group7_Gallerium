@@ -1,7 +1,6 @@
 package com.group7.gallerium.models;
 
 import java.util.ArrayList;
-import java.util.List;
 
 public class MediaCategory {
 

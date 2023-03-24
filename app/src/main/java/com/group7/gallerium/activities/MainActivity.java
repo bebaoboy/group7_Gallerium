@@ -11,7 +11,6 @@ import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
-import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -19,6 +18,7 @@ import android.widget.Toast;
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
@@ -59,7 +59,6 @@ public class MainActivity extends AppCompatActivity {
         btnDelete = findViewById(R.id.delete_button);
         btnShare = findViewById(R.id.share_button);
 
-
         initializeViewPager();
 
         permission=new PermissionManager() {
@@ -99,9 +98,13 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
+    protected void onPause() {
+        super.onPause();
+    }
 
+    @Override
+    protected void onResume() {
+        super.onResume();
     }
 
     @Override
@@ -124,14 +127,14 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             } else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -144,7 +147,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             }
 
@@ -157,14 +160,14 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             }  else if(view_pager.getCurrentItem() == 1){
                 var myFragment = (AlbumFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -177,17 +180,9 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             }
-        }
-    }
-
-    public void setVisibleForBottomNav(boolean v){
-        if(v){
-            bottom_nav.setVisibility(View.GONE);
-        }else{
-            bottom_nav.setVisibility(View.VISIBLE);
         }
     }
 
@@ -219,7 +214,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED) {

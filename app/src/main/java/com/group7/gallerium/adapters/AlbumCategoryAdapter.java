@@ -39,28 +39,26 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
                 }
             };
     private int spanCount = 3;
-    private Context context;
-    private List<AlbumCategory> listAlbumCategory;
+    private final Context context;
 
     public void setViewType(int viewType) {
         this.viewType = viewType;
     }
 
-    public AlbumCategoryAdapter(Context context, int count) {
+    public AlbumCategoryAdapter(@NonNull Context context, int count) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = count;
     }
 
-    public AlbumCategoryAdapter(Context context, SelectMediaInterface selectMediaInterface, int count){
+    public AlbumCategoryAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface, int count){
         super(DIFF_CALLBACK);
         this.context = context;
         this.selectMediaInterface = selectMediaInterface;
         this.spanCount = count;
     }
 
-    public void setData(List<AlbumCategory> listAlbumCategory) {
-        this.listAlbumCategory = listAlbumCategory;
+    public void setData(@NonNull List<AlbumCategory> listAlbumCategory) {
         submitList(listAlbumCategory);
     }
 
@@ -105,10 +103,9 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
         }
     }
 
-    public class CategoryViewHolder extends RecyclerView.ViewHolder {
-        private TextView tvNameCategory;
-        private RecyclerView rcvAlbum;
-        private View horizontalLine;
+    public static class CategoryViewHolder extends RecyclerView.ViewHolder {
+        TextView tvNameCategory;
+        RecyclerView rcvAlbum;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);

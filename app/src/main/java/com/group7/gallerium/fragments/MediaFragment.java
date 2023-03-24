@@ -61,36 +61,36 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
     private MenuItem cameraButton, settingButton, searchButton;
-    private Context context;
-    private ArrayList<Media> listMedia;
-    private ArrayList<Media> selectedMedia;
-    private ArrayList<MediaCategory> mediaCategories;
-    private ArrayList<Album> albumList;
-    private ArrayList<AlbumCategory> albumCategories;
-    private MediaCategoryAdapter adapter;
+    Context context;
+    ArrayList<Media> listMedia;
+    ArrayList<Media> selectedMedia;
+    ArrayList<MediaCategory> mediaCategories;
+    ArrayList<Album> albumList;
+    ArrayList<AlbumCategory> albumCategories;
+    MediaCategoryAdapter adapter;
 
-    private AlbumCategoryAdapter albumAdapter;
-    private RecyclerView recyclerView;
+    AlbumCategoryAdapter albumAdapter;
+    RecyclerView recyclerView;
 
-    private RecyclerView addAlbumRecyclerView;
+    RecyclerView addAlbumRecyclerView;
     private int spanCount = 3;
-    private int firstVisiblePosition;
-    private int offset;
-    private boolean isAllChecked = false;
+    int firstVisiblePosition;
+    int offset;
+    boolean isAllChecked = false;
 
     private boolean changeMode = false;
-    private ActionMode mode;
-    private ActionMode.Callback callback;
+    ActionMode mode;
+    ActionMode.Callback callback;
 
-    private static FileUtils fileUtils;
+    static FileUtils fileUtils;
 
-    private LinearLayout bottom_sheet;
-    private BottomSheetBehavior behavior;
-    private BottomSheetDialog bottomSheetDialog;
+    LinearLayout bottom_sheet;
+    BottomSheetBehavior behavior;
+    BottomSheetDialog bottomSheetDialog;
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
     private MediaFragment.MediaListTask mediaListTask;
-    private boolean isPendingForIntent = false;
+    boolean isPendingForIntent = false;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -143,7 +143,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
     }
 
-    private  ActivityResultLauncher<IntentSenderRequest> launcher;
+     ActivityResultLauncher<IntentSenderRequest> launcher;
 
     @Override
     public void onStart() {
@@ -284,9 +284,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnShare.setOnClickListener((v) -> {
 
         });
-        btnDelete.setOnClickListener((v) -> {
-            deleteMedia();
-        });
+        btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
 
         });
@@ -425,19 +423,19 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //        return result;
 //    }
 
-    public long hashBitmap(Bitmap bmp) {
-        long hash = 31;
-        for (int x = 1; x < bmp.getWidth(); x = x * 2) {
-            for (int y = 1; y < bmp.getHeight(); y = y * 2) {
-                hash *= (bmp.getPixel(x, y) + 31);
-                hash = hash % 1111122233;
-            }
-        }
-        return hash;
-    }
+//    public long hashBitmap(Bitmap bmp) {
+//        long hash = 31;
+//        for (int x = 1; x < bmp.getWidth(); x = x * 2) {
+//            for (int y = 1; y < bmp.getHeight(); y = y * 2) {
+//                hash *= (bmp.getPixel(x, y) + 31);
+//                hash = hash % 1111122233;
+//            }
+//        }
+//        return hash;
+//    }
 
     @NonNull
-    private ArrayList<MediaCategory> getListCategory() {
+    ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         listMedia = AccessMediaFile.getAllMedia(getContext());
@@ -485,7 +483,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     @Override
-    public void addToSelectedList(Media media) {
+    public void addToSelectedList(@NonNull Media media) {
         if (!selectedMedia.contains(media)) {
             selectedMedia.add(media);
             for (int i = 0; i < bottom_sheet.getChildCount(); i++) {
@@ -500,13 +498,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         //Log.d("size outer", "" + selectedMedia.size());
     }
 
+    @NonNull
     @Override
     public ArrayList<Media> getSelectedList() {
         return selectedMedia;
     }
 
     @Override
-    public void deleteFromSelectedList(Media media) {
+    public void deleteFromSelectedList(@NonNull Media media) {
         if (selectedMedia.contains(media)) {
             selectedMedia.remove(media);
             if (mode != null) {
@@ -525,7 +524,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     @Override
-    public void moveMedia(String albumPath) {
+    public void moveMedia(@NonNull String albumPath) {
         FileUtils fileUtils = new FileUtils();
         if(changeMode) {
             fileUtils.moveFileMultiple(selectedMedia, launcher, albumPath, context);
@@ -564,47 +563,47 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     public void rescanForUnAddedAlbum(){
-        Cursor cursor =  context.getContentResolver().query(
-                MediaStore.Files.getContentUri("external")
-                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
-                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
-                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
-
-        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
-        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
-        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
         String name;
         try {
-            if (cursor != null) {
-                Log.d("size", "" + cursor.getCount());
+            Cursor cursor =  context.getContentResolver().query(
+                    MediaStore.Files.getContentUri("external")
+                    , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                    , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                    , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
 
-                ArrayList<Album> temp = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    String path = cursor.getString(pathColumn);
-                    Log.d("path", path);
-                    name = cursor.getString(nameColumn);
-                    Log.d("name", name);
-                    String[] subDirs = path.split("/");
-                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
-                    Album album = new Album(null, name);
-                    album.setPath(path);
-                    temp.add(album);
-                }
-                for(Album album: albumList){
-                    for(int i=0;i<temp.size();i++){
-                        if(temp.get(i).getPath().equals(album.getPath())){
-                            temp.remove(i);
-                        }
+            int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+            // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+            int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            Log.d("size", "" + cursor.getCount());
+
+            ArrayList<Album> temp = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                String path = cursor.getString(pathColumn);
+                Log.d("path", path);
+                name = cursor.getString(nameColumn);
+                Log.d("name", name);
+                String[] subDirs = path.split("/");
+                if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                Album album = new Album(null, name);
+                album.setPath(path);
+                temp.add(album);
+            }
+            for(Album album: albumList){
+                for(int i=0;i<temp.size();i++){
+                    if(temp.get(i).getPath().equals(album.getPath())){
+                        temp.remove(i);
                     }
                 }
-                if(temp.size() >0)albumList.addAll(temp);
             }
+            if(temp.size() >0)albumList.addAll(temp);
+            cursor.close();
         }catch (Exception e){
             Log.d("tag", e.getMessage());
         }
     }
 
-    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia) {
+    @NonNull
+    public ArrayList<Album> getAllAlbum(@NonNull ArrayList<Media> listMedia) {
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
 
@@ -629,9 +628,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     public void categorizeAlbum() {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
-        String[] subDir = albumList.get(0).getPath().split("/");
-
-
+        String[] subDir;
         categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
@@ -701,10 +698,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
             // Log.d("Key", entry.getKey());
             albumCategories.add(entry.getValue());
-            for(Album album: entry.getValue().getList()){
-                albumList.add(album);
-                //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
-            }
+            //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
+            albumList.addAll(entry.getValue().getList());
         }
     }
     public class MediaListTask extends AsyncTask<Void, Integer, Void> {

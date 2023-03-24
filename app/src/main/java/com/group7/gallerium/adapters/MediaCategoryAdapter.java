@@ -29,6 +29,7 @@ import java.util.Objects;
 
 public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCategoryAdapter.CategoryViewHolder> implements FastScrollRecyclerView.SectionedAdapter{
 
+    RecyclerView.RecycledViewPool viewPool = new RecyclerView.RecycledViewPool();
     private MediaAdapter mediaAdapter;
     private SelectMediaInterface selectMediaInterface;
     private final int lastBound = -1;
@@ -62,20 +63,20 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         notifyDataSetChanged();
     }
 
-    public MediaCategoryAdapter(Context context, int count, SelectMediaInterface selectMediaInterface) {
+    public MediaCategoryAdapter(@NonNull Context context, int count, @NonNull SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = count;
         this.selectMediaInterface = selectMediaInterface;
     }
 
-    public MediaCategoryAdapter(ViewAlbum context, int spanCount) {
+    public MediaCategoryAdapter(@NonNull ViewAlbum context, int spanCount) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.spanCount = spanCount;
     }
 
-    public void setData(List<MediaCategory> listMediaCategory){
+    public void setData(@NonNull List<MediaCategory> listMediaCategory){
         this.listMediaCategory = listMediaCategory;
         submitList(listMediaCategory);
     }
@@ -110,6 +111,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
         holder.rcvPictures.setItemViewCacheSize(24);
+        holder.rcvPictures.setRecycledViewPool(viewPool);
     }
 
     @Override
@@ -142,9 +144,9 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{
-        private TextView tvNameCategory;
-        private RecyclerView rcvPictures;
-        private View horizontalLine;
+        TextView tvNameCategory;
+        RecyclerView rcvPictures;
+        View horizontalLine;
 
         public CategoryViewHolder(@NonNull View itemView) {
             super(itemView);

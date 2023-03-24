@@ -32,18 +32,13 @@ public class ViewPagerAdapter extends FragmentStateAdapter  {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        switch (position) {
-            case 0:
-                return new MediaFragment();
-            case 1:
-                return new AlbumFragment();
-            case 2:
-                return new SecureFragment();
-            case 3:
-                return new FavoriteFragment();
-            default:
-                return null;
-        }
+        return switch (position) {
+            case 0 -> new MediaFragment();
+            case 1 -> new AlbumFragment();
+            case 2 -> new SecureFragment();
+            case 3 -> new FavoriteFragment();
+            default -> null;
+        };
     }
 
     @Override

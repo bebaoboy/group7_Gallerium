@@ -24,7 +24,6 @@ import androidx.appcompat.widget.Toolbar;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
-import com.group7.gallerium.fragments.ActionBottomDialogFragment;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -39,14 +38,13 @@ import java.util.Objects;
 
 public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface {
 
-    private String albumPath;
     private String albumName;
     private ArrayList<String> mediaPaths;
-    private ArrayList<Media> selectedMedia;
+    ArrayList<Media> selectedMedia;
 
-    private ArrayList<Media> listMedia;
+    ArrayList<Media> listMedia;
     private Intent intent;
-    private MediaCategoryAdapter adapter;
+    MediaCategoryAdapter adapter;
     private int spanCount = 3;
 
     private Toolbar toolbar;
@@ -55,10 +53,8 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     private int firstVisiblePosition;
     private int offset;
 
-    private boolean isMultipleEnabled = false;
-
-    private boolean isAllChecked = false;
-    private ActionMode mode;
+    boolean isAllChecked = false;
+    ActionMode mode;
 
     private ActionMode.Callback callback;
 
@@ -70,7 +66,6 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         setContentView(R.layout.activity_view_album);
         intent = getIntent();
         mediaPaths = intent.getStringArrayListExtra("media_paths");
-        albumPath = intent.getStringExtra("folder_path");
         albumName = intent.getStringExtra("name");
 
         selectedMedia = new ArrayList<>();
@@ -178,7 +173,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             offset = firstChild.getTop();
         }
         var favList = AccessMediaFile.getFavMedia();
-        Log.d("fav", "fav amount pause = " + favList.size());
+        // Log.d("fav", "fav amount pause = " + favList.size());
         favList.forEach(x -> Log.d("fav", x));
         SharedPreferences sharedPreferences = getSharedPreferences("fav_media", MODE_PRIVATE);
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
@@ -211,10 +206,8 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         toolbar.setTitle(albumName);
     }
 
-    @NonNull
     private List<MediaCategory> getListCategory() {
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        int categoryCount = 0;
         Media media;
         List<Media> mediaList = new ArrayList<>();
         for(String path: mediaPaths){
@@ -229,7 +222,6 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             for (int i = 1; i < mediaList.size(); i++) {
                 if (!categoryList.containsKey(mediaList.get(i).getDateTaken())) {
                     categoryList.put(mediaList.get(i).getDateTaken(), new MediaCategory(mediaList.get(i).getDateTaken(), new ArrayList<>()));
-                    categoryCount++;
                 }
 
                 categoryList.get(mediaList.get(i).getDateTaken()).addMediaToList(mediaList.get(i));
@@ -259,7 +251,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     }
 
     @Override
-    public void addToSelectedList(Media media) {
+    public void addToSelectedList(@NonNull Media media) {
         if(!selectedMedia.contains(media)) {
             selectedMedia.add(media);
             if(mode != null) {
@@ -269,13 +261,15 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         }
         Log.d("size outer", "" + selectedMedia.size());
     }
+
+    @NonNull
     @Override
     public ArrayList<Media> getSelectedList() {
         return selectedMedia;
     }
 
     @Override
-    public void deleteFromSelectedList(Media media) {
+    public void deleteFromSelectedList(@NonNull Media media) {
         if(selectedMedia.contains(media)) {
             selectedMedia.remove(media);
             if(mode != null){
@@ -290,7 +284,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     }
 
     @Override
-    public void moveMedia(String albumPath) {
+    public void moveMedia(@NonNull String albumPath) {
         FileUtils fileUtils = new FileUtils();
         for(Media media: selectedMedia) {
             fileUtils.moveFile(media.getPath(), launcher, albumPath, this);

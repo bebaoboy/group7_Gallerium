@@ -1,7 +1,6 @@
 package com.group7.gallerium.adapters;
 
 import android.content.Context;
-import android.content.Intent;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
@@ -15,9 +14,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.group7.gallerium.R;
-import com.group7.gallerium.activities.ViewAlbum;
 import com.group7.gallerium.models.Album;
-import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
@@ -41,16 +38,14 @@ public class AddToAlbumAdapter extends ListAdapter<Album, AddToAlbumAdapter.Albu
                 }
             };
 
-    public ArrayList<Album> albumList;
-    public AddToAlbumAdapter(@NonNull Context context, SelectMediaInterface selectMediaInterface) {
+    public AddToAlbumAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.selectMediaInterface = selectMediaInterface;
     }
 
-    public void setData(ArrayList<Album> albumList){
-        this.albumList = albumList;
-        submitList(this.albumList);
+    public void setData(@NonNull ArrayList<Album> albumList){
+        submitList(albumList);
     }
 
     @NonNull
@@ -69,9 +64,7 @@ public class AddToAlbumAdapter extends ListAdapter<Album, AddToAlbumAdapter.Albu
 
         if(album.getAvatar() !=null)Glide.with(context).load(album.getAvatar().getPath()).into(holder.albumAvatar);
 
-        holder.albumAvatar.setOnClickListener((view -> {
-            selectMediaInterface.moveMedia(album.getPath());
-        }));
+        holder.albumAvatar.setOnClickListener((view -> selectMediaInterface.moveMedia(album.getPath())));
     }
 
     static class AlbumViewHolder extends RecyclerView.ViewHolder {

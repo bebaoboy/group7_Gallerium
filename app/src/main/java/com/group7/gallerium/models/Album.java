@@ -1,7 +1,5 @@
 package com.group7.gallerium.models;
 
-import android.media.Image;
-
 import java.util.ArrayList;
 
 public class Album {

@@ -40,16 +40,14 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
                 }
             };
 
-    public ArrayList<Album> albumList;
     public AlbumAdapter(@NonNull Context context) {
         super(DIFF_CALLBACK);
         this.context = context;
         intent = new Intent(context, ViewAlbum.class);
     }
 
-    public void setData(ArrayList<Album> albumList){
-        this.albumList = albumList;
-        submitList(this.albumList);
+    public void setData(@NonNull ArrayList<Album> albumList){
+        submitList(albumList);
     }
 
     @NonNull

@@ -1,7 +1,5 @@
 package com.group7.gallerium.models;
 
-import android.os.Build;
-
 import java.text.SimpleDateFormat;
 import java.util.Locale;
 

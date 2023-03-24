@@ -7,7 +7,6 @@ import android.os.Bundle;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.ViewTreeObserver;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.GridLayout;
@@ -67,15 +66,11 @@ public class SecureFragment extends Fragment {
         for(int i = 0; i < 10; i++)
         {
             var b = (MaterialButton) numGrid.getChildAt(i);
-            b.setOnClickListener((view1 -> {
-                txtPass.setText(txtPass.getText() + "" + b.getText());
-            }));
+            b.setOnClickListener((view1 -> txtPass.setText(txtPass.getText() + "" + b.getText())));
         }
 
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
-        btnEnter.setOnClickListener((view1) -> {
-            Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
-        });
+        btnEnter.setOnClickListener((view1) -> Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show());
         context = getContext();
         toolbarSetting();
         return view;
@@ -86,51 +81,46 @@ public class SecureFragment extends Fragment {
         toolbar.inflateMenu(R.menu.menu_top_secure);
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
-        scroll.getViewTreeObserver().addOnScrollChangedListener(new ViewTreeObserver.OnScrollChangedListener() {
-            @Override
-            public void onScrollChanged() {
-                    toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
-                            .setListener(new Animator.AnimatorListener() {
-                                @Override
-                                public void onAnimationStart(@NonNull Animator animator) {
-                                }
+        scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
+                .setListener(new Animator.AnimatorListener() {
+                    @Override
+                    public void onAnimationStart(@NonNull Animator animator) {
+                    }
 
-                                @Override
-                                public void onAnimationEnd(@NonNull Animator animator) {
-                                    toolbar.setVisibility(View.INVISIBLE);
-                                    toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
-                                            .setListener(new Animator.AnimatorListener() {
-                                                @Override
-                                                public void onAnimationStart(@NonNull Animator animator) {
-                                                }
+                    @Override
+                    public void onAnimationEnd(@NonNull Animator animator) {
+                        toolbar.setVisibility(View.INVISIBLE);
+                        toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+                                .setListener(new Animator.AnimatorListener() {
+                                    @Override
+                                    public void onAnimationStart(@NonNull Animator animator) {
+                                    }
 
-                                                @Override
-                                                public void onAnimationEnd(@NonNull Animator animator) {
-                                                    toolbar.setVisibility(View.VISIBLE);
-                                                }
+                                    @Override
+                                    public void onAnimationEnd(@NonNull Animator animator) {
+                                        toolbar.setVisibility(View.VISIBLE);
+                                    }
 
-                                                @Override
-                                                public void onAnimationCancel(@NonNull Animator animator) {
-                                                }
+                                    @Override
+                                    public void onAnimationCancel(@NonNull Animator animator) {
+                                    }
 
-                                                @Override
-                                                public void onAnimationRepeat(@NonNull Animator animator) {
-                                                }
-                                            })
-                                            .start();
-                                }
+                                    @Override
+                                    public void onAnimationRepeat(@NonNull Animator animator) {
+                                    }
+                                })
+                                .start();
+                    }
 
-                                @Override
-                                public void onAnimationCancel(@NonNull Animator animator) {
-                                }
+                    @Override
+                    public void onAnimationCancel(@NonNull Animator animator) {
+                    }
 
-                                @Override
-                                public void onAnimationRepeat(@NonNull Animator animator) {
-                                }
-                            })
-                            .start();
-            }
-        });
+                    @Override
+                    public void onAnimationRepeat(@NonNull Animator animator) {
+                    }
+                })
+                .start());
 
     }
 }

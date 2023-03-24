@@ -8,20 +8,15 @@ import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 
 import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.group7.gallerium.adapters.MediaCategoryAdapter;
-import com.group7.gallerium.fragments.MediaFragment;
-
 public class ToolbarScrollListener extends RecyclerView.OnScrollListener {
 
-    private final Toolbar toolbar;
+    final Toolbar toolbar;
     private LinearLayout bottomSheetDialog;
 
-    public ToolbarScrollListener(Toolbar t,LinearLayout btm) {
+    public ToolbarScrollListener(@NonNull Toolbar t, @NonNull LinearLayout btm) {
         toolbar = t;
         bottomSheetDialog = btm;
     }

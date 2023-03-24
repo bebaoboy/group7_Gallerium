@@ -30,8 +30,6 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
-import com.group7.gallerium.models.Album;
-import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -45,29 +43,28 @@ import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Objects;
 
+@SuppressWarnings("rawtypes")
 public class FavoriteFragment extends Fragment  implements SelectMediaInterface {
 
     public FavoriteFragment() {}
 
     private View view;
     private Toolbar toolbar;
-    private Context context;
+    Context context;
     private ArrayList<Media> listMedia;
-    private ArrayList<Media> selectedMedia;
-    private ArrayList<Album> albumList;
-    private ArrayList<AlbumCategory> albumCategories;
-    private MediaCategoryAdapter adapter;
+    ArrayList<Media> selectedMedia;
+    MediaCategoryAdapter adapter;
     private RecyclerView recyclerView;
 
     private RecyclerView addAlbumRecyclerView;
     private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
-    private boolean isAllChecked = false;
-    private ActionMode mode;
+    boolean isAllChecked = false;
+    ActionMode mode;
     private ActionMode.Callback callback;
 
-    private LinearLayout bottom_sheet;
+    LinearLayout bottom_sheet;
     private BottomSheetBehavior behavior;
     private BottomSheetDialog bottomSheetDialog;
 
@@ -243,9 +240,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
 
-        btnMove.setOnClickListener((v)->{
-            openAlbumSelectView();
-        });
+        btnMove.setOnClickListener((v)-> openAlbumSelectView());
         btnShare.setOnClickListener((v)->{
 
         });
@@ -346,18 +341,6 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 //        return result;
 //    }
 
-    public long hashBitmap(Bitmap bmp){
-        long hash = 31;
-        for(int x = 1; x <  bmp.getWidth(); x=x*2){
-            for (int y = 1; y < bmp.getHeight(); y=y*2){
-                hash *= (bmp.getPixel(x,y) + 31);
-                hash = hash%1111122233;
-            }
-        }
-        return hash;
-    }
-
-    @NonNull
     private List<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
@@ -365,13 +348,13 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
         try {
             categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
+            Objects.requireNonNull(categoryList.get(listMedia.get(0).getDateTaken())).addMediaToList(listMedia.get(0));
             for (int i = 1; i < listMedia.size(); i++) {
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
                     categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                 }
 
-                categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
+                Objects.requireNonNull(categoryList.get(listMedia.get(i).getDateTaken())).addMediaToList(listMedia.get(i));
             }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
@@ -406,7 +389,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     }
 
     @Override
-    public void addToSelectedList(Media media) {
+    public void addToSelectedList(@NonNull Media media) {
         if(!selectedMedia.contains(media)) {
             selectedMedia.add(media);
             for ( int i = 0; i < bottom_sheet.getChildCount();  i++ ){
@@ -420,13 +403,15 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         }
         //Log.d("size outer", "" + selectedMedia.size());
     }
+
+    @NonNull
     @Override
     public ArrayList<Media> getSelectedList() {
         return selectedMedia;
     }
 
     @Override
-    public void deleteFromSelectedList(Media media) {
+    public void deleteFromSelectedList(@NonNull Media media) {
         if(selectedMedia.contains(media)) {
             selectedMedia.remove(media);
             if(mode != null){
@@ -445,7 +430,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     }
 
     @Override
-    public void moveMedia(String albumPath) {
+    public void moveMedia(@NonNull String albumPath) {
         FileUtils fileUtils = new FileUtils();
         for (Media media : selectedMedia) {
             String[] subDir = media.getPath().split("/");

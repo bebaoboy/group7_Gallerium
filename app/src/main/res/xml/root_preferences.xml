@@ -6,7 +6,7 @@
             app:defaultValue="Dựa vào hệ thống"
             app:entries="@array/ui_entries"
             app:entryValues="@array/ui_values"
-            app:key="@string/ui_title"
+            app:key="uiKey"
             app:title="@string/ui_title"
             app:useSimpleSummaryProvider="true" />
 
@@ -14,7 +14,7 @@
             app:defaultValue="Không hiện vị trí"
             app:entries="@array/location_entries"
             app:entryValues="@array/location_values"
-            app:key="@string/location_title"
+            app:key="locationKey"
             app:title="@string/location_title"
             app:useSimpleSummaryProvider="true" />
 
@@ -22,8 +22,8 @@
             app:defaultValue="3"
             app:entries="@array/num_grid_entries"
             app:entryValues="@array/num_grid_values"
-            app:key="reply"
-            app:title="@string/ui_title"
+            app:key="numGridKey"
+            app:title="@string/grid_title"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
@@ -31,7 +31,7 @@
     <PreferenceCategory app:title="@string/private_header">
 
         <SwitchPreferenceCompat
-            app:key="lock_private"
+            app:key="lockPrivateKey"
             app:title="@string/lock_private_title" />
 
     </PreferenceCategory>
@@ -39,7 +39,7 @@
     <PreferenceCategory app:title="@string/other_header">
 
         <SwitchPreferenceCompat
-            app:key="lock_trash"
+            app:key="lockTrashKey"
             app:title="@string/trash_title" />
 
     </PreferenceCategory>

@@ -2,10 +2,8 @@ package com.group7.gallerium.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.Intent;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
-import android.net.Uri;
 import android.os.Bundle;
 import android.util.Log;
 import android.view.View;
@@ -21,7 +19,6 @@ import androidx.viewpager2.widget.ViewPager2;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.ViewPagerAdapter2;
-import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.fragments.MediaFragmentChooser;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
@@ -92,12 +89,6 @@ public class ChooserActivity extends AppCompatActivity {
     }
 
     @Override
-    protected void onStart() {
-        super.onStart();
-
-    }
-
-    @Override
     public void onConfigurationChanged(@NonNull Configuration newConfig) {
         super.onConfigurationChanged(newConfig);
         changeOrientation(newConfig.orientation, false);
@@ -116,7 +107,7 @@ public class ChooserActivity extends AppCompatActivity {
                 var myFragment = (MediaFragmentChooser) this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null) {
                     myFragment.changeOrientation(6);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             }
 
@@ -129,7 +120,7 @@ public class ChooserActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(3);
-                    if (refresh) myFragment.refresh(refresh);
+                    if (refresh) myFragment.refresh(true);
                 }
             }
         }
@@ -171,7 +162,7 @@ public class ChooserActivity extends AppCompatActivity {
     }
 
     @Override
-    public void onRequestPermissionsResult(int requestCode,String permissions[], int[] grantResults) {
+    public void onRequestPermissionsResult(int requestCode, @NonNull String[] permissions, @NonNull int[] grantResults) {
         if (android.os.Build.VERSION.SDK_INT >= 33) {
             super.onRequestPermissionsResult(requestCode, permissions, grantResults);
             if (grantResults[0] == PackageManager.PERMISSION_DENIED || grantResults[1] == PackageManager.PERMISSION_DENIED || grantResults[2] == PackageManager.PERMISSION_DENIED) {

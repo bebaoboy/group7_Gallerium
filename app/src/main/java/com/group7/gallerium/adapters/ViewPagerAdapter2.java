@@ -11,7 +11,6 @@ import androidx.viewpager2.adapter.FragmentStateAdapter;
 
 import com.group7.gallerium.fragments.AlbumFragment;
 import com.group7.gallerium.fragments.FavoriteFragment;
-import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.fragments.MediaFragmentChooser;
 import com.group7.gallerium.fragments.SecureFragment;
 import com.group7.gallerium.models.Media;
@@ -33,18 +32,13 @@ public class ViewPagerAdapter2 extends FragmentStateAdapter  {
     @NonNull
     @Override
     public Fragment createFragment(int position) {
-        switch (position) {
-            case 0:
-                return new MediaFragmentChooser();
-            case 1:
-                return new AlbumFragment();
-            case 2:
-                return new SecureFragment();
-            case 3:
-                return new FavoriteFragment();
-            default:
-                return null;
-        }
+        return switch (position) {
+            case 0 -> new MediaFragmentChooser();
+            case 1 -> new AlbumFragment();
+            case 2 -> new SecureFragment();
+            case 3 -> new FavoriteFragment();
+            default -> null;
+        };
     }
 
     @Override

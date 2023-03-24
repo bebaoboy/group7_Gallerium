@@ -2,22 +2,21 @@ package com.group7.gallerium.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
-import android.media.ExifInterface;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
+import androidx.exifinterface.media.ExifInterface;
 
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
-import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileNotFoundException;
 import java.io.IOException;
+import java.util.Objects;
 
 public class MediaDetails extends AppCompatActivity {
 
@@ -49,12 +48,12 @@ public class MediaDetails extends AppCompatActivity {
 //        float fileSizeInKb = Math.round(fileSizeInBytes / 1024);
 //        float fileSizeInMb = Math.round(fileSizeInKb/1024);
         if(mediaUri != null) {
-            txtMediaTakenTime = (TextView) findViewById(R.id.media_taken_time);
-            txtMediaPath = (TextView) findViewById(R.id.media_path);
-            txtMediaResolution = (TextView) findViewById(R.id.media_resolution);
-            txtMediaSize = (TextView) findViewById(R.id.media_size);
-            txtMediaName = (TextView) findViewById(R.id.media_name);
-            txtExifData = (TextView) findViewById(R.id.exif_value);
+            txtMediaTakenTime = findViewById(R.id.media_taken_time);
+            txtMediaPath = findViewById(R.id.media_path);
+            txtMediaResolution = findViewById(R.id.media_resolution);
+            txtMediaSize = findViewById(R.id.media_size);
+            txtMediaName = findViewById(R.id.media_name);
+            txtExifData = findViewById(R.id.exif_value);
 
             Media media = AccessMediaFile.getMediaWithPath(mediaPath);
             String[] subDir = media.getPath().split("/");
@@ -69,8 +68,8 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaResolution.setText(
                             String.format(getResources().getString(
                                     R.string.resolution_placeholder),
-                                    media.getHeight(),
                                     media.getWidth(),
+                                    media.getHeight(),
                                     1
                             ));
 //                    if(fileSizeInMb < 1)
@@ -81,10 +80,11 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaPath.setText(mediaPath);
                     txtMediaTakenTime.setText(media.getDateTimeTaken());
 
-                    String flashValue = exifInterface.getAttribute(ExifInterface.TAG_FLASH) == "0" ? "Không có flash": ExifInterface.TAG_FLASH;
+                    String flashValue = Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_FLASH), "0") ? "Không có flash": ExifInterface.TAG_FLASH;
 
                     if(exifInterface.getAttribute(ExifInterface.TAG_MAKE) != null) {
                         String focal = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
+                        assert focal != null;
                         String[] values = focal.split("/");
                         float value = Float.parseFloat(values[0]) / Float.parseFloat(values[1]);
                         txtExifData.setText(String.format(getResources().getString(R.string.exif_place_holder),
@@ -99,15 +99,10 @@ public class MediaDetails extends AppCompatActivity {
                     else {
                         txtExifData.setText("");
                     }
-                } catch (FileNotFoundException e) {
-                    e.printStackTrace();
-                    Toast.makeText(getApplicationContext(),
-                            "Something wrong:\n" + e.toString(),
-                            Toast.LENGTH_LONG).show();
                 } catch (IOException e) {
                     e.printStackTrace();
                     Toast.makeText(getApplicationContext(),
-                            "Something wrong:\n" + e.toString(),
+                            "Something wrong:\n" + e,
                             Toast.LENGTH_LONG).show();
                 }
             } else {

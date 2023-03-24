@@ -7,16 +7,12 @@ import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import androidx.annotation.Nullable;
-
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.LinkedHashMap;
-import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -125,11 +121,7 @@ public class AccessMediaFile {
         if (!cached) {
             cacheAllMedia.clear();
             Comparator<Map.Entry<String, Media>> customComparator = (media1, media2) -> {
-                if (media2.getValue().getRawDate() == media1.getValue().getRawDate()) {
-                    return 0;
-                } else if (media2.getValue().getRawDate() > media1.getValue().getRawDate()) {
-                    return 1;
-                } else return -1;
+                return Long.compare(media2.getValue().getRawDate(), media1.getValue().getRawDate());
             };
             cached = true;
             cacheAllMedia = temp.entrySet()
@@ -146,7 +138,7 @@ public class AccessMediaFile {
             int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn, sizeColumn;
             int count, type, width, height;
             String mimeType;
-            String absolutePath, id, dateText, title;
+            String absolutePath, id, title;
             long dateTaken, videoLength=0, size;
             HashMap<String, Media> listMedia = new HashMap<>();
 
@@ -260,9 +252,7 @@ public class AccessMediaFile {
             addNewestMediaOnly = false;
             allMediaPresent = true;
             cached = false;
-            return getAllMedia();
-        } else {
-            return getAllMedia();
         }
+        return getAllMedia();
     }
 }

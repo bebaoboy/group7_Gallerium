@@ -3,19 +3,16 @@ package com.group7.gallerium.activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
-import android.content.pm.ActivityInfo;
 import android.content.pm.PackageManager;
 import android.os.Build;
 import android.os.Bundle;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
-import android.view.MotionEvent;
 import android.view.OrientationEventListener;
 import android.view.ScaleGestureDetector;
 import android.view.View;
 import android.widget.Button;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -34,7 +31,6 @@ import androidx.camera.core.ZoomState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.video.FallbackStrategy;
 import androidx.camera.video.MediaStoreOutputOptions;
-import androidx.camera.video.OutputOptions;
 import androidx.camera.video.Quality;
 import androidx.camera.video.QualitySelector;
 import androidx.camera.video.Recorder;
@@ -46,7 +42,6 @@ import androidx.camera.view.PreviewView;
 import androidx.constraintlayout.widget.ConstraintLayout;
 import androidx.core.app.ActivityCompat;
 import androidx.core.content.ContextCompat;
-import androidx.core.util.Consumer;
 
 import com.google.common.util.concurrent.ListenableFuture;
 import com.group7.gallerium.R;
@@ -55,6 +50,7 @@ import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
 
+@SuppressWarnings("rawtypes")
 public class CameraActivity extends AppCompatActivity {
     private PreviewView previewView, videoPreviewView;
     private Preview preview;
@@ -71,7 +67,7 @@ public class CameraActivity extends AppCompatActivity {
     private VideoCapture videoCapture;
     private Recording recording;
     private Recorder recorder;
-    private Camera cam;
+    Camera cam;
     private boolean isRecording = false, isVideo = false;
     private ConstraintLayout captureLayout, videoLayout;
     private TextView duration;
@@ -92,96 +88,47 @@ public class CameraActivity extends AppCompatActivity {
         btnVideo = findViewById(R.id.video_capture_button);
         btnStop = findViewById(R.id.video_camera_stop);
         duration = findViewById(R.id.duration);
-        btnCapture.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                captureImage();
-            }
+        btnCapture.setOnClickListener(view -> captureImage());
+        btnCapture.setOnLongClickListener(view -> {
+            captureLayout.setVisibility(View.GONE);
+            videoLayout.setVisibility(View.VISIBLE);
+            isVideo = true;
+            flashMode = ImageCapture.FLASH_MODE_OFF;
+            startCamera();
+            return true;
         });
-        btnCapture.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                captureLayout.setVisibility(View.GONE);
-                videoLayout.setVisibility(View.VISIBLE);
-                isVideo = true;
-                flashMode = ImageCapture.FLASH_MODE_OFF;
-                startCamera();
-                return true;
-            }
-        });
-        btnVideo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                captureVideo();
-            }
-        });
-        btnVideo.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                captureLayout.setVisibility(View.VISIBLE);
-                videoLayout.setVisibility(View.GONE);
-                isVideo = false;
-                flashMode = ImageCapture.FLASH_MODE_AUTO;
-                startCamera();
-                return true;
-            }
+        btnVideo.setOnClickListener(view -> captureVideo());
+        btnVideo.setOnLongClickListener(view -> {
+            captureLayout.setVisibility(View.VISIBLE);
+            videoLayout.setVisibility(View.GONE);
+            isVideo = false;
+            flashMode = ImageCapture.FLASH_MODE_AUTO;
+            startCamera();
+            return true;
         });
         btnSwitch = findViewById(R.id.camera_switch);
-        btnSwitch.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                flipCamera();
-            }
-        });
+        btnSwitch.setOnClickListener(view -> flipCamera());
         btnFlash = findViewById(R.id.flash);
-        btnFlash.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                flashOption();
-            }
-        });
+        btnFlash.setOnClickListener(view -> flashOption());
         btnSwitchVideo = findViewById(R.id.video_camera_switch);
-        btnSwitchVideo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                flipCamera();
-            }
-        });
+        btnSwitchVideo.setOnClickListener(view -> flipCamera());
         btnFlashVideo = findViewById(R.id.video_flash);
-        btnFlashVideo.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                flashOption();
-            }
-        });
+        btnFlashVideo.setOnClickListener(view -> flashOption());
         btnPause.setVisibility(View.GONE);
-        btnPause.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                pause();
-            }
-        });
+        btnPause.setOnClickListener(view -> pause());
         btnStop.setVisibility(View.GONE);
-        btnStop.setOnClickListener(new View.OnClickListener() {
-            @Override
-            public void onClick(View view) {
-                stop();
-            }
-        });
+        btnStop.setOnClickListener(view -> stop());
         startCamera();
     }
 
     private void startCamera() {
         cameraProviderFuture = ProcessCameraProvider.getInstance(this);
-        cameraProviderFuture.addListener(new Runnable() {
-            @Override
-            public void run() {
-                try {
-                    processCameraProvider = cameraProviderFuture.get();
-                    bindImageAnalysis(processCameraProvider);
-                } catch (ExecutionException | InterruptedException e) {
-                    e.printStackTrace();
-                }
+        cameraProviderFuture.addListener(() -> {
+            try {
+                processCameraProvider = cameraProviderFuture.get();
+                bindImageAnalysis(processCameraProvider);
+            } catch (ExecutionException | InterruptedException e) {
+                e.printStackTrace();
             }
         }, ContextCompat.getMainExecutor(this));
     }
@@ -234,12 +181,7 @@ public class CameraActivity extends AppCompatActivity {
         imageAnalysis =
                 new ImageAnalysis.Builder().setTargetResolution(new Size(1280, 720))
                         .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST).build();
-        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), new ImageAnalysis.Analyzer() {
-            @Override
-            public void analyze(@NonNull ImageProxy image) {
-                image.close();
-            }
-        });
+        imageAnalysis.setAnalyzer(ContextCompat.getMainExecutor(this), ImageProxy::close);
         orientationEventListener = new OrientationEventListener(this) {
             @Override
             public void onOrientationChanged(int orientation) {
@@ -272,24 +214,18 @@ public class CameraActivity extends AppCompatActivity {
 
         orientationEventListener.enable();
         if (!isVideo) {
-            previewView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    view.performClick();
-                    return scaleGestureDetector.onTouchEvent(motionEvent);
-                }
+            previewView.setOnTouchListener((view, motionEvent) -> {
+                view.performClick();
+                return scaleGestureDetector.onTouchEvent(motionEvent);
             });
 
             previewView.setScaleType(PreviewView.ScaleType.FIT_CENTER);
             preview = new Preview.Builder().build();
             preview.setSurfaceProvider(previewView.getSurfaceProvider());
         } else {
-            videoPreviewView.setOnTouchListener(new View.OnTouchListener() {
-                @Override
-                public boolean onTouch(View view, MotionEvent motionEvent) {
-                    view.performClick();
-                    return scaleGestureDetector.onTouchEvent(motionEvent);
-                }
+            videoPreviewView.setOnTouchListener((view, motionEvent) -> {
+                view.performClick();
+                return scaleGestureDetector.onTouchEvent(motionEvent);
             });
 
             videoPreviewView.setScaleType(PreviewView.ScaleType.FIT_CENTER);
@@ -333,13 +269,13 @@ public class CameraActivity extends AppCompatActivity {
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(this),
                 new ImageCapture.OnImageSavedCallback() {
                     @Override
-                    public void onImageSaved(ImageCapture.OutputFileResults outputFileResults) {
+                    public void onImageSaved(@NonNull ImageCapture.OutputFileResults outputFileResults) {
                         Toast.makeText(getApplicationContext(), "Captured: " + outputFileResults.getSavedUri(), Toast.LENGTH_SHORT).show();
                         Log.d("G-capture", "Photo capture succeeded: " + outputFileResults.getSavedUri());
                     }
 
                     @Override
-                    public void onError(ImageCaptureException error) {
+                    public void onError(@NonNull ImageCaptureException error) {
                         Log.e("G-capture", "Photo capture failed: " + error.getMessage());
                     }
                 }
@@ -389,7 +325,7 @@ public class CameraActivity extends AppCompatActivity {
                         // Handles the case where the active recording is resumed              ...
                     } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
                         VideoRecordEvent.Finalize finalizeEvent = (VideoRecordEvent.Finalize) videoRecordEvent;
-                        duration.setText(new String("00:00:00"));
+                        duration.setText("00:00:00");
                         // Handles a finalize event for the active recording, checking Finalize.getError()
                         int error = finalizeEvent.getError();
                         if (error != VideoRecordEvent.Finalize.ERROR_NONE) {
@@ -397,7 +333,7 @@ public class CameraActivity extends AppCompatActivity {
                         }
                     }
                     String newDuration;
-                    long duration = (long)(recordingStats.getRecordedDurationNanos() / 1000000000);
+                    long duration = recordingStats.getRecordedDurationNanos() / 1000000000;
                     var hours = duration / 3600;
                     var minutes = (duration % 3600) / 60;
                     var seconds = duration % 60;
@@ -445,7 +381,7 @@ public class CameraActivity extends AppCompatActivity {
     private void stop() {
         recording.stop();
         isRecording = false;
-        duration.setText(new String("00:00:00"));
+        duration.setText("00:00:00");
         btnVideo.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.round_button));
         btnPause.setVisibility(View.GONE);
         btnStop.setVisibility(View.GONE);

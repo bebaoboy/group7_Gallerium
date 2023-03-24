@@ -25,9 +25,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
-import androidx.core.view.KeyEventDispatcher;
 import androidx.fragment.app.Fragment;
-import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -509,7 +507,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     }
 
     @Override
-    public void addToSelectedList(Media media) {
+    public void addToSelectedList(@NonNull Media media) {
         if (!selectedMedia.contains(media)) {
             selectedMedia.add(media);
             for (int i = 0; i < bottom_sheet.getChildCount(); i++) {
@@ -524,13 +522,14 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         //Log.d("size outer", "" + selectedMedia.size());
     }
 
+    @NonNull
     @Override
     public ArrayList<Media> getSelectedList() {
         return selectedMedia;
     }
 
     @Override
-    public void deleteFromSelectedList(Media media) {
+    public void deleteFromSelectedList(@NonNull Media media) {
         if (selectedMedia.contains(media)) {
             selectedMedia.remove(media);
             if (mode != null) {
@@ -549,7 +548,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     }
 
     @Override
-    public void moveMedia(String albumPath) {
+    public void moveMedia(@NonNull String albumPath) {
         FileUtils fileUtils = new FileUtils();
         if(changeMode) {
             fileUtils.moveFileMultiple(selectedMedia, launcher, albumPath, context);
