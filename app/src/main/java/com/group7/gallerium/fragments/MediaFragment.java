@@ -35,6 +35,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
+import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Album;
@@ -59,7 +60,7 @@ import java.util.stream.Collectors;
 public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
-    private MenuItem cameraButton;
+    private MenuItem cameraButton, settingButton, searchButton;
     private Context context;
     private ArrayList<Media> listMedia;
     private ArrayList<Media> selectedMedia;
@@ -374,17 +375,25 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         toolbar.setTitle(R.string.app_name);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
         cameraButton = toolbar.getMenu().findItem(R.id.take_photo_tb_item);
-        cameraButton.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(@NonNull MenuItem menuItem) {
-                enableCamera();
-                return false;
-            }
+        cameraButton.setOnMenuItemClickListener(menuItem -> {
+            enableCamera();
+            return false;
+        });
+        settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
+
+        settingButton.setOnMenuItemClickListener(menuItem -> {
+            openSetting̣̣̣̣̣̣̣();
+            return false;
         });
     }
 
     private void enableCamera() {
         Intent intent = new Intent(getActivity(), CameraActivity.class);
+        startActivity(intent);
+    }
+
+    private void openSetting̣̣̣̣̣̣̣(){
+        Intent intent = new Intent(getActivity(), SettingsActivity.class);
         startActivity(intent);
     }
 
