@@ -7,10 +7,8 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.WindowManager;
 import android.widget.Button;
 import android.widget.EditText;
-import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -25,7 +23,6 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 
 import java.io.File;
-import java.util.Objects;
 
 public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
     Context context;
@@ -89,7 +86,12 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
             var dir = Environment.getExternalStorageDirectory();
             String relativePath = "Pictures/owner/" + changeText.getText().toString();
             String path = dir.getPath() + File.separator + relativePath;
-            fileUtils.createDir(context, path, changeText.getText().toString(), relativePath);
+            try {
+                fileUtils.createDir(context, path, changeText.getText().toString(), relativePath);
+            } catch (Exception e) {
+                Log.d("tag", e.getMessage());
+                // Toast.makeText(context, "Needed permission. \nPress 'Choose this folder' to continue. ", Toast.LENGTH_LONG).show();
+            }
         }
         dismiss();
     }

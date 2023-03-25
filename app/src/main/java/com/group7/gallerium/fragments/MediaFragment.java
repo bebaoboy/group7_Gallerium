@@ -615,10 +615,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
                 album.setPath(folderPath);
-                album.addMedia(listMedia.get(i));
+                if (listMedia.get(i).getHeight() != 0) {
+                    album.addMedia(listMedia.get(i));
+                }
                 albums.add(album);
             } else {
-                albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                if (listMedia.get(i).getHeight() != 0) {
+                    albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                }
             }
         }
 
@@ -630,8 +634,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
         String[] subDir;
         categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
-        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
 
         rescanForUnAddedAlbum();
         for (Album album : albumList) {

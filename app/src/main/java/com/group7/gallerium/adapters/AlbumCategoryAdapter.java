@@ -76,7 +76,7 @@ public class AlbumCategoryAdapter extends ListAdapter<AlbumCategory, AlbumCatego
         if (albumCategory == null)
             return;
 
-        if (albumCategory.getNameCategory().isEmpty()) {
+        if (albumCategory.getList().size() == 0) {
             holder.tvNameCategory.setVisibility(View.GONE);
         } else {
             holder.tvNameCategory.setVisibility(View.VISIBLE);

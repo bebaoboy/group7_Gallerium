@@ -6,11 +6,14 @@ import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
+import android.content.Intent;
 import android.content.IntentSender;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
+import android.os.storage.StorageManager;
+import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
@@ -177,22 +180,32 @@ public class FileUtils {
 
     public void createDir(@NonNull Context context, @NonNull String path, @NonNull String name, @NonNull String relativePath) {
 
-        try {
-            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                ContentValues values = new ContentValues();
-                var resolver = context.getContentResolver();
-                Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
-                values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
-                resolver.insert(collection, values);
-            } else {
-                ContentValues values = new ContentValues();
-                values.put(MediaStore.Files.FileColumns.DATA, path);
-                context.getContentResolver().insert(
-                        MediaStore.Files.getContentUri("external"), values);
-            }
-        }catch (Exception e){
-            Log.d("tag", e.getMessage());
-            Toast.makeText(context, "Can't create folder " + name + "\n access denied", Toast.LENGTH_LONG).show();
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+            ContentValues values = new ContentValues();
+            var resolver = context.getContentResolver();
+//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+//                if (!Environment.isExternalStorageManager()) {
+                    Uri picCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, name + ".jpeg");
+                    values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+                    values.put(MediaStore.Images.Media.RELATIVE_PATH, relativePath);
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+                    values.put(MediaStore.Images.Media.HEIGHT, 0);
+                    values.put(MediaStore.Images.Media.SIZE, 0);
+
+                    resolver.insert(picCollection, values);
+//                }
+//            }
+            Uri collection = MediaStore.Files.getContentUri(MediaStore.VOLUME_EXTERNAL_PRIMARY);
+            values.put(MediaStore.MediaColumns.RELATIVE_PATH, relativePath);
+            resolver.insert(collection, values);
+
+        } else {
+            ContentValues values = new ContentValues();
+            values.put(MediaStore.Files.FileColumns.DATA, path);
+            context.getContentResolver().insert(
+                    MediaStore.Files.getContentUri("external"), values);
         }
     }
     public void copyFile(@NonNull String inputPath, @NonNull String outputPath, @NonNull Context context) {

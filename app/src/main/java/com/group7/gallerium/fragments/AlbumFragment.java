@@ -283,10 +283,14 @@ public class AlbumFragment extends Fragment{
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
                 album.setPath(folderPath);
-                album.addMedia(listMedia.get(i));
+                if (listMedia.get(i).getHeight() != 0) {
+                    album.addMedia(listMedia.get(i));
+                }
                 albums.add(album);
             } else {
-                albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                if (listMedia.get(i).getHeight() != 0) {
+                    albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                }
             }
         }
 //        for(Album album: albums){
@@ -302,8 +306,8 @@ public class AlbumFragment extends Fragment{
 
 
         categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
-        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
 
 //        categoryList.get("Mặc định").getList().add(image);
 //        categoryList.get("Mặc định").getList().add(video);
@@ -443,10 +447,10 @@ public class AlbumFragment extends Fragment{
         @Override
         protected Void doInBackground(Void... voids) {
             ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
-            if (listMediaTemp.size() != mediaAmount)
-            {
+//            if (listMediaTemp.size() != mediaAmount)
+//            {
                 albumList = getAllAlbum(listMediaTemp);
-            }
+//            }
             categorizeAlbum();
             return null;
         }
