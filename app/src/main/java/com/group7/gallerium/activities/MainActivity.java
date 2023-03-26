@@ -2,22 +2,28 @@ package com.group7.gallerium.activities;
 
 import android.Manifest;
 import android.app.Activity;
+import android.app.UiModeManager;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.net.Uri;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.provider.Settings;
 import android.util.Log;
+import android.view.View;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
+import androidx.preference.ListPreference;
 import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
@@ -43,6 +49,14 @@ public class MainActivity extends AppCompatActivity {
     ViewPager2 view_pager;
 
     PermissionManager permission;
+
+    SharedPreferences sharedPref;
+
+    String uiPref, locationPref, numGridPref;
+    boolean lockPrivatePref, lockTrashPref;
+
+    int uiVal = 0, locationVal = 1, numGridVal = 3;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -95,6 +109,66 @@ public class MainActivity extends AppCompatActivity {
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
         layoutParams.setBehavior(new BottomNavigationViewBehavior());
 
+        sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        getAllSettingValues();
+        setUiMode();
+    }
+
+    void getAllSettingValues(){
+        try{
+
+            uiPref = sharedPref.getString
+                    (SettingsActivity.KEY_PREF_UI, "0");
+            if(uiPref.equals("0")){
+                uiVal = 0;
+            }else if(uiPref.equals("1")){
+                uiVal = 1;
+            }else{
+                uiVal = 2;
+            }
+            locationPref = sharedPref.getString(SettingsActivity.KEY_PREF_LOCATION, "1");
+            numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+
+            if(numGridPref.equals("3")){
+                numGridVal = 3;
+            }else if(numGridPref.equals("4")){
+                numGridVal = 4;
+            }else{
+                numGridVal = 5;
+            }
+            lockPrivatePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
+            lockTrashPref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
+
+            Log.d("ui-pref", "" + uiPref);
+            Log.d("location-pref", "" + locationPref);
+            Log.d("num-grid", ""+numGridPref);
+
+        }catch (Exception e){
+            Log.d("tag-e", e.getMessage());
+        }
+    }
+
+    void setUiMode(){
+        Toast.makeText(this, "in mode " + uiVal, Toast.LENGTH_SHORT).show();
+        if(Build.VERSION.SDK_INT >= 31){
+            UiModeManager uiManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
+            if(uiVal == 0){
+                uiManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_AUTO);
+            }else if(uiVal == 1){
+                uiManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_NO);
+            }else{
+                uiManager.setApplicationNightMode(UiModeManager.MODE_NIGHT_YES);
+            }
+        }else{
+            if(uiVal == 0){
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_FOLLOW_SYSTEM);
+            }else if(uiVal == 1){
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_NO);
+            }else{
+                AppCompatDelegate.setDefaultNightMode(AppCompatDelegate.MODE_NIGHT_YES);
+            }
+        }
     }
 
     @Override
@@ -103,8 +177,17 @@ public class MainActivity extends AppCompatActivity {
     }
 
     @Override
+    protected void onStart() {
+        super.onStart();
+        getAllSettingValues();
+        setUiMode();
+    }
+
+    @Override
     protected void onResume() {
         super.onResume();
+        getAllSettingValues();
+        setUiMode();
     }
 
     @Override
@@ -119,6 +202,8 @@ public class MainActivity extends AppCompatActivity {
     }
 
     private void changeOrientation(int orientation, boolean refresh) {
+        getAllSettingValues();
+        setUiMode();
         if(orientation == Configuration.ORIENTATION_LANDSCAPE){
             Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "landscape");
@@ -135,6 +220,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     myFragment.changeOrientation(6);
                     if (refresh) myFragment.refresh(true);
+                    myFragment.setTrashEnable(lockTrashPref);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -159,7 +245,7 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation(3);
+                    myFragment.changeOrientation(numGridVal);
                     if (refresh) myFragment.refresh(true);
                 }
             }  else if(view_pager.getCurrentItem() == 1){
@@ -168,6 +254,7 @@ public class MainActivity extends AppCompatActivity {
                 {
                     myFragment.changeOrientation(3);
                     if (refresh) myFragment.refresh(true);
+                    myFragment.setTrashEnable(lockTrashPref);
                 }
             } else if(view_pager.getCurrentItem() == 2){
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());

@@ -2,8 +2,8 @@
     <!-- Reply Preference -->
     <string-array name="ui_entries">
         <item>Dựa vào hệ thống</item>
-        <item>Nền tối</item>
         <item>Nền sáng</item>
+        <item>Nền tối</item>
     </string-array>
 
     <string-array name="ui_values">
@@ -24,9 +24,9 @@
     </string-array>
 
     <string-array name="num_grid_entries">
-        <item>3</item>
-        <item>4</item>
-        <item>5</item>
+        <item>3 cột</item>
+        <item>4 cột</item>
+        <item>5 cột</item>
     </string-array>
 
     <string-array name="num_grid_values">

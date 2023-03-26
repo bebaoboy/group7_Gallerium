@@ -19,16 +19,12 @@ import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
-import com.bumptech.glide.RequestBuilder;
-import com.bumptech.glide.TransitionOptions;
 import com.bumptech.glide.load.DataSource;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
-import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
-import com.google.android.material.checkbox.MaterialCheckBox;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.models.Media;
@@ -38,7 +34,6 @@ import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 import java.util.Objects;
 
@@ -58,12 +53,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 }
             };
     private SelectMediaInterface selecteMediaInterface;
-    private List<Media> listMedia;
-    private Context context;
-    private List<MediaCategory> listMediaCategory;
-    private Intent intent;
-    private ArrayList<String> listPath;
-    private boolean[] med;
+    List<Media> listMedia;
+    Context context;
+    List<MediaCategory> listMediaCategory;
+    Intent intent;
+    ArrayList<String> listPath;
+    boolean[] med;
 
     private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
@@ -74,32 +69,28 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         notifyDataSetChanged();
     }
 
-    public MediaAdapter(Context context, SelectMediaInterface selectMediaInterface) {
+    public MediaAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface) {
         super(DIFF_CALLBACK);
         this.context = context;
         this.selecteMediaInterface = selectMediaInterface;
     }
 
-    protected MediaAdapter() {
-        super(DIFF_CALLBACK);
-    }
 
-
-    public void deleteMedia(Media media){
+    public void deleteMedia(@NonNull Media media){
         int position = this.getCurrentList().indexOf(media);
         this.getCurrentList().remove(media);
         med = new boolean[this.getCurrentList().size()];
         Arrays.fill(med, false);
         notifyItemRemoved(position);
     }
-    public void setListImages(ArrayList<Media> media) {
+    public void setListImages(@NonNull ArrayList<Media> media) {
         this.listMedia = media;
         submitList(listMedia);
         med = new boolean[this.getCurrentList().size()];
         Arrays.fill(med, false);
     }
 
-    public void setListCategory(ArrayList<MediaCategory> categories) {
+    public void setListCategory(@NonNull ArrayList<MediaCategory> categories) {
         this.listMediaCategory = categories;
     }
 
@@ -107,7 +98,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     @Override
     public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        return new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
+
+        MediaViewHolder holder = new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
+        return holder;
     }
 
     @Override
@@ -122,13 +115,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             }else {
                 holder.select.setChecked(false);
                 if(selectedMedia != null) {
-                    if (selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition()))) {
-                        holder.select.setChecked(true);
-                        //Log.d("Contained", "false");
-                    } else {
-                        holder.select.setChecked(false);
-                        //Log.d("Contained", "false");
-                    }
+                    //Log.d("Contained", "false");
+                    //Log.d("Contained", "false");
+                    holder.select.setChecked(selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition())));
                 }
             }
         }else{
@@ -163,7 +152,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().load("file://" + media.getThumbnail())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .listener(new RequestListener<GifDrawable>() {
+                        .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
                                 med[position] = false;
@@ -184,7 +173,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .dontAnimate()
                         .sizeMultiplier(0.9f)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .listener(new RequestListener<Drawable>() {
+                        .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                                 med[position] = false;
@@ -210,7 +199,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().load("file://" + media.getThumbnail())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .listener(new RequestListener<GifDrawable>() {
+                        .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
                                 med[position] = false;
@@ -231,7 +220,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .dontAnimate()
                         .sizeMultiplier(0.9f)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
-                        .listener(new RequestListener<Drawable>() {
+                        .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
                                 med[position] = false;
@@ -256,20 +245,19 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
        }
 
         if(media.getType() != 1) holder.play_icon.setVisibility(View.VISIBLE);
-
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
                 if(holder.select.isChecked()){
                     holder.select.setChecked(false);
-                    selecteMediaInterface.deleteFromSelectedList(media);
+                    selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
                 }else{
                     holder.select.setChecked(true);
-                    selecteMediaInterface.addToSelectedList(media);
+                    selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
                 }
             }else {
                 intent = new Intent(context, ViewMedia.class);
                 navAsyncTask navAsyncTask = new navAsyncTask();
-                navAsyncTask.setPos(position);
+                navAsyncTask.setPos(holder.getBindingAdapterPosition());
                 navAsyncTask.execute();
             }
         }));
@@ -277,28 +265,29 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         holder.image.setOnLongClickListener((view -> {
             if(holder.select.isChecked()){
                 Log.d("checkbox", "is checked");
-                selecteMediaInterface.deleteFromSelectedList(media);
+                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
                 holder.select.setChecked(false);
             }else{
                 Log.d("checkbox", "is not checked");
-                selecteMediaInterface.addToSelectedList(media);
+                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
                 holder.select.setChecked(true);
             }
             if(!isMultipleEnabled) {
                 selecteMediaInterface.showAllSelect();
             }
-           return true;
+            return true;
         }));
 
         holder.select.setOnClickListener((view)->{
             if(((CompoundButton) view).isChecked()){
-                selecteMediaInterface.addToSelectedList(media);
+                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
             }else{
-                selecteMediaInterface.deleteFromSelectedList(media);
+                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
             }
         });
+
     }
-    public void setSelectedList(ArrayList<Media> list) {
+    public void setSelectedList(@NonNull ArrayList<Media> list) {
         selectedMedia = list;
     }
 

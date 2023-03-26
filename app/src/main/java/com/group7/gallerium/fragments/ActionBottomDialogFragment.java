@@ -53,7 +53,7 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
     @Nullable
     @Override
     public View onCreateView(@NonNull LayoutInflater inflater, @Nullable ViewGroup container, @Nullable Bundle savedInstanceState) {
-        context = this.getContext();
+        context =requireContext();
         view = LayoutInflater.from(context).inflate(R.layout.action_bottom_dialog, null);
 
         verifiedButton = view.findViewById(R.id.verifiedButton);
