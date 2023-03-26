@@ -179,14 +179,9 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-
-                        for(Media media: selectedMedia) {
-                            AccessMediaFile.removeMediaFromAllMedia(media.getPath());
-                        }
                     }
-                    callback.onDestroyActionMode(mode);
-                    adapter.setData(getListCategory());
-                    album_rec_item.setAdapter(adapter);
+                    isPendingForIntent = false;
+                    refresh();
                 });
 
         bottomSheetConfig();
@@ -264,6 +259,8 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 if (fileUtils.deleteMultiple(launcher, selectedMedia, getApplicationContext()) > 0) {
                     for(var m : selectedMedia) {
                         AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                        listMedia.remove(m);
+                        mediaPaths.remove(m.getPath());
                     }
                 }
                 else {
@@ -279,11 +276,9 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     }
 
     void refresh(){
-        for(Media media: selectedMedia){
-            listMedia.remove(media);
-        }
         adapter.setData(getListCategory());
         callback.onDestroyActionMode(mode);
+        album_rec_item.setAdapter(adapter);
     }
 
 
@@ -413,7 +408,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
             }
         }
-        Log.d("size outer", "" + selectedMedia.size());
+       // Log.d("size outer", "" + selectedMedia.size());
     }
 
     @NonNull
@@ -434,7 +429,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 }
             }
         }
-        Log.d("size outer", "" + selectedMedia.size());
+        // Log.d("size outer", "" + selectedMedia.size());
     }
 
     @Override

@@ -69,4 +69,5 @@
     <string name="lock_private_title">Khóa riêng tư</string>
     <string name="reset_private_pass_title">Đặt lại mật khẩu</string>
     <string name="trash_title">Thùng rác</string>
+    <string name="add_media_to_album">Thêm vào album</string>
 </resources>

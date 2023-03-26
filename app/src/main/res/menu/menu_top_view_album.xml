@@ -11,5 +11,10 @@
         android:enabled="true"
         android:title="@string/sort"
         android:tooltipText=""/>
+    <item
+        android:id="@+id/add_media_item"
+        android:enabled="true"
+        android:title="@string/add_media_to_album"
+        />
 
 </menu>
