@@ -18,7 +18,7 @@ import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.R;
-import com.group7.gallerium.adapters.ViewPagerAdapter2;
+import com.group7.gallerium.adapters.ViewPagerAdapterChooser;
 import com.group7.gallerium.fragments.MediaFragmentChooser;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.karan.churi.PermissionManager.PermissionManager;
@@ -135,7 +135,7 @@ public class ChooserActivity extends AppCompatActivity {
     }
 
     private void initializeViewPager() {
-        ViewPagerAdapter2 viewPagerAdapter = new ViewPagerAdapter2(getSupportFragmentManager(), getLifecycle());
+        ViewPagerAdapterChooser viewPagerAdapter = new ViewPagerAdapterChooser(getSupportFragmentManager(), getLifecycle());
         viewPagerAdapter.setContext(getApplicationContext());
         view_pager.setAdapter(viewPagerAdapter);
 

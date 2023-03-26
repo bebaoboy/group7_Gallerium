@@ -112,13 +112,15 @@
             android:exported="false" />
         <activity
             android:name=".activities.ViewMedia"
+            android:exported="true"/>
+
+        <activity
+            android:name=".activities.ViewMediaStandalone"
             android:exported="true"
             android:label="Xem ảnh / video">
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
                 <action android:name="android.intent.action.VIEW" />
-
-
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
                 <data android:scheme="content"/>
@@ -127,12 +129,13 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+
         <activity
             android:name=".activities.ChooserActivity"
-            android:exported="true">
+            android:exported="true"
+            android:label="Chọn ảnh / video">
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
-
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="image/*" />

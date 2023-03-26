@@ -17,11 +17,11 @@ import com.group7.gallerium.models.Media;
 
 import java.util.List;
 
-public class ViewPagerAdapter2 extends FragmentStateAdapter  {
+public class ViewPagerAdapterChooser extends FragmentStateAdapter  {
     private List<Media> data;
     private Context context;
 
-    public ViewPagerAdapter2(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
+    public ViewPagerAdapterChooser(@NonNull FragmentManager fragmentManager, @NonNull Lifecycle lifecycle) {
         super(fragmentManager, lifecycle);
     }
 

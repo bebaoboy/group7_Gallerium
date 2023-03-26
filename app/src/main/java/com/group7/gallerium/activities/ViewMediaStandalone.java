@@ -39,10 +39,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
-import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.adapters.SlideAdapter;
 import com.group7.gallerium.fragments.ActionBottomDialogFragment;
-import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
@@ -62,7 +60,7 @@ import java.util.Map;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
-public class ViewMedia extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
+public class ViewMediaStandalone extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
 
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
@@ -105,6 +103,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         super.onCreate(savedInstanceState);
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
+        listPath = new ArrayList<>();
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
@@ -137,7 +136,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewMediaStandalone.this, "deleted", Toast.LENGTH_SHORT).show();
                         AccessMediaFile.removeMediaFromAllMedia(mediaPath);
                         slideAdapter.removePath(mediaPath);
                         finish();
@@ -148,7 +147,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "renaming", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewMediaStandalone.this, "renaming", Toast.LENGTH_SHORT).show();
                         renameBottomDialogFragment.renameAgain();
                     }
                 });
@@ -166,15 +165,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaStandalone.this, "Hidden sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(getApplicationContext(), "Expand sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaStandalone.this, "Expand sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(getApplicationContext(), "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaStandalone.this, "Collapsed sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(getApplicationContext(), "Dragging sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaStandalone.this, "Dragging sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(getApplicationContext(), "Settling sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaStandalone.this, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -202,9 +201,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         btnSetBackGround.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
-            Uri contentURI = fileUtils.getUri(mediaPath, AccessMediaFile.getMediaWithPath(mediaPath).getType(), getApplicationContext());
+            Uri contentURI = fileUtils.getUri(mediaPath, AccessMediaFile.getMediaWithPath(mediaPath).getType(), ViewMediaStandalone.this);
 //            try {
-//                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+//                WallpaperManager wallpaperManager = WallpaperManager.getInstance(ViewMediaStandalone.this);
 //                intent = wallpaperManager.getCropAndSetWallpaperIntent(contentURI);
 //            } catch (Exception e) {
                 intent = new Intent(Intent.ACTION_ATTACH_DATA);
@@ -224,10 +223,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     void openAlbumSelectView() {
         Log.d("Open bottom sheet", "true");
-        View viewDialog = LayoutInflater.from(ViewMedia.this).inflate(R.layout.add_to_album_bottom_dialog, null);
+        View viewDialog = LayoutInflater.from(ViewMediaStandalone.this).inflate(R.layout.add_to_album_bottom_dialog, null);
         addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
-        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(ViewMedia.this, 1));
-        bottomSheetDialog = new BottomSheetDialog(ViewMedia.this);
+        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(ViewMediaStandalone.this, 1));
+        bottomSheetDialog = new BottomSheetDialog(ViewMediaStandalone.this);
         bottomSheetDialog.setContentView(viewDialog);
         AlbumListTask albumAsyncTask = new AlbumListTask();
         albumAsyncTask.execute();
@@ -275,8 +274,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
 
     void applyData() {
+        AccessMediaFile.getAllMedia(ViewMediaStandalone.this);
         intent = getIntent();
-        listPath = intent.getStringArrayListExtra("data_list_path");
+        Uri uri = intent.getData();
+        listPath.add(uri.getPath());
+        //listPath = intent.getStringArrayListExtra("data_list_path");
         mediaPos = intent.getIntExtra("pos", 0);
         mediaItemInterface = this;
     }
@@ -287,8 +289,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         toolbar.inflateMenu(R.menu.menu_top_view_photo);
         favBtn = toolbar.getMenu().findItem(R.id.add_fav);
         toolbar.setTitle("hello");
-        toolbar.setTitleTextAppearance(getApplicationContext(), R.style.ToolbarTitleMediaView);
-        toolbar.setSubtitleTextAppearance(getApplicationContext(), R.style.ToolbarSubtitle);
+        toolbar.setTitleTextAppearance(ViewMediaStandalone.this, R.style.ToolbarTitleMediaView);
+        toolbar.setSubtitleTextAppearance(ViewMediaStandalone.this, R.style.ToolbarSubtitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
         favBtn.setOnMenuItemClickListener(menuItem -> {
@@ -317,7 +319,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     private void setUpSlider() {
 
-        slideAdapter = new SlideAdapter(getApplicationContext());
+        slideAdapter = new SlideAdapter(ViewMediaStandalone.this);
         slideAdapter.setData(listPath);
         slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
@@ -397,7 +399,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
             switch (item.getItemId()){
                 case R.id.edit_nav_item->{
-                    Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
+                    Intent editIntent = new Intent(ViewMediaStandalone.this, DsPhotoEditorActivity.class);
 
                     if(mediaPath.contains("gif")){
                         Toast.makeText(this,"Cannot edit GIF images",Toast.LENGTH_SHORT).show();
@@ -451,7 +453,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                    alert.show();
 
                     if (fileUtils.delete(launcher, mediaPath, this) > 0) {
-                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewMediaStandalone.this, "deleted", Toast.LENGTH_SHORT).show();
                         AccessMediaFile.removeMediaFromAllMedia(mediaPath);
                         slideAdapter.removePath(mediaPath);
                         finish();
@@ -488,7 +490,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                                mediaFile.renameTo(desImgFile);
 //                                mediaFile.deleteOnExit();
 //                                desImgFile.getPath();
-//                                MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+//                                MediaScannerConnection.scanFile(ViewMediaStandalone.this, new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
 //                            }
 //                        }
 //                        Intent intentResult = new Intent();
@@ -658,7 +660,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     public void moveMedia(@NonNull String albumPath) {
         var temp = new ArrayList<Media>();
         temp.add(AccessMediaFile.getMediaWithPath(mediaPath));
-        fileUtils.copyFileMultiple(temp, albumPath, getApplicationContext());
+        fileUtils.copyFileMultiple(temp, albumPath, ViewMediaStandalone.this);
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheet.setVisibility(View.GONE);
     }
@@ -667,12 +669,13 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            AccessMediaFile.refreshAllMedia();
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            albumAdapter = new AlbumCategoryAdapter(ViewMedia.this, ViewMedia.this, 3);
+            albumAdapter = new AlbumCategoryAdapter(ViewMediaStandalone.this, ViewMediaStandalone.this, 3);
             albumAdapter.setViewType(1);
             albumAdapter.setData(albumCategories);
             addAlbumRecyclerView.setAdapter(albumAdapter);
@@ -681,7 +684,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(ViewMedia.this);
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(ViewMediaStandalone.this);
             albumList = getAllAlbum(listMediaTemp);
             categorizeAlbum();
 
