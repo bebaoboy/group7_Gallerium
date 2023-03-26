@@ -13,6 +13,7 @@ import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
@@ -24,6 +25,7 @@ public class AccessMediaFile {
     //public static List<Media> allMedia;
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
+    private static HashMap<String, Boolean> allYourAlbum = new HashMap<>();
     private static ArrayList<Media> cacheAllMedia = new ArrayList<>();
     private static boolean cached = false;
     private static boolean allMediaPresent = false;
@@ -77,6 +79,23 @@ public class AccessMediaFile {
                 return -1;
             } else return 1;
         }).collect(Collectors.toList());
+    }
+
+    public static void setAllYourALbum(Set<String> paths) {
+        allYourAlbum.clear();
+        paths.forEach(AccessMediaFile::addToYourAlbum);
+    }
+
+    public static void addToYourAlbum(String path) {
+        allYourAlbum.put(path, false);
+    }
+
+    public static void removeFromYourAlbum(String path) {
+        allYourAlbum.remove(path);
+    }
+
+    public static Set<String> getAllYourAlbum() {
+        return allYourAlbum.keySet().stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
     public static Set<String> getFavMedia() {
@@ -143,7 +162,7 @@ public class AccessMediaFile {
             HashMap<String, Media> listMedia = new HashMap<>();
 
 
-            Cursor cursor = context.getApplicationContext().getContentResolver().query(queryUri,
+            Cursor cursor = context.getContentResolver().query(queryUri,
                     columns,
                     selection,
                     null, // Selection args (none).

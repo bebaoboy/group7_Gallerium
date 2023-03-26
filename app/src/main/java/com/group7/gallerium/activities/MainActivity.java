@@ -107,6 +107,13 @@ public class MainActivity extends AppCompatActivity {
             AccessMediaFile.setAllFavMedia(favList);
         }
 
+        SharedPreferences mySharedPref2 = getSharedPreferences("your_album", MODE_PRIVATE);
+        var albList = mySharedPref2.getStringSet("path", null);
+        if (albList != null) {
+            Log.d("alb", "your album amount = " + albList.size());
+            AccessMediaFile.setAllYourALbum(albList);
+        }
+
         CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
         layoutParams.setBehavior(new BottomNavigationViewBehavior());
 

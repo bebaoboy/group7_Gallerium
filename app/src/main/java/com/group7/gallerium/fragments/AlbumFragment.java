@@ -1,7 +1,10 @@
 package com.group7.gallerium.fragments;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
@@ -86,6 +89,16 @@ public class AlbumFragment extends Fragment{
 
     public void onPause() {
         super.onPause();
+        var albList = AccessMediaFile.getAllYourAlbum();
+        //Log.d("fav", "fav amount pause = " + favList.size());
+        albList.forEach(x -> Log.d("alb", x));
+        SharedPreferences sharedPreferences = context.getSharedPreferences("your_album", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.clear();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", albList);
+        myEdit.apply();
         saveScroll();
     }
 
@@ -253,6 +266,14 @@ public class AlbumFragment extends Fragment{
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
         mediaAmount = listMedia.size();
+        for(var a : AccessMediaFile.getAllYourAlbum()) {
+            String[] subDirs = a.split("/");
+            String name = subDirs[subDirs.length - 1];
+            Album album = new Album(null, name);
+            album.setPath(a);
+            paths.add(a);
+            albums.add(album);
+        }
 
         Album video = new Album("Video");
         Album image = new Album("Ảnh");
@@ -292,6 +313,9 @@ public class AlbumFragment extends Fragment{
             } else {
                 if (listMedia.get(i).getHeight() != 0) {
                     albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                    if (albums.get(paths.indexOf(folderPath)).getAvatar() == null) {
+                        albums.get(paths.indexOf(folderPath)).setAvatar(listMedia.get(i));
+                    }
                 }
             }
         }
@@ -316,6 +340,9 @@ public class AlbumFragment extends Fragment{
 
         rescanForUnAddedAlbum();
         for (Album album : albumList) {
+            if (album.getListMedia().size() == 0) {
+                album.setAvatar(null);
+            }
             String path = album.getPath();
             subDir = path.split("/");
             String catName = "";
@@ -333,6 +360,7 @@ public class AlbumFragment extends Fragment{
                 } else if (parent.equals("owner")) {
                     //categoryList.get("Của tôi").addAlbumToList(album);
                     catName = "Của tôi";
+                    AccessMediaFile.addToYourAlbum(path);
                 }
             }
 

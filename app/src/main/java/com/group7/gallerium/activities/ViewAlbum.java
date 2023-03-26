@@ -179,6 +179,11 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
                         Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        for(var m : selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                            listMedia.remove(m);
+                            mediaPaths.remove(m.getPath());
+                        }
                     }
                     isPendingForIntent = false;
                     refresh();

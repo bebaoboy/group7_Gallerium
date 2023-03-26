@@ -93,6 +93,7 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
                 Log.d("tag", e.getMessage());
                 // Toast.makeText(context, "Needed permission. \nPress 'Choose this folder' to continue. ", Toast.LENGTH_LONG).show();
             }
+            AccessMediaFile.addToYourAlbum(path);
         }
         dismiss();
     }
