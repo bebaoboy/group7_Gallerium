@@ -56,7 +56,6 @@ public class SlideAdapter extends PagerAdapter {
     }
 
 
-    @NonNull
     @Override
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         String path = paths.get(position);
@@ -65,57 +64,59 @@ public class SlideAdapter extends PagerAdapter {
         Media m = AccessMediaFile.getMediaWithPath(path);
         mediaItemInterface.showActionBar(true);
         trigger = true;
-        assert m != null;
         View view;
-        if (m.getType() == 1) {
-            view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
-            img = view.findViewById(R.id.imageView);
-            Glide.with(context).load(path).into(img);
+        if(m != null) {
+            if (m.getType() == 1) {
+                view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
+                img = view.findViewById(R.id.imageView);
+                Glide.with(context).load(path).into(img);
 
-            img.setOnClickListener((view1)->{
-                mediaItemInterface.showActionBar(trigger);
-                trigger = !trigger;
-            });
-            ViewPager vp = (ViewPager) container;
-            vp.addView(view, 0);
+                img.setOnClickListener((view1) -> {
+                    mediaItemInterface.showActionBar(trigger);
+                    trigger = !trigger;
+                });
+                ViewPager vp = (ViewPager) container;
+                vp.addView(view, 0);
 
-        } else {
-            view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
-            ImageView img2;
-            ImageView playButton;
-            img2 =  view.findViewById(R.id.preview_thumbnail);
-            Glide.with(context).load("file://" + m.getThumbnail()).into(img2);
-            img2.setOnClickListener((view1)->{
-                mediaItemInterface.showActionBar(trigger);
-                trigger = !trigger;
-            });
+            } else {
+                view = LayoutInflater.from(context).inflate(R.layout.watch_video_item, container, false);
+                ImageView img2;
+                ImageView playButton;
+                img2 = view.findViewById(R.id.preview_thumbnail);
+                Glide.with(context).load("file://" + m.getThumbnail()).into(img2);
+                img2.setOnClickListener((view1) -> {
+                    mediaItemInterface.showActionBar(trigger);
+                    trigger = !trigger;
+                });
 
-            VideoView video = view.findViewById(R.id.videoView);
-            playButton = view.findViewById(R.id.play_video_button);
-            TextView duration;
-            duration = view.findViewById(R.id.videoLength);
-            duration.setText(m.getDuration());
+                VideoView video = view.findViewById(R.id.videoView);
+                playButton = view.findViewById(R.id.play_video_button);
+                TextView duration;
+                duration = view.findViewById(R.id.videoLength);
+                duration.setText(m.getDuration());
 
-            video.setOnClickListener((view1)->{
-                mediaItemInterface.showActionBar(trigger);
-                trigger = !trigger;
-            });
+                video.setOnClickListener((view1) -> {
+                    mediaItemInterface.showActionBar(trigger);
+                    trigger = !trigger;
+                });
 
-            playButton.setOnClickListener((playbutton)->{
-                // playVideo(video, img2, playButton);
-                img2.setVisibility(View.GONE);
-                playButton.setVisibility(View.GONE);
-                mediaItemInterface.showVideoPlayer(video, img2, playButton, duration, m);
-                mediaItemInterface.showActionBar(false);
-                trigger = false;
-            });
-            mediaItemInterface.setVideoView(video);
-            mediaItemInterface.setImageViewAndButton(img2, playButton);
+                playButton.setOnClickListener((playbutton) -> {
+                    // playVideo(video, img2, playButton);
+                    img2.setVisibility(View.GONE);
+                    playButton.setVisibility(View.GONE);
+                    mediaItemInterface.showVideoPlayer(video, img2, playButton, duration, m);
+                    mediaItemInterface.showActionBar(false);
+                    trigger = false;
+                });
+                mediaItemInterface.setVideoView(video);
+                mediaItemInterface.setImageViewAndButton(img2, playButton);
 
-            ViewPager vp = (ViewPager) container;
-            vp.addView(view, 0);
+                ViewPager vp = (ViewPager) container;
+                vp.addView(view, 0);
+            }
+            return view;
         }
-        return view;
+        return null;
     }
 
     @Override

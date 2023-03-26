@@ -60,6 +60,7 @@ public class AlbumFragment extends Fragment{
     private int firstVisiblePosition;
     private int offset;
 
+    private boolean isTrashEnable;
 
     private ActionBottomDialogFragment createAlbumBottomDialogFragment;
 
@@ -417,6 +418,10 @@ public class AlbumFragment extends Fragment{
 //                Log.d("album list", album.getName());
 //            }
 //        }
+    }
+
+    public void setTrashEnable(boolean lockTrashPref) {
+        isTrashEnable = lockTrashPref;
     }
 
 

@@ -3,7 +3,7 @@
     <PreferenceCategory app:title="@string/common_setting_header">
 
         <ListPreference
-            app:defaultValue="Dựa vào hệ thống"
+            app:defaultValue="0"
             app:entries="@array/ui_entries"
             app:entryValues="@array/ui_values"
             app:key="uiKey"
@@ -11,7 +11,7 @@
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
-            app:defaultValue="Không hiện vị trí"
+            app:defaultValue="0"
             app:entries="@array/location_entries"
             app:entryValues="@array/location_values"
             app:key="locationKey"

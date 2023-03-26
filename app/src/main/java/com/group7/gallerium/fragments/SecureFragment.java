@@ -71,7 +71,7 @@ public class SecureFragment extends Fragment {
 
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
         btnEnter.setOnClickListener((view1) -> Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show());
-        context = getContext();
+        context = requireContext();
         toolbarSetting();
         return view;
     }

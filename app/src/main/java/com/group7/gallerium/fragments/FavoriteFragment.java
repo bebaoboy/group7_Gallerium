@@ -139,10 +139,10 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_favorite, container, false);
-        context = getContext();
+        context = requireContext();
         toolbarSetting();
         //recyclerViewSetting();
-        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+        adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setItemViewCacheSize(4);
 
@@ -273,7 +273,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
-            adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+            adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
             refresh();
         }
         recyclerView.setAdapter(adapter);
@@ -299,7 +299,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     }
 
     void recyclerViewSetting(){
-        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+        adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
         adapter.setData(getListCategory());
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setAdapter(adapter);

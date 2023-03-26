@@ -164,10 +164,10 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                              Bundle savedInstanceState) {
         // Inflate the layout for this fragment
         view = inflater.inflate(R.layout.fragment_media, container, false);
-        context = getContext();
+        context = requireContext();
         toolbarSetting();
         //recyclerViewSetting();
-        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+        adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setItemViewCacheSize(10000);
         recyclerView.setHasFixedSize(true);
@@ -283,7 +283,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                 Intent result = new Intent(getActivity().getIntent().getAction());
                 ArrayList<Uri> uris = new ArrayList<>();
                 for(var m : selectedMedia) {
-                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), getContext()));
+                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
                 }
                 ClipData clipData = null;
                 for (Uri u : uris) {
@@ -372,7 +372,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
-            adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+            adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
         }
@@ -391,13 +391,13 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         mediaListTask.execute();
     }
 
-    void recyclerViewSetting() {
-        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
-        adapter.setData(getListCategory());
-        recyclerView = view.findViewById(R.id.photo_recyclerview);
-        recyclerView.setAdapter(adapter);
-        recyclerView.setItemViewCacheSize(3);
-    }
+//    void recyclerViewSetting() {
+//        adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
+//        adapter.setData(getListCategory());
+//        recyclerView = view.findViewById(R.id.photo_recyclerview);
+//        recyclerView.setAdapter(adapter);
+//        recyclerView.setItemViewCacheSize(3);
+//    }
 
     void toolbarSetting() {
         toolbar = view.findViewById(R.id.toolbar_photo);
@@ -462,7 +462,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     private ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        listMedia = AccessMediaFile.getAllMedia(getContext());
+        listMedia = AccessMediaFile.getAllMedia(requireContext());
 
         try {
             categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
@@ -578,7 +578,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(getContext());
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(requireContext());
             albumList = getAllAlbum(listMediaTemp);
             categorizeAlbum();
 
