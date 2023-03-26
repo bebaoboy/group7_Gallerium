@@ -31,6 +31,7 @@ import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.fragments.SecureFragment;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
+import com.group7.gallerium.utilities.FileUtils;
 import com.karan.churi.PermissionManager.PermissionManager;
 
 import java.util.Objects;

@@ -113,6 +113,7 @@ public class FileUtils {
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
         String[] parse = media.getPath().split("/");
         String name = parse[parse.length - 1];
+        if (name.strip().length() == 0) return null;
         int mediaType = media.getType();
         if (mediaType == 1) {
             cursor = context.getContentResolver().query(
@@ -160,12 +161,9 @@ public class FileUtils {
                     values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
                     values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
                     values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
-                    values.put(MediaStore.Video.Media.IS_PENDING, 1);
-                    Uri finaluri = resolver.insert(vidCollection, values);
-                    values.clear();
-                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
-                    resolver.update(vidCollection, values, null, null);
-                    return finaluri;
+                    values.put(MediaStore.Video.Media.IS_PENDING, 0);
+
+                    return resolver.insert(vidCollection, values);
                 }
             } else {
                 ContentValues values = new ContentValues();
@@ -179,7 +177,7 @@ public class FileUtils {
     }
 
     public void createDir(@NonNull Context context, @NonNull String path, @NonNull String name, @NonNull String relativePath) {
-
+        if (name.strip().length() == 0) return;
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
             ContentValues values = new ContentValues();
             var resolver = context.getContentResolver();
@@ -187,7 +185,7 @@ public class FileUtils {
 //                if (!Environment.isExternalStorageManager()) {
                     Uri picCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
 
-                    values.put(MediaStore.Images.Media.DISPLAY_NAME, name + ".jpeg");
+                    values.put(MediaStore.Images.Media.DISPLAY_NAME, " " + ".jpeg");
                     values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
                     values.put(MediaStore.Images.Media.RELATIVE_PATH, relativePath);
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
@@ -570,11 +568,16 @@ public class FileUtils {
 //    }
 
     public void renameFile(@NonNull String name, int type, @NonNull String path, @NonNull Context context, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher) {
+        if (name.strip().length() == 0) return ;
         ContentValues values = new ContentValues();
         ContentResolver resolver = context.getContentResolver();
         Uri uri = getUri(path, type, context);
         try {
-            values.put(MediaStore.Images.Media.IS_PENDING, 1);
+            if (type == 1) {
+                values.put(MediaStore.Images.Media.IS_PENDING, 1);
+            } else {
+                values.put(MediaStore.Video.Media.IS_PENDING, 1);
+            }
             resolver.update(uri, values, null, null);
             values.clear();
             if (type == 1) {
@@ -582,7 +585,11 @@ public class FileUtils {
             } else {
                 values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
             }
-            values.put(MediaStore.Images.Media.IS_PENDING, 0);
+            if (type == 1) {
+                values.put(MediaStore.Images.Media.IS_PENDING, 0);
+            } else {
+                values.put(MediaStore.Video.Media.IS_PENDING, 0);
+            }
             resolver.update(uri, values, null, null);
 
         } catch (SecurityException e) {

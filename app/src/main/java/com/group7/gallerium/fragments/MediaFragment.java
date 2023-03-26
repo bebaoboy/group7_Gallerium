@@ -343,8 +343,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             adapter = new MediaCategoryAdapter(getContext(), spanCount, this);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
+            callback.onDestroyActionMode(mode);
         }
-        callback.onDestroyActionMode(mode);
     }
 
     public void refresh() {

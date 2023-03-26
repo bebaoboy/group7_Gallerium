@@ -83,6 +83,7 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
             path = AccessMediaFile.renameMedia(path, changeText.getText().toString() + "." + ext);
             name = changeText.getText().toString();
         }else if(titleText.equals("Nhập tên album") && changeText.getText().toString().length() > 0){
+            if (changeText.getText().toString().startsWith(".")) return;
             var dir = Environment.getExternalStorageDirectory();
             String relativePath = "Pictures/owner/" + changeText.getText().toString();
             String path = dir.getPath() + File.separator + relativePath;

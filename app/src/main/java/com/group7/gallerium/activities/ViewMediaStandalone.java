@@ -1,6 +1,9 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
+import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -15,6 +18,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
@@ -50,6 +54,12 @@ import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -57,7 +67,11 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
+
+import kotlin.jvm.Throws;
 
 @SuppressWarnings("rawtypes")
 public class ViewMediaStandalone extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
@@ -97,6 +111,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
+    ArrayList<Media> n = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -117,6 +132,8 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
                 return super.dispatchKeyEvent(event);
             }
         };
+        fileUtils = new FileUtils();
+
         applyData();
         toolbarSetting();
         setUpSlider();
@@ -129,8 +146,6 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         bottomSheetButtonConfig();
 
         bottom_nav.setBackgroundTintList(null);
-
-        fileUtils = new FileUtils();
 
         launcher = registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
@@ -276,11 +291,98 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
     void applyData() {
         AccessMediaFile.getAllMedia(ViewMediaStandalone.this);
         intent = getIntent();
+        ArrayList<Uri> uriArrayList = new ArrayList<>();
         Uri uri = intent.getData();
-        listPath.add(uri.getPath());
+        if (uri != null) {
+            uriArrayList.add(uri);
+        }
+        var uris = intent.getParcelableArrayExtra(Intent.EXTRA_STREAM);
+        if (uris != null)
+        {
+            for(var u : uris) {
+                uriArrayList.add((Uri)u);
+            }
+        }
+        ClipData clipData = intent.getClipData();
+        String s = "";
+        if (clipData != null) {
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                ClipData.Item item = clipData.getItemAt(i);
+                uriArrayList.add(item.getUri());
+            }
+        }
+        try {
+            var dir = Environment.getExternalStorageDirectory();
+            String relativePath = "Pictures/t3mp";
+            String path = dir.getPath() + File.separator + relativePath;
+            fileUtils.createDir(this, path, "t3mp", relativePath);
+        }  catch (Exception e) {
+            Log.d("tag", e.getMessage());
+            // Toast.makeText(context, "Needed permission. \nPress 'Choose this folder' to continue. ", Toast.LENGTH_LONG).show();
+        }
+        for(var u : uriArrayList) {
+            if (AccessMediaFile.getMediaWithPath(u.getPath()) == null) {
+                var temp = getFileFromContentUri(this, u, true);
+                AccessMediaFile.refreshAllMedia();
+                AccessMediaFile.getAllMedia(this);
+                listPath.add(temp.getPath());
+                n.add(AccessMediaFile.getMediaWithPath(temp.getPath()));
+            } else {
+                listPath.add(u.getPath());
+            }
+        }
         //listPath = intent.getStringArrayListExtra("data_list_path");
         mediaPos = intent.getIntExtra("pos", 0);
         mediaItemInterface = this;
+    }
+
+    private File getFileFromContentUri(Context context, Uri contentUri,Boolean uniqueName) {
+        // Preparing Temp file name
+        var fileExtension = getFileExtension(context, contentUri);
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 7;
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+        var timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis()) + generatedString;
+        var fileName = ("temp_file_" + timeStamp + "." + fileExtension);
+        var dir = Environment.getExternalStorageDirectory();
+        String relativePath = "Pictures/t3mp";
+        String path = dir.getPath() + File.separator + relativePath;
+        var tempFile = new File(Environment.getExternalStorageDirectory() + "/Pictures/t3mp/" + fileName);
+        // Initialize streams
+
+        try (InputStream inputStream = getContentResolver().openInputStream(contentUri);
+             OutputStream oStream = new FileOutputStream(tempFile)){
+            copy(inputStream, oStream);
+            oStream.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tempFile;
+    }
+
+    private String getFileExtension(Context context, Uri uri) {
+        if (Objects.equals(uri.getScheme(), ContentResolver.SCHEME_CONTENT))
+            return MimeTypeMap.getSingleton().getExtensionFromMimeType(context.getContentResolver().getType(uri));
+        else {
+            return MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(uri.getPath())).toString());
+        }
+    }
+
+    private void copy(InputStream inputStream, OutputStream out)  throws IOException {
+        byte[] buf = new byte[8096];
+        int len;
+        while ((len = inputStream.read(buf)) > 0) {
+            out.write(buf, 0, len); //write input file data to output file
+        }
+        out.close();
     }
 
 
@@ -663,6 +765,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         fileUtils.copyFileMultiple(temp, albumPath, ViewMediaStandalone.this);
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheet.setVisibility(View.GONE);
+        bottomSheetDialog.dismiss();
     }
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
@@ -741,6 +844,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
             String[] subDirectories = listMedia.get(i).getPath().split("/");
             String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
             String name = subDirectories[subDirectories.length - 2];
+            if (name.equals("t3mp")) continue;
             if (!paths.contains(folderPath)) {
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
@@ -837,4 +941,9 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         }
     }
 
+    @Override
+    protected void onStop() {
+        fileUtils.deleteMultiple(launcher, n, this);
+        super.onStop();
+    }
 }

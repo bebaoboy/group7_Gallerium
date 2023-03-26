@@ -661,12 +661,14 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         fileUtils.copyFileMultiple(temp, albumPath, getApplicationContext());
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheet.setVisibility(View.GONE);
+        bottomSheetDialog.dismiss();
     }
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
+            AccessMediaFile.refreshAllMedia();
         }
 
         @Override
@@ -738,6 +740,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
             String[] subDirectories = listMedia.get(i).getPath().split("/");
             String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
             String name = subDirectories[subDirectories.length - 2];
+            if (name.equals("t3mp")) continue;
             if (!paths.contains(folderPath)) {
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
