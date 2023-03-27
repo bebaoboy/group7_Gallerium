@@ -70,4 +70,7 @@
     <string name="reset_private_pass_title">Đặt lại mật khẩu</string>
     <string name="trash_title">Thùng rác</string>
     <string name="add_media_to_album">Thêm vào album</string>
+    <string name="question">Nhập câu hỏi</string>
+    <string name="answer">Nhập câu trả lời</string>
+    <string name="ok">Xác nhận</string>
 </resources>
