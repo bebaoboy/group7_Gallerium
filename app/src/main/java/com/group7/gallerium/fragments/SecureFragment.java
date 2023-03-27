@@ -4,6 +4,7 @@ import android.animation.Animator;
 import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.util.Log;
@@ -13,6 +14,7 @@ import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.widget.EditText;
 import android.widget.GridLayout;
+import android.widget.ImageView;
 import android.widget.Toast;
 
 import androidx.annotation.NonNull;
@@ -22,6 +24,7 @@ import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.fragment.app.Fragment;
 
+import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
 import com.group7.gallerium.utilities.FileUtils;
@@ -52,6 +55,8 @@ public class SecureFragment extends Fragment {
     FileUtils fileUtils;
     String password, question, answer;
 
+    ImageView test;
+
     private  String secretPath;
 
     public SecureFragment() {}
@@ -69,6 +74,8 @@ public class SecureFragment extends Fragment {
         answer = sharedPreferences.getString("answer", "");
 
         secretPath = Environment.getExternalStorageState() + "/" + ".secret";
+
+        paths = new ArrayList<>();
 
         Log.d("answer", answer);
         Log.d("question", question);
@@ -99,6 +106,8 @@ public class SecureFragment extends Fragment {
         txtPass = view.findViewById(R.id.txtPassword);
         btnClear = view.findViewById(R.id.secure_clear_button);
         btnEnter = view.findViewById(R.id.secure_enter_button);
+
+        test = view.findViewById(R.id.preview);
         for(int i = 0; i < 10; i++)
         {
             var b = (MaterialButton) numGrid.getChildAt(i);
@@ -157,7 +166,7 @@ public class SecureFragment extends Fragment {
             SharedPreferences.Editor myEdit = sharedPreferences.edit();
             myEdit.putString("password", txtPass.getText().toString());
             myEdit.apply();
-            if (!question.isBlank() && !answer.isBlank()) {
+            if (question.isBlank() && answer.isBlank()) {
                 showAlertDialog();
                 createSecuredDir();
             } else {
@@ -177,7 +186,7 @@ public class SecureFragment extends Fragment {
 
         view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
         view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
-        
+
        // createSecuredFile(new File(secureDir, "hello.txt"), "");
         getPaths(secureDir);
     }
@@ -191,14 +200,15 @@ public class SecureFragment extends Fragment {
         }
     }
 
-    private ArrayList<String> getPaths(File file) throws FileNotFoundException {
+    private void getPaths(File file) throws FileNotFoundException {
         File[] files = file.listFiles();
         for(File f: files){
             Log.d("file-path", f.getAbsolutePath());
-            FileInputStream fin = new FileInputStream(f);
-
+            paths.add(f.getAbsolutePath());
         }
-        return null;
+        paths.remove(0);
+
+        Glide.with(context).load(paths.get(0)).into(test);
     }
 
 

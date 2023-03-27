@@ -133,6 +133,10 @@
         android:id="@+id/main_secured_page"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
+        <ImageView
+            android:id="@+id/preview"
+            android:layout_width="match_parent"
+            android:layout_height="120dp"/>
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/secured_recycler_view"
             android:layout_width="match_parent"

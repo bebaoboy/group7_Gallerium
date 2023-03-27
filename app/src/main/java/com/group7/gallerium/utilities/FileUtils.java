@@ -34,6 +34,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -107,6 +108,23 @@ public class FileUtils {
 //
 //       return MediaStore.Files.getContentUri(inputPath);
 //    }
+
+    public void secureFile(@NonNull Context context, @NonNull String inputPath, @NonNull String inputName, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher){
+        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+
+        try (InputStream inputStream = new FileInputStream(inputPath)){
+            FileOutputStream out = new FileOutputStream(new File(secureDir, inputName));
+            byte[] buf = new byte[8096];
+            int len;
+            while ((len = inputStream.read(buf)) > 0) {
+                out.write(buf, 0, len); //write input file data to output file
+            }
+            out.close();
+        } catch (IOException e) {
+            throw new RuntimeException(e);
+        }
+        delete(launcher, inputPath, context);
+    }
 
     public Uri insertMediaToMediaStore(@NonNull Context context, @NonNull String inputPath, @NonNull String outputPath) {
         Cursor cursor;

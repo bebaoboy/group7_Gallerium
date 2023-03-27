@@ -1,10 +1,13 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -458,23 +461,22 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     }
                 }
 
-//                case R.id.view_photo_secured_nav_item->{
+                case R.id.view_photo_secured_nav_item->{
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
 //                    builder.setTitle("Confirm");
 //                    builder.setMessage("Do you want to hide/show this image?");
 //
 //                    builder.setPositiveButton("YES", (dialog, which) -> {
-//                        String scrPath = Environment.getExternalStorageDirectory() + File.separator+".secret";
+//                        String scrPath =  getFilesDir().getAbsolutePath() + File.separator+ "secure-subfolder";
 //                        File scrDir = new File(scrPath);
 //                        if(!scrDir.exists()){
 //                            Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
 //                        }
 //                        else{
-//                            FileUtility fu = new FileUtility();
 //                            File mediaFile = new File(mediaPath);
 //                            if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
-//                                fu.moveFile(mediaPath, mediaFile.getName(),scrPath);
+//                                fileUtils.moveFile(mediaPath, launcher, scrPath, getApplicationContext());
 //                                Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
 //                            }
 //                            else{
@@ -509,9 +511,37 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //
 //                    AlertDialog alert = builder.create();
 //                    alert.show();
-//
-//                    break;
-//                }
+
+
+                    String scrPath =  getFilesDir().getAbsolutePath() + File.separator+ "secure-subfolder";
+                    File scrDir = new File(scrPath);
+                    if(!scrDir.exists()){
+                        Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        File mediaFile = new File(mediaPath);
+                        if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
+                            String[] subDirs = mediaPath.split("/");
+                            String name = subDirs[subDirs.length-1];
+                            fileUtils.secureFile(getApplicationContext(), mediaPath, name, launcher);
+                            Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
+                            File folder = new File(outputPath);
+                            File file = new File(mediaFile.getPath());
+                            File desImgFile = new File(outputPath,mediaFile.getName());
+                            if(!folder.exists()) {
+                                folder.mkdir();
+                            }
+                            mediaFile.renameTo(desImgFile);
+                            mediaFile.deleteOnExit();
+                            desImgFile.getPath();
+                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+                        }
+                    }
+                    break;
+                }
             }
             return true;
         });
