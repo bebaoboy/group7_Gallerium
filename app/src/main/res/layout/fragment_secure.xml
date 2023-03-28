@@ -6,8 +6,7 @@
     android:layout_height="match_parent"
     tools:context=".fragments.MediaFragment"
     >
-
-
+    
     <include
         layout="@layout/layout_toolbar"
         android:id="@+id/toolbar_secure"
@@ -16,6 +15,21 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
+ư
+    <LinearLayout
+        android:id="@+id/create_pass_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:visibility="gone">
+        <Button
+            android:id="@+id/create_folder_button"
+            android:text="Tạo thư mục bảo mật"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
 
     <androidx.core.widget.NestedScrollView
         android:id="@+id/secure_scrollview"

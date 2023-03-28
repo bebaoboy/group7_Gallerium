@@ -1,10 +1,11 @@
 package com.group7.gallerium.fragments;
-
 import static android.os.storage.StorageManager.ACTION_MANAGE_STORAGE;
 
 import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
+import android.content.DialogInterface;
+
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
@@ -12,13 +13,16 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
-import android.preference.PreferenceManager;
+
 import android.util.Log;
 import android.view.LayoutInflater;
+import android.view.MenuItem;
+import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.webkit.MimeTypeMap;
+import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -33,6 +37,7 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.exifinterface.media.ExifInterface;
+
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -258,23 +263,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         builder.show();
     }
 
-    void verifiedLogic() throws FileNotFoundException {
-        if(txtPass.getText().length() < 4){
-            Toast.makeText(requireContext(), "Password not valid", Toast.LENGTH_SHORT).show();
-        }else if(txtPass.getText().toString().equals(password)) {
-            SharedPreferences.Editor myEdit = sharedPreferences.edit();
-            myEdit.putString("password", txtPass.getText().toString());
-            myEdit.apply();
-            if (question.isBlank() && answer.isBlank()) {
-                showAlertDialog();
-                createSecuredDir();
-            } else {
-                view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
-                view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
-            }
-        }
-    }
-
     void checkForFreeSpace() throws IOException {
 
         StorageManager storageManager =
@@ -293,34 +281,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
 
-    private void createSecuredDir() throws FileNotFoundException {
-        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-        Log.d("context-Filedir", context.getFilesDir().getAbsolutePath());
-        if(!secureDir.exists()){
-            secureDir.mkdirs();
-            password = sharedPreferences.getString("password", "");
-            try {
-                checkForFreeSpace();
-            }catch (Exception e){
-                Log.d("tag", e.getMessage());
-            }
-        }
-
-        view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
-        view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
-
-       // createSecuredFile(new File(secureDir, "hello.txt"), "");
-        getPaths(secureDir);
-
-        secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
-        secureAdapter.setImageSize(calculateImageSize());
-        secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
-        secureAdapter.setListImages(mediaList);
-        secureAdapter.setListCategory(null);
-        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
-        secureRecyclerView.setAdapter(secureAdapter);
-        secureRecyclerView.setLayoutManager(layoutManager);
-    }
 
     public int dpToPx(int dp) {
         float density = context.getResources().getDisplayMetrics().density;
@@ -334,6 +294,25 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
         return (int)Math.floor(imageSize);
     }
+    
+    private void createSecuredDir() throws FileNotFoundException {
+        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+        Log.d("context-Filedir", context.getFilesDir().getAbsolutePath());
+        if(!secureDir.exists()){
+            secureDir.mkdirs();
+            try {
+                checkForFreeSpace();
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
+        }
+
+        view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+        view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+
+       // createSecuredFile(new File(secureDir, "hello.txt"), "");
+    }
 
     private void createSecuredFile(File fileName, String data) {
         String fileContents = "Hello world!";
@@ -343,8 +322,73 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             throw new RuntimeException(e);
         }
     }
+    
+     private void showAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
-    private void getPaths(File file) throws FileNotFoundException {
+        LayoutInflater inflater = requireActivity().getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_questionaire, null);
+
+        builder.setView(dialogView)
+                .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                    var editQuestion = (EditText)dialogView.findViewById(R.id.question);
+                    var editAnswer = (EditText)dialogView.findViewById(R.id.answer);
+                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                    myEdit.putString("question", editQuestion.getText().toString());
+                    myEdit.putString("answer", editAnswer.getText().toString());
+                    myEdit.apply();
+                    showViewLogic();
+                }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
+                     dialogInterface.dismiss();
+                }));
+        builder.create();
+        builder.show();
+    }
+
+    void verifiedLogic() throws FileNotFoundException {
+        password = sharedPreferences.getString("password", "");
+        if(password.equals("")){
+            SharedPreferences.Editor myEdit = sharedPreferences.edit();
+            myEdit.putString("password", txtPass.getText().toString());
+            myEdit.apply();
+            if (question.isBlank() && answer.isBlank()) {
+                showAlertDialog();
+                view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+                view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+                view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+            } else {
+                view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+                view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+                view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+                setUpView();
+            }
+        }
+        if(txtPass.getText().length() < 4){
+            Toast.makeText(requireContext(), "Password not valid", Toast.LENGTH_SHORT).show();
+        }else if(txtPass.getText().toString().equals(password)) {
+            view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+            setUpView();
+        }
+    }
+
+    void setUpView() throws FileNotFoundException {
+        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+        getPaths(secureDir);
+        createMediaList();
+
+        secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
+
+        secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
+        secureAdapter.setListImages(mediaList);
+        secureAdapter.setListCategory(null);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, 4);
+        secureRecyclerView.setAdapter(secureAdapter);
+        secureRecyclerView.setLayoutManager(layoutManager);
+    }
+    
+     private void getPaths(File file) throws FileNotFoundException {
         File[] files = file.listFiles();
         for (File f : files) {
             Log.d("file-path", f.getAbsolutePath());
@@ -353,9 +397,8 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         // paths.remove(0);
         // Glide.with(context).load(paths.get(0)).into(test);
         // moveFile(paths.get(0));
-
-        createMediaList();
     }
+
 
     String getMimeType(String path){
         String type = null;
@@ -437,12 +480,53 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             mediaList.add(media);
         }
     }
+    
+    private void showViewLogic() {
+        if(txtPass.getText().toString().equals("")){
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+            view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+        }
+        if(password.equals("")){
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+            view.findViewById(R.id.create_pass_page).setVisibility(View.VISIBLE);
+        }
+    }
 
     void toolbarSetting(){
         toolbar = view.findViewById(R.id.toolbar_secure);
         toolbar.inflateMenu(R.menu.menu_top_secure);
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
+        
+         toolbar.getMenu().findItem(R.id.change_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+
+                return false;
+            }
+        });
+
+        toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
+            @Override
+            public boolean onMenuItemClick(MenuItem item) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Confirm");
+                builder.setMessage("Do you want to delete secured folder?");
+                builder.setPositiveButton("YES", (dialog, which) -> {
+                    File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+                    secureDir.delete();
+                    dialog.dismiss();
+                });
+
+                builder.setNegativeButton("NO", (dialog, which) -> {
+                    dialog.dismiss();
+                });
+                return false;
+            }
+        });
+        
         scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
                 .setListener(new Animator.AnimatorListener() {
                     @Override
