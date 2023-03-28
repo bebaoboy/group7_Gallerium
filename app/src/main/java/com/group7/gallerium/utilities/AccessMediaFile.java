@@ -26,6 +26,7 @@ public class AccessMediaFile {
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
     private static HashMap<String, Boolean> allYourAlbum = new HashMap<>();
+    private static HashMap<String, Boolean> allTrashedMedia = new HashMap<>();
     private static ArrayList<Media> cacheAllMedia = new ArrayList<>();
     private static boolean cached = false;
     private static boolean allMediaPresent = false;
@@ -47,6 +48,7 @@ public class AccessMediaFile {
             MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.DURATION,
             MediaStore.Files.FileColumns.SIZE,
+            MediaStore.Files.FileColumns.BITRATE
 
 
     };
@@ -104,8 +106,8 @@ public class AccessMediaFile {
         return new HashSet<>(s);
     }
 
-    public static boolean isFavMediaContains(String path) {
-        return allFavMedia.containsKey(path);
+    public static boolean isExistedAnywhere(String path) {
+        return allFavMedia.containsKey(path) || allTrashedMedia.containsKey(path);
     }
 
     private static HashMap<String, Media> getAllMedia() {
@@ -154,10 +156,11 @@ public class AccessMediaFile {
     private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
 
         if (!allMediaPresent) {
-            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn, videoLengthColumn, widthColumn, heightColumn, sizeColumn;
-            int count, type, width, height;
+            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn,
+                    videoLengthColumn, widthColumn, heightColumn, sizeColumn, bitrateColumn, resColumn;
+            int count, type, width, height, bitrate;
             String mimeType;
-            String absolutePath, id, title;
+            String absolutePath, id, title, res;
             long dateTaken, videoLength=0, size;
             HashMap<String, Media> listMedia = new HashMap<>();
 
@@ -183,6 +186,8 @@ public class AccessMediaFile {
             widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
             heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
             sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
+            bitrateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.BITRATE);
+            resColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.RESOLUTION);
 
             dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
             int dt = 0;
@@ -216,6 +221,8 @@ public class AccessMediaFile {
                 width = cursor.getInt(widthColumn);
                 height = cursor.getInt(heightColumn);
                 size = cursor.getLong(sizeColumn);
+                bitrate = cursor.getInt(bitrateColumn);
+                res = cursor.getString(resColumn);
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -228,6 +235,8 @@ public class AccessMediaFile {
                 media.setWidth(width);
                 media.setHeight(height);
                 media.setSize(size);
+                media.setBitrate(bitrate);
+                media.setResolution(res);
 
                 if (media.getPath().equals("")) {
                     continue;

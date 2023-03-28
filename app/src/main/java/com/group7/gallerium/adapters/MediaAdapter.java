@@ -1,6 +1,5 @@
 package com.group7.gallerium.adapters;
 
-import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.graphics.drawable.Drawable;
@@ -33,7 +32,6 @@ import com.group7.gallerium.activities.ViewMediaStandalone;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
-import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
@@ -48,8 +46,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 @Override
                 public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
                     return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
-                            AccessMediaFile.isFavMediaContains(oldItem.getPath())
-                                    == AccessMediaFile.isFavMediaContains(newItem.getPath());
+                            AccessMediaFile.isExistedAnywhere(oldItem.getPath())
+                                    == AccessMediaFile.isExistedAnywhere(newItem.getPath());
                 }
 
                 @Override
@@ -142,7 +140,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
-        Media media = getItem(position);
+        Media media = getItem(holder.getLayoutPosition());
         if (media == null || media.getPath() == null) {
             return;
         }
@@ -153,21 +151,21 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
 
         // Log.d("gallerium", media.getMimeType());
-        if (!med[position]) {
+        if (!med[holder.getLayoutPosition()]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().load("file://" + media.getThumbnail())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[position] = false;
+                                med[holder.getLayoutPosition()] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[position] = true;
+                                med[holder.getLayoutPosition()] = true;
                                 return false;
                             }
                         })
@@ -181,14 +179,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[position] = false;
+                                med[holder.getLayoutPosition()] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[position] = true;
+                                med[holder.getLayoutPosition()] = true;
                                 return false;
                             }
                         })
@@ -207,14 +205,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[position] = false;
+                                med[holder.getLayoutPosition()] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[position] = true;
+                                med[holder.getLayoutPosition()] = true;
                                 return false;
                             }
                         })
@@ -228,14 +226,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[position] = false;
+                                med[holder.getLayoutPosition()] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[position] = true;
+                                med[holder.getLayoutPosition()] = true;
                                 return false;
                             }
                         })
@@ -245,11 +243,19 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
 
 
-       if (AccessMediaFile.isFavMediaContains(media.getPath())) {
+       if (AccessMediaFile.isExistedAnywhere(media.getPath())) {
            holder.fav_icon.setVisibility(View.VISIBLE);
+       } else {
+           holder.fav_icon.setVisibility(View.GONE);
+
        }
 
-        if(media.getType() != 1) holder.play_icon.setVisibility(View.VISIBLE);
+        if(media.getType() != 1) {
+            holder.play_icon.setVisibility(View.VISIBLE);
+        }
+        else {
+            holder.play_icon.setVisibility(View.GONE);
+        }
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
                 if(holder.select.isChecked()){

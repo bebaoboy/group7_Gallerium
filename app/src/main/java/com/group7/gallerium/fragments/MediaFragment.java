@@ -1,11 +1,16 @@
 package com.group7.gallerium.fragments;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -88,7 +93,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     BottomSheetBehavior behavior;
     BottomSheetDialog bottomSheetDialog;
 
-    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
     boolean isPendingForIntent = false;
 
@@ -272,6 +277,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
+        btnFav = view.findViewById(R.id.add_to_fav_button);
+        btnHide = view.findViewById(R.id.hide_button);
 
         btnCopy.setOnClickListener((v)->{
             changeMode = false;
@@ -282,12 +289,68 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             openAlbumSelectView();
         });
         btnShare.setOnClickListener((v) -> {
-
+            if (selectedMedia.size() <= 0) return;
+            // Create intent to deliver some kind of result data
+            Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            ArrayList<Uri> uris = new ArrayList<>();
+            for(var m : selectedMedia) {
+                uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+            }
+            result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+            result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+            result.setType("*/*");
+            getActivity().startActivity(result);
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
 
         });
+        btnFav.setOnClickListener((v) -> {
+            addToFavorite();
+        });
+        btnFav.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                btnHide.setVisibility(View.VISIBLE);
+                btnFav.setVisibility(View.GONE);
+                return true;
+            }
+        });
+        btnHide.setOnClickListener((v) -> {
+            hideMedia();
+        });
+        btnHide.setOnLongClickListener(new View.OnLongClickListener() {
+            @Override
+            public boolean onLongClick(View view) {
+                btnHide.setVisibility(View.GONE);
+                btnFav.setVisibility(View.VISIBLE);
+                return true;
+            }
+        });
+    }
+
+    private void hideMedia() {
+
+    }
+
+    private void addToFavorite() {
+        saveScroll();
+        for(var m : selectedMedia) {
+            AccessMediaFile.addToFavMedia(m.getPath());
+        }
+        var favList = AccessMediaFile.getFavMedia();
+        // Log.d("fav", "fav amount pause = " + favList.size());
+        favList.forEach(x -> Log.d("fav", x));
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("fav_media", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.clear();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", favList);
+        myEdit.apply();
+        refresh();
+        callback.onDestroyActionMode(mode);
     }
 
     private void deleteMedia() {
@@ -530,6 +593,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             fileUtils.moveFileMultiple(selectedMedia, launcher, albumPath, context);
         }else{
             fileUtils.copyFileMultiple(selectedMedia, albumPath, context);
+        }
+        for(var r : selectedMedia) {
+            if (r.getPath().lastIndexOf("/") != -1) {
+                AccessMediaFile.addToFavMedia(albumPath + r.getPath().substring(r.getPath().lastIndexOf("/")));
+            }
         }
         refresh();
         callback.onDestroyActionMode(mode);

@@ -1,9 +1,11 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
+import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.util.Log;
@@ -79,7 +81,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     BottomSheetBehavior behavior;
 
     BottomSheetDialog bottomSheetDialog;
-    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav;
 
     private boolean changeMode = false;
 
@@ -230,6 +232,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         btnDelete = findViewById(R.id.delete_button);
         btnShare = findViewById(R.id.share_button);
         btnCreative = findViewById(R.id.create_button);
+        btnFav = findViewById(R.id.add_to_fav_button);
 
         btnCopy.setOnClickListener((v)->{
             changeMode = false;
@@ -240,12 +243,34 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             openAlbumSelectView();
         });
         btnShare.setOnClickListener((v) -> {
-
+            if (selectedMedia.size() <= 0) return;
+            // Create intent to deliver some kind of result data
+            Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            ArrayList<Uri> uris = new ArrayList<>();
+            for(var m : selectedMedia) {
+                uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+            }
+            result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+            result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+            result.setType("*/*");
+            startActivity(result);
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
 
         });
+        btnFav.setOnClickListener((v) -> {
+            addToFavorite();
+        });
+    }
+
+    private void addToFavorite() {
+        for(var m : selectedMedia) {
+            AccessMediaFile.addToFavMedia(m.getPath());
+        }
+        refresh();
+        callback.onDestroyActionMode(mode);
     }
 
     private void deleteMedia() {
@@ -444,6 +469,11 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             fileUtils.moveFileMultiple(selectedMedia, launcher, albumPath, getApplicationContext());
         }else{
             fileUtils.copyFileMultiple(selectedMedia, albumPath, getApplicationContext());
+        }
+        for(var r : selectedMedia) {
+            if (r.getPath().lastIndexOf("/") != -1) {
+                AccessMediaFile.addToFavMedia(albumPath + r.getPath().substring(r.getPath().lastIndexOf("/")));
+            }
         }
         refresh();
         callback.onDestroyActionMode(mode);

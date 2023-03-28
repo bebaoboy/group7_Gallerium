@@ -20,6 +20,8 @@ public class Media {
     private String title;
     private int width;
     private int height;
+    private int bitrate;
+    private String resolution;
 
     public Media() {
 
@@ -130,5 +132,21 @@ public class Media {
             return String.format(Locale.CHINA, format + "MB", (double)size / Math.pow(1024, 2));
         }
         return String.format(Locale.CHINA, format + "GB", (double)size / Math.pow(1024, 3));
+    }
+
+    public void setBitrate(int bitrate) {
+        this.bitrate = bitrate;
+    }
+
+    public int getBitrate() {
+        return bitrate;
+    }
+
+    public void setResolution(String res) {
+        resolution = res;
+    }
+
+    public String getResolution() {
+        return resolution;
     }
 }

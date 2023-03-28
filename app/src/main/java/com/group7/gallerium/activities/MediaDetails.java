@@ -67,10 +67,10 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaName.setText(name);
                     txtMediaResolution.setText(
                             String.format(getResources().getString(
-                                    R.string.resolution_placeholder),
+                                            R.string.resolution_placeholder),
                                     media.getWidth(),
                                     media.getHeight(),
-                                    1
+                                    (media.getWidth() * media.getHeight()) / 1024000f
                             ));
 //                    if(fileSizeInMb < 1)
 //                        txtMediaSize.setText("" + fileSizeInKb + "KB");
@@ -80,20 +80,25 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaPath.setText(mediaPath);
                     txtMediaTakenTime.setText(media.getDateTimeTaken());
 
-                    String flashValue = Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_FLASH), "0") ? "Không có flash": ExifInterface.TAG_FLASH;
+                    String flashValue = Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_FLASH), "0") ? "Không có flash": "Có flash";
 
                     if(exifInterface.getAttribute(ExifInterface.TAG_MAKE) != null) {
                         String focal = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
                         assert focal != null;
                         String[] values = focal.split("/");
                         float value = Float.parseFloat(values[0]) / Float.parseFloat(values[1]);
-                        txtExifData.setText(String.format(getResources().getString(R.string.exif_place_holder),
+                        String apVal = exifInterface.getAttribute(ExifInterface.TAG_APERTURE_VALUE);
+                        float exp = Float.parseFloat(Objects.requireNonNull(exifInterface.getAttribute(ExifInterface.TAG_EXPOSURE_TIME)));
+                        String iso = exifInterface.getAttribute(ExifInterface.TAG_ISO_SPEED);
+                        String exi = String.format(getResources().getString(R.string.exif_place_holder),
                                 exifInterface.getAttribute(ExifInterface.TAG_MAKE),
                                 exifInterface.getAttribute(ExifInterface.TAG_MODEL),
                                 value,
-                                "",
-                                "",
-                                flashValue));
+                                apVal,
+                                "1/" + Math.ceil(1 / exp),
+                                flashValue,
+                                iso != null ? iso : "Không có ISO");
+                        txtExifData.setText(exi);
 
                     }
                     else {
@@ -109,10 +114,11 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaName.setText(name);
                     txtMediaResolution.setText(
                             String.format(getResources().getString(
-                                            R.string.resolution_placeholder),
+                                            R.string.video_resolution_placeholder),
                                     media.getHeight(),
                                     media.getWidth(),
-                                    1
+                                    "Bitrate: " + Math.ceil(media.getBitrate() / 1024000f) + "Mb/s",
+                                    "Độ dài: " + media.getDuration()
                             ));
                     txtMediaSize.setText(media.getSize());
                     txtMediaPath.setText(mediaPath);

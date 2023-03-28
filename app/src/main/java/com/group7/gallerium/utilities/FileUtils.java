@@ -256,6 +256,7 @@ public class FileUtils {
         if (medias.size() <= 0) return;
         if (medias.size() <= 1){
             moveFile(medias.get(0).getPath(), launcher, outputPath, context);
+            return;
         }
         Uri outputFile;
 

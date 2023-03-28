@@ -27,7 +27,7 @@
     <string name="sample_album_memory_title">Mùa hè của tôi</string>
     <string name="sample_album_memory_content">Bất cứ nơi nào bạn đi, bất kể thời tiết như thế nào, luôn mang theo ánh nắng mặt trời của riêng bạn.</string>
     <string name="view_pager">viewpager</string>
-    <string name="add_fav">Thêm vào yêu thích</string>
+    <string name="add_fav">Yêu thích</string>
     <string name="change_info">Thay đổi thông tin</string>
     <string name="select_all">Chọn tất cả</string>
     <string name="creative">Sáng tạo</string>
@@ -44,14 +44,15 @@
     <string name="sample_file_size">1.4 MB</string>
     <string name="resolution">Độ phân giải</string>
     <string name="sample_resolution">2048 x 1024 13MP</string>
-    <string name="resolution_placeholder"> %1$d x %2$d %3$dMP</string>
+    <string name="resolution_placeholder"> %1$d x %2$d\n%3$.1fMP</string>
+    <string name="video_resolution_placeholder"> %1$d x %2$d\n%3$s\n%4$s</string>
     <string name="file_path">Đường dẫn</string>
     <string name="sample_file_path">Bộ nhớ trong/DCIM/ScreenShot/photo 1.png</string>
     <string name="location">Vị trí</string>
     <string name="apply">Áp dụng</string>
     <string name="exif_value">Dữ liệu EXIF</string>
     <string name="exif_value_sample">Redmi Note 9, Xiaomi \n f/1.89 ISO11228 \n 5.43mm Không đèn flash</string>
-    <string name="exif_place_holder">%1$s, %2$s\n %3$fmm %4$s %5$s %6s</string>
+    <string name="exif_place_holder">%1$s%2$s\n%3$fmm f%4$s %5$s\n%6$s %7$s</string>
     <string name="cancel">Hủy</string>
     <string name="title_activity_settings">SettingsActivity</string>
 
@@ -73,4 +74,6 @@
     <string name="question">Nhập câu hỏi</string>
     <string name="answer">Nhập câu trả lời</string>
     <string name="ok">Xác nhận</string>
+    <string name="remove_fav">Xóa yêu thích</string>
+    <string name="hide_media">Ẩn hình</string>
 </resources>

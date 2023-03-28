@@ -39,10 +39,8 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
-import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.adapters.SlideAdapter;
 import com.group7.gallerium.fragments.ActionBottomDialogFragment;
-import com.group7.gallerium.fragments.MediaFragment;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
@@ -293,7 +291,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         toolbar.setNavigationOnClickListener((view) -> finish());
         favBtn.setOnMenuItemClickListener(menuItem -> {
             if (menuItem.getItemId() == R.id.add_fav) {
-                if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+                if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
                     AccessMediaFile.removeFromFavMedia(mediaPath);
                     menuItem.setIcon(R.drawable.ic_fav_empty);
                 } else {
@@ -353,7 +351,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     btnSetBackGround.setVisibility(View.VISIBLE);
                 }
 
-                favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
+                favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);
             }
@@ -373,7 +371,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
         toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
         toolbar.setSubtitle(name);
-        if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+        if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
             favBtn.setIcon(R.drawable.ic_fav_solid);
         }
     }
@@ -456,6 +454,21 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         slideAdapter.removePath(mediaPath);
                         finish();
                     }
+                }
+
+                case R.id.share_nav_item -> {
+                        var m = AccessMediaFile.getMediaWithPath(mediaPath);
+                        // Create intent to deliver some kind of result data
+                        Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                        ArrayList<Uri> uris = new ArrayList<>();
+                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+
+                        result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                        result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                        result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                        result.setType("*/*");
+                        startActivity(result);
+
                 }
 
 //                case R.id.view_photo_secured_nav_item->{

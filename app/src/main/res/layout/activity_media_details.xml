@@ -26,6 +26,10 @@
             android:layout_height="wrap_content"
             android:text="@string/taken_datetime"
             android:layout_margin="10dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_taken_time"
             android:layout_width="wrap_content"
@@ -51,6 +55,10 @@
             android:layout_height="wrap_content"
             android:text="@string/file_name"
             android:layout_margin="10dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_name"
             android:layout_width="wrap_content"
@@ -74,6 +82,10 @@
             android:layout_height="wrap_content"
             android:text="@string/file_size"
             android:layout_margin="10dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_size"
             android:layout_width="wrap_content"
@@ -96,6 +108,10 @@
             android:layout_height="wrap_content"
             android:text="@string/resolution"
             android:layout_margin="10dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_resolution"
             android:layout_width="wrap_content"
@@ -123,7 +139,8 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/sample_file_path"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -141,12 +158,17 @@
             android:layout_height="wrap_content"
             android:text="@string/exif_value"
             android:layout_margin="10dp"/>
+        <View
+            android:layout_width="0dp"
+            android:layout_height="0dp"
+            android:layout_weight="1" />
         <TextView
             android:id="@+id/exif_value"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:text="@string/exif_value_sample"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"

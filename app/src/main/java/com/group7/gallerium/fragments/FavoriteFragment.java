@@ -1,10 +1,19 @@
 package com.group7.gallerium.fragments;
 
+import static android.content.Context.MODE_PRIVATE;
+
 import android.app.Activity;
 import android.content.Context;
+import android.content.Intent;
+import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.graphics.Bitmap;
+import android.net.Uri;
+import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -29,7 +38,10 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
+import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.models.Album;
+import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -38,10 +50,13 @@ import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.util.ArrayList;
+import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Map;
 import java.util.Objects;
+import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class FavoriteFragment extends Fragment  implements SelectMediaInterface {
@@ -54,12 +69,17 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     private ArrayList<Media> listMedia;
     ArrayList<Media> selectedMedia;
     MediaCategoryAdapter adapter;
+    ArrayList<Album> albumList;
+    ArrayList<AlbumCategory> albumCategories;
+
+    AlbumCategoryAdapter albumAdapter;
     private RecyclerView recyclerView;
 
     private RecyclerView addAlbumRecyclerView;
     private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
+    private boolean changeMode = false;
     boolean isAllChecked = false;
     ActionMode mode;
     private ActionMode.Callback callback;
@@ -68,7 +88,11 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     private BottomSheetBehavior behavior;
     private BottomSheetDialog bottomSheetDialog;
 
-    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav;
+    private FavoriteFragment.MediaListTask mediaListTask;
+    boolean isPendingForIntent = false;
+    static FileUtils fileUtils;
+    ArrayList<MediaCategory> mediaCategories;
 
     private ActivityResultLauncher<IntentSenderRequest> launcher;
 
@@ -76,6 +100,11 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     public void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setHasOptionsMenu(true);
+        selectedMedia = new ArrayList<>();
+        albumList = new ArrayList<>();
+        albumCategories = new ArrayList<>();
+        mediaCategories = new ArrayList<>();
+        fileUtils = new FileUtils();
         selectedMedia = new ArrayList<>();
 
         launcher = registerForActivityResult(
@@ -196,10 +225,16 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
             public void onDestroyActionMode(ActionMode actionMode) {
                 selectedMedia.clear();
                 adapter.setMultipleEnabled(false);
+                if (actionMode != null) {
+                    actionMode.finish();
+                }
                 mode = null;
                 requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
                 behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 bottom_sheet.setVisibility(View.GONE);
+                if (bottomSheetDialog != null) {
+                    bottomSheetDialog.cancel();
+                }
             }
         };
 
@@ -236,13 +271,35 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     }
     void bottomSheetButtonConfig(){
         btnMove = view.findViewById(R.id.move_album_button);
+        btnCopy = view.findViewById(R.id.copy_album_button);
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
-
-        btnMove.setOnClickListener((v)-> openAlbumSelectView());
-        btnShare.setOnClickListener((v)->{
-
+        var btn = view.findViewById(R.id.add_to_fav_button);
+        btn.setVisibility(View.GONE);
+        btnFav = view.findViewById(R.id.remove_from_fav_button);
+        btnFav.setVisibility(View.VISIBLE);
+        btnCopy.setOnClickListener((v)->{
+            changeMode = false;
+            openAlbumSelectView();
+        });
+        btnMove.setOnClickListener((v) -> {
+            changeMode = true;
+            openAlbumSelectView();
+        });
+        btnShare.setOnClickListener((v) -> {
+            if (selectedMedia.size() <= 0) return;
+            // Create intent to deliver some kind of result data
+            Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+            ArrayList<Uri> uris = new ArrayList<>();
+            for(var m : selectedMedia) {
+                uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+            }
+            result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+            result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+            result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+            result.setType("*/*");
+            getActivity().startActivity(result);
         });
         btnDelete.setOnClickListener((v)->{
 
@@ -250,6 +307,58 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         btnCreative.setOnClickListener((v)->{
 
         });
+        btnFav.setOnClickListener((v) -> {
+            removeFromFavorite();
+        });
+    }
+
+    private void removeFromFavorite() {
+        saveScroll();
+        for(var m : selectedMedia) {
+            AccessMediaFile.removeFromFavMedia(m.getPath());
+        }
+        var favList = AccessMediaFile.getFavMedia();
+        // Log.d("fav", "fav amount pause = " + favList.size());
+        favList.forEach(x -> Log.d("fav", x));
+        SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("fav_media", MODE_PRIVATE);
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.clear();
+
+        // write all the data entered by the user in SharedPreference and apply
+        myEdit.putStringSet("path", favList);
+        myEdit.apply();
+        refresh();
+        callback.onDestroyActionMode(mode);
+    }
+
+    private void deleteMedia() {
+        saveScroll();
+        new AsyncTask<Void, Integer, Void>() {
+            @Override
+            protected void onPostExecute(Void unused) {
+                super.onPostExecute(unused);
+                callback.onDestroyActionMode(mode);
+                isPendingForIntent = false;
+                refresh();
+            }
+
+            @Override
+            protected Void doInBackground(Void... voids) {
+                if (fileUtils.deleteMultiple(launcher, selectedMedia, context) > 0) {
+                    for(var m : selectedMedia) {
+                        AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                    }
+                }
+                else {
+                    isPendingForIntent = true;
+                }
+                while (isPendingForIntent) {}
+                return null;
+            }
+//
+//        refresh();
+//        callback.onDestroyActionMode(mode);
+        }.execute();
     }
 
     @Override
@@ -257,45 +366,38 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         super.onConfigurationChanged(newConfig);
     }
 
-    void openAlbumSelectView(){
+    void openAlbumSelectView() {
         Log.d("Open bottom sheet", "true");
         View viewDialog = LayoutInflater.from(context).inflate(R.layout.add_to_album_bottom_dialog, null);
         addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
-        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 3));
+        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(context, 1));
         bottomSheetDialog = new BottomSheetDialog(context);
         bottomSheetDialog.setContentView(viewDialog);
-        bottomSheetDialog.show();
-//        AlbumAsyncTask myAsyncTask = new MyAsyncTask();
-//        myAsyncTask.execute();
+        FavoriteFragment.AlbumListTask albumAsyncTask = new FavoriteFragment.AlbumListTask();
+        albumAsyncTask.execute();
     }
 
     public void changeOrientation(int spanCount) {
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
-            adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
+            adapter = new MediaCategoryAdapter(context, spanCount, this);
             refresh();
+            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
+            callback.onDestroyActionMode(mode);
         }
-        recyclerView.setAdapter(adapter);
-
-        if (bottomSheetDialog != null) {
-            bottomSheetDialog.cancel();
-            selectedMedia.clear();
-            mode.finish();
-            bottom_sheet.setVisibility(View.GONE);
-            requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
-        }
-        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
-
     public void refresh() {
-        adapter.setData(getListCategory());
+        Log.d("refresh", "");
+        mediaListTask = new FavoriteFragment.MediaListTask();
+        mediaListTask.execute();
     }
 
     public void refresh(boolean scroll) {
-        ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
-        adapter.setData(getListCategory());
+        Log.d("refresh with result", "");
+        mediaListTask = new FavoriteFragment.MediaListTask(scroll);
+        mediaListTask.execute();
     }
 
     void recyclerViewSetting(){
@@ -341,31 +443,33 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 //        return result;
 //    }
 
-    private List<MediaCategory> getListCategory() {
+    @NonNull
+    ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
+        AccessMediaFile.getAllMedia(getContext());
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         listMedia = new ArrayList<>(AccessMediaFile.getAllFavMedia());
 
         try {
             categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            Objects.requireNonNull(categoryList.get(listMedia.get(0).getDateTaken())).addMediaToList(listMedia.get(0));
+            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
             for (int i = 1; i < listMedia.size(); i++) {
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
                     categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                 }
 
-                Objects.requireNonNull(categoryList.get(listMedia.get(i).getDateTaken())).addMediaToList(listMedia.get(i));
+                categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
             }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = 60;
-            for(var cat : categoryList.values()) {
+            for (var cat : categoryList.values()) {
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
-
-                    newCatList.add(new MediaCategory(cat.getNameCategory(), new ArrayList<>(cat.getList().subList(i,
+                    String name = i == 0 ? cat.getNameCategory() : "";
+                    newCatList.add(new MediaCategory(name, new ArrayList<>(cat.getList().subList(i,
                             Math.min(i + partitionSize, cat.getList().size())))));
 
                 }
@@ -390,15 +494,15 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
     @Override
     public void addToSelectedList(@NonNull Media media) {
-        if(!selectedMedia.contains(media)) {
+        if (!selectedMedia.contains(media)) {
             selectedMedia.add(media);
-            for ( int i = 0; i < bottom_sheet.getChildCount();  i++ ){
+            for (int i = 0; i < bottom_sheet.getChildCount(); i++) {
                 View view = bottom_sheet.getChildAt(i);
                 view.setEnabled(true);
             }
-            if(mode != null) {
+            if (mode != null) {
                 mode.invalidate();
-                mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
+                mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
             }
         }
         //Log.d("size outer", "" + selectedMedia.size());
@@ -412,14 +516,14 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
     @Override
     public void deleteFromSelectedList(@NonNull Media media) {
-        if(selectedMedia.contains(media)) {
+        if (selectedMedia.contains(media)) {
             selectedMedia.remove(media);
-            if(mode != null){
+            if (mode != null) {
                 mode.invalidate();
                 mode.setTitle("Đã chọn " + selectedMedia.size() + " mục");
-                if(selectedMedia.isEmpty()){
+                if (selectedMedia.isEmpty()) {
                     mode.setTitle("Chọn mục");
-                    for ( int i = 0; i < bottom_sheet.getChildCount();  i++ ){
+                    for (int i = 0; i < bottom_sheet.getChildCount(); i++) {
                         View view = bottom_sheet.getChildAt(i);
                         view.setEnabled(false);
                     }
@@ -432,17 +536,223 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     @Override
     public void moveMedia(@NonNull String albumPath) {
         FileUtils fileUtils = new FileUtils();
-        for (Media media : selectedMedia) {
-            String[] subDir = media.getPath().split("/");
-            String name = subDir[subDir.length - 1];
-            fileUtils.moveFile(media.getPath(), launcher, albumPath, context);
+        if(changeMode) {
+            fileUtils.moveFileMultiple(selectedMedia, launcher, albumPath, context);
+        }else{
+            fileUtils.copyFileMultiple(selectedMedia, albumPath, context);
         }
-        bottomSheetDialog.cancel();
-        adapter.setData(getListCategory());
-        selectedMedia.clear();
-        mode.finish();
-        bottom_sheet.setVisibility(View.GONE);
-        requireActivity().findViewById(R.id.bottom_navigation).setVisibility(View.VISIBLE);
+        for(var r : selectedMedia) {
+            if (r.getPath().lastIndexOf("/") != -1) {
+                var p = albumPath + r.getPath().substring(r.getPath().lastIndexOf("/"));
+                AccessMediaFile.addToFavMedia(p);
+            }
+        }
+        refresh();
+        callback.onDestroyActionMode(mode);
+    }
+
+
+    public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            albumAdapter = new AlbumCategoryAdapter(context, FavoriteFragment.this, 3);
+            albumAdapter.setViewType(1);
+            albumAdapter.setData(albumCategories);
+            addAlbumRecyclerView.setAdapter(albumAdapter);
+            bottomSheetDialog.show();
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(requireContext());
+            albumList = getAllAlbum(listMediaTemp);
+            categorizeAlbum();
+
+            return null;
+        }
+    }
+
+    public void rescanForUnAddedAlbum(){
+        String name;
+        try {
+            Cursor cursor =  context.getContentResolver().query(
+                    MediaStore.Files.getContentUri("external")
+                    , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                    , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                    , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+            int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+            // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+            int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            Log.d("size", "" + cursor.getCount());
+
+            ArrayList<Album> temp = new ArrayList<>();
+            while (cursor.moveToNext()) {
+                String path = cursor.getString(pathColumn);
+                Log.d("path", path);
+                name = cursor.getString(nameColumn);
+                Log.d("name", name);
+                String[] subDirs = path.split("/");
+                if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                Album album = new Album(null, name);
+                album.setPath(path);
+                temp.add(album);
+            }
+            for(Album album: albumList){
+                for(int i=0;i<temp.size();i++){
+                    if(temp.get(i).getPath().equals(album.getPath())){
+                        temp.remove(i);
+                    }
+                }
+            }
+            if(temp.size() >0)albumList.addAll(temp);
+            cursor.close();
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+    }
+
+    @NonNull
+    public ArrayList<Album> getAllAlbum(@NonNull ArrayList<Media> listMedia) {
+        List<String> paths = new ArrayList<>();
+        ArrayList<Album> albums = new ArrayList<>();
+
+        for (int i = 0; i < listMedia.size(); i++) {
+            String[] subDirectories = listMedia.get(i).getPath().split("/");
+            String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
+            String name = subDirectories[subDirectories.length - 2];
+            if (!paths.contains(folderPath)) {
+                paths.add(folderPath);
+                Album album = new Album(listMedia.get(i), name);
+                album.setPath(folderPath);
+                if (listMedia.get(i).getHeight() != 0) {
+                    album.addMedia(listMedia.get(i));
+                }
+                albums.add(album);
+            } else {
+                if (listMedia.get(i).getHeight() != 0) {
+                    albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                }
+            }
+        }
+
+        return albums;
+    }
+
+
+    public void categorizeAlbum() {
+        HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
+        String[] subDir;
+        categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
+        categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
+        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
+
+        rescanForUnAddedAlbum();
+        for (Album album : albumList) {
+            String path = album.getPath();
+            subDir = path.split("/");
+            String catName = "";
+            String parent = subDir[subDir.length - 1];
+            if(subDir.length>=2) {
+                parent = subDir[subDir.length - 2];
+                if (parent.equals("DCIM")) {
+                    if (subDir[subDir.length - 1].equals("Camera")
+                            || subDir[subDir.length - 1].equals("Screenshots")
+                            || subDir[subDir.length - 1].equals("Ảnh")
+                            || subDir[subDir.length - 1].equals("Video") ) {
+                        //categoryList.get("Mặc định").addAlbumToList(album);
+                        catName = "Mặc định";
+                    }
+                } else if (parent.equals("owner")) {
+                    //categoryList.get("Của tôi").addAlbumToList(album);
+                    catName = "Của tôi";
+                }
+            }
+
+            if (catName.length() == 0) {
+
+                catName = "Thêm album";
+            }
+
+            boolean needToMerge = false;
+            for(Album album1: categoryList.get(catName).getList()){
+                if (!album.getPath().equals(album1.getPath()) && album.getName().equalsIgnoreCase(album1.getName()))
+                {
+                    String path1 = album1.getPath();
+                    String[] subDir1 = path1.split("/");
+                    String parent1 = subDir1[subDir1.length - 2];
+                    if (parent1.equalsIgnoreCase(parent))
+                    {
+                        // Log.d("merge", "merging " + album.getPath() + " and " + album1.getPath());
+                        album1.getListMedia().addAll(album.getListMedia());
+                        album1.setListMedia(
+                                new ArrayList<>(album1.getListMedia()
+                                        .stream()
+                                        .sorted(Comparator.comparingLong(Media::getRawDate).reversed())
+                                        .collect(Collectors.toList())));
+                        needToMerge = true;
+                    }
+                    else
+                    {
+                        album.setName(album1.getName() + " (" + parent + ")");
+                    }
+                    break;
+                }
+            }
+
+            if (!needToMerge)
+            {
+                categoryList.get(catName).addAlbumToList(album);
+            }
+
+        }
+
+        albumList.clear();
+        albumCategories.clear();
+        for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
+            // Log.d("Key", entry.getKey());
+            albumCategories.add(entry.getValue());
+            //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
+            albumList.addAll(entry.getValue().getList());
+        }
+    }
+    public class MediaListTask extends AsyncTask<Void, Integer, Void> {
+        boolean scroll = false;
+        public MediaListTask(boolean scroll) {
+            this.scroll = scroll;
+        }
+
+        public MediaListTask() {}
+        @Override
+        protected void onPreExecute() {
+            super.onPreExecute();
+            AccessMediaFile.refreshAllMedia();
+        }
+
+        @Override
+        protected void onPostExecute(Void unused) {
+            super.onPostExecute(unused);
+            adapter.setData(mediaCategories);
+            recyclerView.setAdapter(adapter);
+            Log.d("refresh", "refresh media adapter");
+            if (scroll) {
+                ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
+            } else {
+                ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            }
+        }
+
+        @Override
+        protected Void doInBackground(Void... voids) {
+            mediaCategories = getListCategory();
+            return null;
+        }
     }
 
 }

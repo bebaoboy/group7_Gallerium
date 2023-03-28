@@ -20,17 +20,16 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/photo_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="10dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        android:overScrollMode="ifContentScrolls"
-        />
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/photo_recyclerview"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"
+            android:layout_marginStart="5dp"
+            android:layout_marginTop="10dp"
+            android:layout_marginEnd="5dp"
+            android:layout_marginBottom="20dp"
+            android:overScrollMode="ifContentScrolls"
+            app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
 
     </FrameLayout>
     <include

@@ -12,6 +12,7 @@ import android.net.Uri;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.View;
@@ -23,8 +24,6 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
-import androidx.preference.ListPreference;
-import androidx.preference.PreferenceManager;
 import androidx.viewpager2.widget.ViewPager2;
 
 import com.google.android.material.bottomnavigation.BottomNavigationView;

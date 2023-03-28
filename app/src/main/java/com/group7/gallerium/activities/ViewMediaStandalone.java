@@ -54,12 +54,10 @@ import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
-import java.nio.file.Files;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -70,8 +68,6 @@ import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
 import java.util.stream.Collectors;
-
-import kotlin.jvm.Throws;
 
 @SuppressWarnings("rawtypes")
 public class ViewMediaStandalone extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
@@ -397,7 +393,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         toolbar.setNavigationOnClickListener((view) -> finish());
         favBtn.setOnMenuItemClickListener(menuItem -> {
             if (menuItem.getItemId() == R.id.add_fav) {
-                if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+                if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
                     AccessMediaFile.removeFromFavMedia(mediaPath);
                     menuItem.setIcon(R.drawable.ic_fav_empty);
                 } else {
@@ -457,7 +453,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
                     btnSetBackGround.setVisibility(View.VISIBLE);
                 }
 
-                favBtn.setIcon(AccessMediaFile.isFavMediaContains(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
+                favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);
             }
@@ -477,7 +473,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
         toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
         toolbar.setSubtitle(name);
-        if (AccessMediaFile.isFavMediaContains(mediaPath)) {
+        if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
             favBtn.setIcon(R.drawable.ic_fav_solid);
         }
     }
