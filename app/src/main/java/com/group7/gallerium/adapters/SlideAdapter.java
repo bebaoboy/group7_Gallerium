@@ -5,6 +5,7 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.VideoView;
@@ -26,6 +27,8 @@ public class SlideAdapter extends PagerAdapter {
     ArrayList<String> paths;
     Context context;
     private PhotoView img;
+
+    private int viewType;
 
     private boolean trigger = false;
 
@@ -60,8 +63,13 @@ public class SlideAdapter extends PagerAdapter {
     public Object instantiateItem(@NonNull ViewGroup container, int position) {
         String path = paths.get(position);
         Log.d("gallerium", path + " " + position);
+        Media m;
         // TODO: fix wrong video path
-        Media m = AccessMediaFile.getMediaWithPath(path);
+        if(viewType == 2) {
+            m = AccessMediaFile.getMediaWithPath(path);
+        }else{
+            m = createMediaFromFile(path);
+        }
         mediaItemInterface.showActionBar(true);
         trigger = true;
         View view;
@@ -119,6 +127,38 @@ public class SlideAdapter extends PagerAdapter {
         return null;
     }
 
+    String getMimeType(String path){
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        Log.d("mime-type", type
+        );
+        return type;
+    }
+
+    int getType(String mimeType){
+        int mediaType = -1;
+        if(mimeType.startsWith("image")){ mediaType = 1;}
+        else mediaType = 3;
+        return mediaType;
+    }
+
+    private Media createMediaFromFile(String path) {
+        String[] dirs = path.split("/");
+        Media media = new Media();
+        String mimeType = getMimeType(path);
+        int mediaType = getType(mimeType);
+        media.setMimeType(mimeType);
+        media.setType(mediaType);
+        media.setPath(path);
+        media.setTitle(dirs[dirs.length-1]);
+        media.setThumbnail(path);
+
+        return media;
+    }
+
     @Override
     public void destroyItem(@NonNull ViewGroup container, int position, @NonNull Object object) {
         ViewPager viewPager = (ViewPager) container;
@@ -128,5 +168,9 @@ public class SlideAdapter extends PagerAdapter {
 
     public void setInterface(MediaItemInterface itemInterface) {
         this.mediaItemInterface = itemInterface;
+    }
+
+    public void setViewType(int viewType) {
+        this.viewType = viewType;
     }
 }

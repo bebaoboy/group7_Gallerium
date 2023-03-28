@@ -1,10 +1,13 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
+import android.app.AlertDialog;
+import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -15,6 +18,7 @@ import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
+import android.webkit.MimeTypeMap;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.MediaController;
@@ -66,7 +70,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private Toolbar toolbar;
     MenuItem favBtn;
     MediaController videoController;
-    private int mediaPos;
+    private int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg;
     String mediaPath;
     private Intent intent;
 
@@ -267,6 +271,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     void showDetails(){
        Intent intent = new Intent(this, MediaDetails.class);
+       intent.putExtra("view-type", viewType);
        intent.putExtra("media_path", mediaPath);
        startActivity(intent);
     }
@@ -276,7 +281,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         intent = getIntent();
         listPath = intent.getStringArrayListExtra("data_list_path");
         mediaPos = intent.getIntExtra("pos", 0);
+        viewType = intent.getIntExtra("view-type", 2);
         mediaItemInterface = this;
+
     }
 
 
@@ -320,6 +327,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
         viewPager.setCurrentItem(mediaPos);
+        slideAdapter.setViewType(viewType);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -345,10 +353,20 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
                 }
-                if (AccessMediaFile.getMediaWithPath(mediaPath).getType() != 1) {
-                    btnSetBackGround.setVisibility(View.GONE);
-                } else {
-                    btnSetBackGround.setVisibility(View.VISIBLE);
+                if(viewType == 2) {
+                    if (AccessMediaFile.getMediaWithPath(mediaPath).getType() != 1) {
+                        btnSetBackGround.setVisibility(View.GONE);
+                    } else {
+                        btnSetBackGround.setVisibility(View.VISIBLE);
+                    }
+                }else{
+                    String mimeType = getMimeType(mediaPath);
+                    int mediaType = getType(mimeType);
+                    if (mediaType != 1) {
+                        btnSetBackGround.setVisibility(View.GONE);
+                    } else {
+                        btnSetBackGround.setVisibility(View.VISIBLE);
+                    }
                 }
 
                 favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
@@ -471,7 +489,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
                 }
 
-//                case R.id.view_photo_secured_nav_item->{
+                case R.id.view_photo_secured_nav_item->{
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
 //                    builder.setTitle("Confirm");
@@ -524,7 +542,36 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                    alert.show();
 //
 //                    break;
-//                }
+
+
+                    String scrPath =  getFilesDir().getAbsolutePath() + File.separator+ "secure-subfolder";
+                    File scrDir = new File(scrPath);
+                    if(!scrDir.exists()){
+                        Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
+                    }
+                    else{
+                        File mediaFile = new File(mediaPath);
+                        if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
+                            String[] subDirs = mediaPath.split("/");
+                            String name = subDirs[subDirs.length-1];
+                            fileUtils.secureFile(getApplicationContext(), mediaPath, name, launcher);
+                            Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
+                        }
+                        else{
+                            String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
+                            File folder = new File(outputPath);
+                            File file = new File(mediaFile.getPath());
+                            File desImgFile = new File(outputPath,mediaFile.getName());
+                            if(!folder.exists()) {
+                                folder.mkdir();
+                            }
+                            mediaFile.renameTo(desImgFile);
+                            mediaFile.deleteOnExit();
+                            desImgFile.getPath();
+                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+                        }
+                    }
+                }
             }
             return true;
         });
@@ -702,6 +749,24 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
             return null;
         }
+    }
+
+    String getMimeType(String path){
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        Log.d("mime-type", type
+        );
+        return type;
+    }
+
+    int getType(String mimeType){
+        int mediaType = -1;
+        if(mimeType.startsWith("image")){ mediaType = 1;}
+        else mediaType = 3;
+        return mediaType;
     }
 
     public void rescanForUnAddedAlbum(){
