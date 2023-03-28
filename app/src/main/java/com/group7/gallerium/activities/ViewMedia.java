@@ -340,7 +340,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     }
                 }
                 mediaPath = listPath.get(position);
-                final Media m = AccessMediaFile.getMediaWithPath(mediaPath);
+                Media m;
+                if(viewType == 1){
+                    m = createMediaFromFile(mediaPath);
+                }else {
+                    m = AccessMediaFile.getMediaWithPath(mediaPath);
+                }
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
@@ -388,6 +393,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     public void setTitleToolbar(@NonNull Media m) {
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
+        Log.d("name", name);
         toolbar.setTitle(dateFormat.format(m.getRawDate()));
         toolbar.setSubtitle(name);
         if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
@@ -768,6 +774,20 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         if(mimeType.startsWith("image")){ mediaType = 1;}
         else mediaType = 3;
         return mediaType;
+    }
+
+    private Media createMediaFromFile(String path) {
+        String[] dirs = path.split("/");
+        Media media = new Media();
+        String mimeType = getMimeType(path);
+        int mediaType = getType(mimeType);
+        media.setMimeType(mimeType);
+        media.setType(mediaType);
+        media.setPath(path);
+        media.setTitle(dirs[dirs.length-1]);
+        media.setThumbnail(path);
+
+        return media;
     }
 
     public void rescanForUnAddedAlbum(){

@@ -39,6 +39,7 @@ import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.group7.gallerium.utilities.FileUtils;
 import com.karan.churi.PermissionManager.PermissionManager;
 
+import java.io.FileNotFoundException;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {

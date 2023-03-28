@@ -1,28 +1,24 @@
 package com.group7.gallerium.fragments;
+
 import static android.os.storage.StorageManager.ACTION_MANAGE_STORAGE;
 
 import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
-
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
 import android.webkit.MimeTypeMap;
-import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
@@ -37,25 +33,21 @@ import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.exifinterface.media.ExifInterface;
-
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.MediaAdapter;
-import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -94,7 +86,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     ImageView test;
     private  String secretPath;
     private ActivityResultLauncher<IntentSenderRequest> launcher;
-    private int spanCount = -1;
+    private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
 
@@ -166,6 +158,13 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
+            File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+            try {
+                paths.clear();
+                getPaths(secureDir);
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
             mediaList.clear();
             createMediaList();
             secureAdapter.setListImages(mediaList);
@@ -173,6 +172,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
             secureRecyclerView.setAdapter(secureAdapter);
             secureRecyclerView.setLayoutManager(layoutManager);
+            secureAdapter.setImageSize(240);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(secureRecyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
 //            callback.onDestroyActionMode(mode);
@@ -211,6 +211,10 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         btnClear = view.findViewById(R.id.secure_clear_button);
         btnEnter = view.findViewById(R.id.secure_enter_button);
 
+        secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
+
+        secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
+
         //test = view.findViewById(R.id.preview);
         for(int i = 0; i < 10; i++)
         {
@@ -223,8 +227,8 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
             try {
                 verifiedLogic();
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+            } catch (Exception e){
+                Log.d("tag", e.getMessage());
             }
         });
         context = requireContext();
@@ -234,12 +238,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         return view;
     }
 
-    private void showViewLogic() {
-        if(txtPass.getText().toString().equals("")){
-            view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
-            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
-        }
-    }
 
     private void showAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -322,30 +320,8 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             throw new RuntimeException(e);
         }
     }
-    
-     private void showAlertDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
-        LayoutInflater inflater = requireActivity().getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_questionaire, null);
-
-        builder.setView(dialogView)
-                .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
-                    var editQuestion = (EditText)dialogView.findViewById(R.id.question);
-                    var editAnswer = (EditText)dialogView.findViewById(R.id.answer);
-                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
-                    myEdit.putString("question", editQuestion.getText().toString());
-                    myEdit.putString("answer", editAnswer.getText().toString());
-                    myEdit.apply();
-                    showViewLogic();
-                }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
-                     dialogInterface.dismiss();
-                }));
-        builder.create();
-        builder.show();
-    }
-
-    void verifiedLogic() throws FileNotFoundException {
+    void verifiedLogic() {
         password = sharedPreferences.getString("password", "");
         if(password.equals("")){
             SharedPreferences.Editor myEdit = sharedPreferences.edit();
@@ -373,17 +349,24 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
 
-    void setUpView() throws FileNotFoundException {
+    void setUpView(){
         File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-        getPaths(secureDir);
+        try {
+            paths.clear();
+            getPaths(secureDir);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+
+        mediaList.clear();
         createMediaList();
 
         secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
-
         secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
         secureAdapter.setListImages(mediaList);
         secureAdapter.setListCategory(null);
-        GridLayoutManager layoutManager = new GridLayoutManager(context, 4);
+        secureAdapter.setImageSize(240);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         secureRecyclerView.setAdapter(secureAdapter);
         secureRecyclerView.setLayoutManager(layoutManager);
     }

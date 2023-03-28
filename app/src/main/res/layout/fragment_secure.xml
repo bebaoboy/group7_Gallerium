@@ -15,7 +15,7 @@
         app:layout_constraintEnd_toEndOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
-ư
+
     <LinearLayout
         android:id="@+id/create_pass_page"
         android:layout_width="match_parent"
@@ -154,6 +154,7 @@
 <!--            android:layout_height="120dp"/>-->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/secured_recycler_view"
+            android:paddingTop="80dp"
             android:layout_width="match_parent"
             android:layout_height="match_parent"/>
     </LinearLayout>
