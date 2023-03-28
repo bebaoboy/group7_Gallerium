@@ -1,0 +1,162 @@
+<?xml version="1.0" encoding="utf-8"?>
+<androidx.coordinatorlayout.widget.CoordinatorLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    tools:context=".fragments.MediaFragment"
+    >
+
+    <include
+        layout="@layout/layout_toolbar"
+        android:id="@+id/toolbar_secure"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
+        app:layout_constraintTop_toTopOf="parent" />
+
+    <LinearLayout
+        android:id="@+id/create_pass_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:gravity="center"
+        android:visibility="gone">
+        <Button
+            android:id="@+id/create_folder_button"
+            android:text="Tạo thư mục bảo mật"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"/>
+    </LinearLayout>
+
+    <androidx.core.widget.NestedScrollView
+        android:id="@+id/secure_scrollview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:visibility="gone">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:orientation="vertical"
+        android:layout_gravity="center"
+        android:paddingVertical="40dp"
+        android:theme="@style/SecureBackground">
+
+        <ImageView
+            android:layout_width="100dp"
+            android:layout_height="100dp"
+            android:layout_gravity="center"
+            android:layout_marginVertical="30dp"
+            android:src="@drawable/ic_secure" />
+
+        <EditText
+            android:id="@+id/txtPassword"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textAlignment="center"
+            android:focusable="false"
+            android:cursorVisible="false"
+            android:letterSpacing="0.5"
+            android:textSize="60sp"
+            android:maxLength="4"
+            android:layout_marginEnd="0dp"
+            style="@style/SecureButton"
+            android:inputType="numberPassword"
+            android:layout_gravity="center_horizontal"
+            android:layout_marginVertical="10dp"
+            />
+        <GridLayout
+            android:id="@+id/numpad_grid"
+            android:layout_marginEnd="-10dp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center"
+            android:columnCount="3"
+            android:orientation="horizontal">
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="1" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="2" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="3" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="4" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="5" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="6" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="7" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="8" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:text="9" />
+
+            <com.google.android.material.button.MaterialButton
+                style="@style/SecureButton"
+                android:layout_column="1"
+                android:text="0" />
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/secure_enter_button"
+                android:layout_column="2"
+                android:layout_gravity="center"
+                android:layout_marginEnd="20dp"
+                android:background="@android:color/transparent"
+                android:text="Enter"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:textSize="11sp"
+                style="@style/SecureButton"/>
+
+            <com.google.android.material.button.MaterialButton
+                android:id="@+id/secure_clear_button"
+                android:layout_column="0"
+                android:layout_gravity="center"
+                android:layout_marginEnd="20dp"
+                android:background="@android:color/transparent"
+                android:foreground="?android:attr/selectableItemBackground"
+                android:text="Clear"
+                android:textSize="11sp"
+                style="@style/SecureButton"/>
+
+        </GridLayout>
+    </LinearLayout>
+    </androidx.core.widget.NestedScrollView>
+
+    <LinearLayout
+        android:id="@+id/main_secured_page"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent">
+<!--        <ImageView-->
+<!--            android:id="@+id/preview"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="120dp"/>-->
+        <androidx.recyclerview.widget.RecyclerView
+            android:id="@+id/secured_recycler_view"
+            android:layout_width="match_parent"
+            android:layout_height="match_parent"/>
+    </LinearLayout>
+
+
+</androidx.coordinatorlayout.widget.CoordinatorLayout>
