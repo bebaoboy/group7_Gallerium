@@ -5,6 +5,8 @@ import androidx.appcompat.app.AppCompatActivity;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
+import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.TextView;
 import android.widget.Toast;
 import androidx.appcompat.widget.Toolbar;
@@ -20,6 +22,7 @@ import java.util.Objects;
 
 public class MediaDetails extends AppCompatActivity {
 
+    private int viewType;
     private String mediaPath;
     private TextView txtMediaTakenTime, txtMediaPath;
     private TextView txtMediaName, txtMediaSize;
@@ -33,12 +36,49 @@ public class MediaDetails extends AppCompatActivity {
         setContentView(R.layout.activity_media_details);
 
         mediaPath = getIntent().getStringExtra("media_path");
+        viewType = getIntent().getIntExtra("view-type", 2);
         toolbar = findViewById(R.id.toolbar_media_details);
         toolbar.setTitle("Thông tin chi tiết");
         toolbar.setTitleTextAppearance(this, R.style.ToolbarTitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
         applyData();
+    }
+
+    public void setViewType(int viewType){
+        this.viewType = viewType;
+    }
+
+    String getMimeType(String path){
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        Log.d("mime-type", type
+        );
+        return type;
+    }
+
+    int getType(String mimeType){
+        int mediaType = -1;
+        if(mimeType.startsWith("image")){ mediaType = 1;}
+        else mediaType = 3;
+        return mediaType;
+    }
+
+    private Media createMediaFromFile(String path) {
+        String[] dirs = path.split("/");
+        Media media = new Media();
+        String mimeType = getMimeType(path);
+        int mediaType = getType(mimeType);
+        media.setMimeType(mimeType);
+        media.setType(mediaType);
+        media.setPath(path);
+        media.setTitle(dirs[dirs.length-1]);
+        media.setThumbnail(path);
+
+        return media;
     }
 
     private void applyData() {
@@ -55,7 +95,12 @@ public class MediaDetails extends AppCompatActivity {
             txtMediaName = findViewById(R.id.media_name);
             txtExifData = findViewById(R.id.exif_value);
 
-            Media media = AccessMediaFile.getMediaWithPath(mediaPath);
+            Media media;
+            if(viewType == 2) {
+                media = AccessMediaFile.getMediaWithPath(mediaPath);
+            }else{
+                media = createMediaFromFile(mediaPath);
+            }
             String[] subDir = media.getPath().split("/");
             String name = subDir[subDir.length - 1];
             if(media.getType() == 1) {

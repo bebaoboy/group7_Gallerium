@@ -5,7 +5,7 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     tools:context=".fragments.MediaFragment"
-    android:theme="@style/SecureBackground">
+    >
 
 
     <include
@@ -28,7 +28,8 @@
         android:layout_height="match_parent"
         android:orientation="vertical"
         android:layout_gravity="center"
-        android:paddingVertical="40dp">
+        android:paddingVertical="40dp"
+        android:theme="@style/SecureBackground">
 
         <ImageView
             android:layout_width="100dp"
@@ -133,10 +134,10 @@
         android:id="@+id/main_secured_page"
         android:layout_width="match_parent"
         android:layout_height="match_parent">
-        <ImageView
-            android:id="@+id/preview"
-            android:layout_width="match_parent"
-            android:layout_height="120dp"/>
+<!--        <ImageView-->
+<!--            android:id="@+id/preview"-->
+<!--            android:layout_width="match_parent"-->
+<!--            android:layout_height="120dp"/>-->
         <androidx.recyclerview.widget.RecyclerView
             android:id="@+id/secured_recycler_view"
             android:layout_width="match_parent"

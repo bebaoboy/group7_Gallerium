@@ -143,6 +143,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         Media media = getItem(position);
+
+        if(context == null) return;
         if (media == null || media.getPath() == null) {
             return;
         }
@@ -332,10 +334,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         @Override
         protected Void doInBackground(Void... voids) {
             listPath = new ArrayList<>();
-            for(int i = 0; i< listMediaCategory.size(); i++) {
-                List<Media> listCat = listMediaCategory.get(i).getList();
-                for (int j = 0; j < listCat.size(); j++) {
-                    listPath.add(listCat.get(j).getPath());
+            if(listMediaCategory != null) {
+                for (int i = 0; i < listMediaCategory.size(); i++) {
+                    List<Media> listCat = listMediaCategory.get(i).getList();
+                    for (int j = 0; j < listCat.size(); j++) {
+                        listPath.add(listCat.get(j).getPath());
+                    }
+                }
+            }else{
+                for (int j = 0; j < getCurrentList().size(); j++) {
+                    listPath.add(getCurrentList().get(j).getPath());
                 }
             }
             return null;
@@ -346,6 +354,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             super.onPostExecute(unused);
             intent.putStringArrayListExtra("data_list_path", listPath);
             intent.putExtra("pos", listPath.indexOf(listMedia.get(pos).getPath()));
+            if(listMediaCategory == null)
+                intent.putExtra("view-type", 1);
+            else
+                intent.putExtra("view-type", 2);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }

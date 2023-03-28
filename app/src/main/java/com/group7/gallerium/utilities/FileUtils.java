@@ -126,6 +126,119 @@ public class FileUtils {
         delete(launcher, inputPath, context);
     }
 
+    public void moveFromInternal(@NonNull String inputPath, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String outputPath, String mimeType, int mediaType, @NonNull Context context) {
+
+        Uri outputFile;
+
+        try {
+            Log.d("Parent path", outputPath);
+            String[] parse = outputPath.split("/");
+            var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
+
+            StringBuilder relativePath= new StringBuilder();
+            for(var item: dirList){
+                relativePath.append(item).append("/");
+                Log.d("Item", item);
+            }
+            Log.d("relativePath", relativePath.toString());
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                //outputFolderUri = getUriOfFolder(context, outputPath);
+                outputFile = insertMediaFromInternal(context, mimeType, mediaType, inputPath,  relativePath.toString());
+
+                try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
+
+                    OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream
+
+                    byte[] buf = new byte[8096];
+                    int len;
+                    while ((len = inputStream.read(buf)) > 0) {
+                        out.write(buf, 0, len); //write input file data to output file
+                    }
+                    out.close();
+
+                } catch (IOException e) {
+                    e.printStackTrace();
+                }
+                Toast.makeText(context, "Move file " + outputFile.getPath(), Toast.LENGTH_SHORT).show();
+
+            }
+            File f = new File(inputPath);
+            if(f.delete()){
+                Log.d("file-deleted", "true");
+            }else{
+                Log.d("file-not-deleted", "false");
+            }
+
+//        catch (FileNotFoundException fnfe1) {
+//            Log.e("tag", fnfe1.getMessage());
+//        }
+        }
+        catch(Exception e){
+            Log.e("tag", e.getMessage());
+        }
+    }
+
+    public Uri insertMediaFromInternal(@NonNull Context context, @NonNull String mimeType, int mediaType, @NonNull String inputPath, @NonNull String outputPath) {
+        Cursor cursor;
+        if (mediaType == 1) {
+            cursor = context.getContentResolver().query(
+                    MediaStore.Images.Media.EXTERNAL_CONTENT_URI
+                    , new String[]{MediaStore.Images.Media._ID}
+                    , MediaStore.Images.Media.DATA + "=? "
+                    , new String[]{outputPath}, null);
+        } else {
+            cursor = context.getContentResolver().query(
+                    MediaStore.Video.Media.EXTERNAL_CONTENT_URI
+                    , new String[]{MediaStore.Video.Media._ID}
+                    , MediaStore.Video.Media.DATA + "=? "
+                    , new String[]{outputPath}, null);
+        }
+
+        if (cursor != null && cursor.moveToFirst()) {
+            int id = cursor.getInt(cursor.getColumnIndex(MediaStore.MediaColumns._ID));
+            cursor.close();
+            if(mediaType == 1)
+                return ContentUris.withAppendedId(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, id);
+            else
+                return ContentUris.withAppendedId(MediaStore.Video.Media.EXTERNAL_CONTENT_URI, id);
+
+        }
+        else if (!inputPath.isEmpty()) {
+            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                ContentValues values = new ContentValues();
+                var resolver = context.getContentResolver();
+                if (mediaType == 1) {
+                    Uri picCollection = MediaStore.Images.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    if(Objects.equals(outputPath, "Download/")) {
+                        picCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                    }
+                    values.put(MediaStore.Images.Media.MIME_TYPE, mimeType);
+                    values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
+                    values.put(MediaStore.Images.Media.IS_PENDING, 0);
+
+                    return resolver.insert(picCollection, values);
+                } else {
+                    Uri vidCollection = MediaStore.Video.Media.getContentUri(MediaStore.VOLUME_EXTERNAL);
+                    if(Objects.equals(outputPath, "Download/")) {
+                        vidCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
+                    }
+                    values.put(MediaStore.Video.Media.MIME_TYPE, mimeType);
+                    values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
+                    values.put(MediaStore.Video.Media.IS_PENDING, 0);
+
+                    return resolver.insert(vidCollection, values);
+                }
+            } else {
+                ContentValues values = new ContentValues();
+                values.put(MediaStore.Images.Media.DATA, inputPath);
+                return context.getContentResolver().insert(
+                        MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+            }
+        } else {
+            return null;
+        }
+    }
+
     public Uri insertMediaToMediaStore(@NonNull Context context, @NonNull String inputPath, @NonNull String outputPath) {
         Cursor cursor;
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
