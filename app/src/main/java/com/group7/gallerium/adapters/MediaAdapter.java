@@ -55,6 +55,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     return Objects.equals(oldItem.getTitle(), newItem.getTitle());
                 }
             };
+    private int spanCount = 3;
     private SelectMediaInterface selecteMediaInterface;
     List<Media> listMedia;
     Context context;
@@ -66,6 +67,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
     private boolean isMultipleEnabled = false;
+    private int imageSize = 0;
 
     public void setMultipleEnabled(boolean value){
         isMultipleEnabled = value;
@@ -78,6 +80,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         this.selecteMediaInterface = selectMediaInterface;
     }
 
+    public MediaAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface, int spanCount) {
+        super(DIFF_CALLBACK);
+        this.context = context;
+        this.spanCount = spanCount;
+        this.selecteMediaInterface = selectMediaInterface;
+    }
+
+    public void setImageSize(int size) {
+        imageSize = size;
+    }
 
     public void deleteMedia(@NonNull Media media){
         int position = this.getCurrentList().indexOf(media);
@@ -137,7 +149,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     public long getItemId(int position) {
         return super.getItemId(position);
     }
-
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
         Media media = getItem(holder.getLayoutPosition());
@@ -147,6 +158,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             return;
         }
 
+        holder.image.getLayoutParams().height = imageSize;
+        holder.image.getLayoutParams().width = imageSize;
+
         if(selectedMedia != null) {
           //  Log.d("selected media size", " " + selectedMedia.size());
             holder.select.setChecked(selectedMedia.contains(media));
@@ -155,7 +169,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         // Log.d("gallerium", media.getMimeType());
         if (!med[holder.getLayoutPosition()]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-                Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<>() {
                             @Override
@@ -176,7 +190,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             else {
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
-                        .sizeMultiplier(0.9f)
+                        .sizeMultiplier(2.7f / spanCount)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<>() {
                             @Override
@@ -202,7 +216,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         } else {
             Log.d("draw", "nulll");
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-                Glide.with(context).asGif().load("file://" + media.getThumbnail())
+                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<>() {
                             @Override
@@ -223,7 +237,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             else {
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
-                        .sizeMultiplier(0.9f)
+                        .sizeMultiplier(2.7f / spanCount)
                         .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .listener(new RequestListener<>() {
                             @Override

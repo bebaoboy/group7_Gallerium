@@ -14,6 +14,7 @@ import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ActionMode;
@@ -123,13 +124,25 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void onResume() {
         super.onResume();
         //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
-        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //changeOrientation(6);
-            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-        } else {
-            //changeOrientation(3);
-            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        var sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+        var numGrid = 0;
+        if(numGridPref.equals("5")){
+            numGrid = 5;
+        }else if(numGridPref.equals("4")){
+            numGrid = 4;
+        }else{
+            numGrid = 3;
         }
+        if (numGrid != spanCount) {
+            if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                changeOrientation(numGrid * 2);
+            } else {
+                changeOrientation(numGrid);
+            }
+        }
+        refresh();
     }
 
 
@@ -154,12 +167,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void onStart() {
         super.onStart();
         Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
-        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            changeOrientation(6);
-        } else {
-            changeOrientation(3);
-        }
-        refresh();
+
     }
 
     @Override

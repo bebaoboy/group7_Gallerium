@@ -2,6 +2,9 @@ package com.group7.gallerium.activities;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import android.location.Address;
+import android.location.Geocoder;
+import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
@@ -15,9 +18,13 @@ import androidx.exifinterface.media.ExifInterface;
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.FileUtils;
 
 import java.io.FileDescriptor;
+import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Objects;
 
 public class MediaDetails extends AppCompatActivity {
@@ -26,7 +33,7 @@ public class MediaDetails extends AppCompatActivity {
     private String mediaPath;
     private TextView txtMediaTakenTime, txtMediaPath;
     private TextView txtMediaName, txtMediaSize;
-    private TextView txtMediaResolution, txtExifData;
+    private TextView txtMediaResolution, txtExifData, txtLocation;
 
     private Toolbar toolbar;
 
@@ -45,11 +52,11 @@ public class MediaDetails extends AppCompatActivity {
         applyData();
     }
 
-    public void setViewType(int viewType){
+    public void setViewType(int viewType) {
         this.viewType = viewType;
     }
 
-    String getMimeType(String path){
+    String getMimeType(String path) {
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(path);
         if (extension != null) {
@@ -60,10 +67,11 @@ public class MediaDetails extends AppCompatActivity {
         return type;
     }
 
-    int getType(String mimeType){
+    int getType(String mimeType) {
         int mediaType = -1;
-        if(mimeType.startsWith("image")){ mediaType = 1;}
-        else mediaType = 3;
+        if (mimeType.startsWith("image")) {
+            mediaType = 1;
+        } else mediaType = 3;
         return mediaType;
     }
 
@@ -75,36 +83,37 @@ public class MediaDetails extends AppCompatActivity {
         media.setMimeType(mimeType);
         media.setType(mediaType);
         media.setPath(path);
-        media.setTitle(dirs[dirs.length-1]);
+        media.setTitle(dirs[dirs.length - 1]);
         media.setThumbnail(path);
 
         return media;
     }
 
     private void applyData() {
-        Uri mediaUri = Uri.parse("file://" +  mediaPath);
+        Uri mediaUri = Uri.parse("file://" + mediaPath);
 //        File file = new File(mediaPath);
 //        float fileSizeInBytes = file.length();
 //        float fileSizeInKb = Math.round(fileSizeInBytes / 1024);
 //        float fileSizeInMb = Math.round(fileSizeInKb/1024);
-        if(mediaUri != null) {
+        if (mediaUri != null) {
             txtMediaTakenTime = findViewById(R.id.media_taken_time);
             txtMediaPath = findViewById(R.id.media_path);
             txtMediaResolution = findViewById(R.id.media_resolution);
             txtMediaSize = findViewById(R.id.media_size);
             txtMediaName = findViewById(R.id.media_name);
             txtExifData = findViewById(R.id.exif_value);
+            txtLocation = findViewById(R.id.location_value);
 
             Media media;
-            if(viewType == 2) {
+            if (viewType == 2) {
                 media = AccessMediaFile.getMediaWithPath(mediaPath);
-            }else{
+            } else {
                 media = createMediaFromFile(mediaPath);
             }
             String[] subDir = media.getPath().split("/");
             String name = subDir[subDir.length - 1];
-            if(media.getType() == 1) {
-                try (ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(mediaUri, "r")){
+            if (media.getType() == 1) {
+                try (ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(mediaUri, "r")) {
                     FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
 
                     ExifInterface exifInterface = new ExifInterface(fileDescriptor);
@@ -124,10 +133,16 @@ public class MediaDetails extends AppCompatActivity {
                     txtMediaSize.setText(media.getSize());
                     txtMediaPath.setText(mediaPath);
                     txtMediaTakenTime.setText(media.getDateTimeTaken());
+                    double[] latLong = exifInterface.getLatLong();
+                    if (latLong != null) {
+                        System.out.println("Latitude: " + latLong[0]);
+                        System.out.println("Longitude: " + latLong[1]);
+                        txtLocation.setText("Lat: " + latLong[0] + "\n" + "Long: " + latLong[1]);
+                    }
 
-                    String flashValue = Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_FLASH), "0") ? "Không có flash": "Có flash";
+                    String flashValue = Objects.equals(exifInterface.getAttribute(ExifInterface.TAG_FLASH), "0") ? "Không có flash" : "Có flash";
 
-                    if(exifInterface.getAttribute(ExifInterface.TAG_MAKE) != null) {
+                    if (exifInterface.getAttribute(ExifInterface.TAG_MAKE) != null) {
                         String focal = exifInterface.getAttribute(ExifInterface.TAG_FOCAL_LENGTH);
                         assert focal != null;
                         String[] values = focal.split("/");
@@ -145,8 +160,7 @@ public class MediaDetails extends AppCompatActivity {
                                 iso != null ? iso : "Không có ISO");
                         txtExifData.setText(exi);
 
-                    }
-                    else {
+                    } else {
                         txtExifData.setText("");
                     }
                 } catch (IOException e) {
@@ -156,22 +170,22 @@ public class MediaDetails extends AppCompatActivity {
                             Toast.LENGTH_LONG).show();
                 }
             } else {
-                    txtMediaName.setText(name);
-                    txtMediaResolution.setText(
-                            String.format(getResources().getString(
-                                            R.string.video_resolution_placeholder),
-                                    media.getHeight(),
-                                    media.getWidth(),
-                                    "Bitrate: " + Math.ceil(media.getBitrate() / 1024000f) + "Mb/s",
-                                    "Độ dài: " + media.getDuration()
-                            ));
-                    txtMediaSize.setText(media.getSize());
-                    txtMediaPath.setText(mediaPath);
-                    txtMediaTakenTime.setText(media.getDateTimeTaken());
-                    txtExifData.setText("");
+                txtMediaName.setText(name);
+                txtMediaResolution.setText(
+                        String.format(getResources().getString(
+                                        R.string.video_resolution_placeholder),
+                                media.getHeight(),
+                                media.getWidth(),
+                                "Bitrate: " + Math.ceil(media.getBitrate() / 1024000f) + "Mb/s",
+                                "Độ dài: " + media.getDuration()
+                        ));
+                txtMediaSize.setText(media.getSize());
+                txtMediaPath.setText(mediaPath);
+                txtMediaTakenTime.setText(media.getDateTimeTaken());
+                txtExifData.setText("");
             }
         }
     }
 
-
 }
+

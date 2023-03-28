@@ -137,12 +137,12 @@ public class MainActivity extends AppCompatActivity {
             locationPref = sharedPref.getString(SettingsActivity.KEY_PREF_LOCATION, "1");
             numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
 
-            if(numGridPref.equals("3")){
-                numGridVal = 3;
+            if(numGridPref.equals("5")){
+                numGridVal = 5;
             }else if(numGridPref.equals("4")){
                 numGridVal = 4;
             }else{
-                numGridVal = 5;
+                numGridVal = 3;
             }
             lockPrivatePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
             lockTrashPref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
@@ -218,7 +218,7 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation(6);
+                    myFragment.changeOrientation(numGridVal * 2);
                     if (refresh) myFragment.refresh(true);
                 }
             } else if(view_pager.getCurrentItem() == 1){
@@ -233,13 +233,13 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation();
+                    myFragment.changeOrientation(numGridVal * 2);
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation(6);
+                    myFragment.changeOrientation(numGridVal * 2);
                     if (refresh) myFragment.refresh(true);
                 }
             }
@@ -267,13 +267,13 @@ public class MainActivity extends AppCompatActivity {
                 var myFragment = (SecureFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation();
+                    myFragment.changeOrientation(numGridVal);
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation(3);
+                    myFragment.changeOrientation(numGridVal);
                     if (refresh) myFragment.refresh(true);
                 }
             }

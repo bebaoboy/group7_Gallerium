@@ -9,6 +9,7 @@ import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -33,6 +34,7 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
+import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Album;
@@ -120,13 +122,25 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     public void onResume() {
         super.onResume();
         //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
-        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            //changeOrientation(6);
-            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
-        } else {
-            //changeOrientation(3);
-            ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        var sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+        var numGrid = 0;
+        if(numGridPref.equals("5")){
+            numGrid = 5;
+        }else if(numGridPref.equals("4")){
+            numGrid = 4;
+        }else{
+            numGrid = 3;
         }
+        if (numGrid != spanCount) {
+            if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                changeOrientation(numGrid * 2);
+            } else {
+                changeOrientation(numGrid);
+            }
+        }
+        refresh();
     }
 
 
@@ -151,12 +165,6 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     public void onStart() {
         super.onStart();
         Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
-        if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
-            changeOrientation(6);
-        } else {
-            changeOrientation(3);
-        }
-        refresh();
     }
 
     @Override
@@ -375,8 +383,8 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
             adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
+            callback.onDestroyActionMode(mode);
         }
-        callback.onDestroyActionMode(mode);
     }
 
     public void refresh() {

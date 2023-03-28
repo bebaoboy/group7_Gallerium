@@ -3,9 +3,17 @@ package com.group7.gallerium.activities;
 import android.Manifest;
 import android.annotation.SuppressLint;
 import android.content.ContentValues;
+import android.content.Context;
 import android.content.pm.PackageManager;
+import android.location.Criteria;
+import android.location.Location;
+import android.location.LocationListener;
+import android.location.LocationManager;
+import android.media.MediaMetadataEditor;
+import android.media.MediaRecorder;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.util.Size;
@@ -30,6 +38,8 @@ import androidx.camera.core.Preview;
 import androidx.camera.core.ZoomState;
 import androidx.camera.lifecycle.ProcessCameraProvider;
 import androidx.camera.video.FallbackStrategy;
+import androidx.camera.video.FileDescriptorOutputOptions;
+import androidx.camera.video.FileOutputOptions;
 import androidx.camera.video.MediaStoreOutputOptions;
 import androidx.camera.video.Quality;
 import androidx.camera.video.QualitySelector;
@@ -46,6 +56,7 @@ import androidx.core.content.ContextCompat;
 import com.google.common.util.concurrent.ListenableFuture;
 import com.group7.gallerium.R;
 
+import java.io.File;
 import java.util.Arrays;
 import java.util.Locale;
 import java.util.concurrent.ExecutionException;
@@ -71,6 +82,9 @@ public class CameraActivity extends AppCompatActivity {
     private boolean isRecording = false, isVideo = false;
     private ConstraintLayout captureLayout, videoLayout;
     private TextView duration;
+    private LocationManager locationManager;
+    private Location currentLocation;
+    LocationListener mLocationListener;
 
     @Override
     protected void onCreate(@Nullable Bundle savedInstanceState) {
@@ -118,6 +132,10 @@ public class CameraActivity extends AppCompatActivity {
         btnPause.setOnClickListener(view -> pause());
         btnStop.setVisibility(View.GONE);
         btnStop.setOnClickListener(view -> stop());
+
+        // Get LocationManager object from System Service LOCATION_SERVICE
+        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+
         startCamera();
     }
 
@@ -158,8 +176,7 @@ public class CameraActivity extends AppCompatActivity {
             if (isVideo) {
                 flashMode = ImageCapture.FLASH_MODE_ON;
                 btnFlashVideo.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_flash_on));
-            }
-            else {
+            } else {
                 flashMode = ImageCapture.FLASH_MODE_AUTO;
                 btnFlashVideo.setBackground(AppCompatResources.getDrawable(getApplicationContext(), R.drawable.ic_flash_auto));
             }
@@ -259,11 +276,12 @@ public class CameraActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
             contentValues.put(MediaStore.Images.Media.RELATIVE_PATH, "Pictures/G-Camera");
         }
-
+        var metaData = new ImageCapture.Metadata();
+        metaData.setLocation(currentLocation);
         // Create output options object which contains file + metadata
         var outputOptions = new ImageCapture.OutputFileOptions.Builder(getContentResolver(),
                 MediaStore.Images.Media.EXTERNAL_CONTENT_URI,
-                contentValues)
+                contentValues).setMetadata(metaData)
                 .build();
 
         imageCapture.takePicture(outputOptions, ContextCompat.getMainExecutor(this),
@@ -295,6 +313,8 @@ public class CameraActivity extends AppCompatActivity {
         var contentValues = new ContentValues();
         contentValues.put(MediaStore.MediaColumns.DISPLAY_NAME, name);
         contentValues.put(MediaStore.MediaColumns.MIME_TYPE, "video/mp4");
+//        contentValues.put(MediaStore.Video.VideoColumns.LATITUDE, currentLocation.getLatitude());
+//        contentValues.put(MediaStore.Video.VideoColumns.LONGITUDE, currentLocation.getLongitude());
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
             contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/G-Camera");
         }
@@ -400,6 +420,44 @@ public class CameraActivity extends AppCompatActivity {
     protected void onResume() {
         super.onResume();
         if (isRecording) recording.resume();
+        // Create a criteria object to retrieve provider
+        Criteria criteria = new Criteria();
+
+        // Get the name of the best provider
+        String provider = locationManager.getBestProvider(criteria, true);
+
+        mLocationListener = new LocationListener() {
+            public void onLocationChanged(Location location) {
+                //System.out.println("got new location");
+                //Log.i("mLocationListener", "Got location");   // for logCat should ->  import android.util.Log;
+
+                // Stops the new update requests.
+                locationManager.removeUpdates(mLocationListener);
+                currentLocation = location;
+            }
+
+            public void onStatusChanged(java.lang.String s, int i, android.os.Bundle bundle) {
+            }
+
+            public void onProviderEnabled(java.lang.String s) {
+            }
+
+            public void onProviderDisabled(java.lang.String s) {
+            }
+
+        };
+        // (String) provider, time in milliseconds when to check for an update, distance to change in coordinates to request an update, LocationListener.
+        if (ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_FINE_LOCATION) != PackageManager.PERMISSION_GRANTED && ActivityCompat.checkSelfPermission(this, Manifest.permission.ACCESS_COARSE_LOCATION) != PackageManager.PERMISSION_GRANTED) {
+            // TODO: Consider calling
+            //    ActivityCompat#requestPermissions
+            // here to request the missing permissions, and then overriding
+            //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
+            //                                          int[] grantResults)
+            // to handle the case where the user grants the permission. See the documentation
+            // for ActivityCompat#requestPermissions for more details.
+            return;
+        }
+        locationManager.requestLocationUpdates(provider, 1000, 0.0f, mLocationListener);
     }
 
     @Override

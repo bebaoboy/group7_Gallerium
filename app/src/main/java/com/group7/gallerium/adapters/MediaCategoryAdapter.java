@@ -106,7 +106,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
         holder.rcvPictures.setLayoutManager(gridLayoutManager);
 
-        mediaAdapter = new MediaAdapter(context.getApplicationContext(), this.selectMediaInterface);
+        mediaAdapter = new MediaAdapter(context.getApplicationContext(), this.selectMediaInterface, spanCount);
+        mediaAdapter.setImageSize(calculateImageSize());
         mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
         holder.rcvPictures.setAdapter(mediaAdapter);
@@ -155,6 +156,19 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
             rcvPictures = itemView.findViewById(R.id.photos_recview);
             horizontalLine = itemView.findViewById(R.id.category_horizontal_line);
         }
+    }
+
+    public int dpToPx(int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
+
+    private int calculateImageSize() {
+        int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenWidth -= dpToPx(10);
+        int spacing = dpToPx(5);
+        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
+        return (int)Math.floor(imageSize);
     }
 }
 

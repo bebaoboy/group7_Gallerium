@@ -12,6 +12,7 @@ import android.media.Image;
 import android.os.Bundle;
 import android.os.Environment;
 import android.os.storage.StorageManager;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -34,12 +35,15 @@ import androidx.core.widget.NestedScrollView;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
+import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.MediaAdapter;
+import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
@@ -55,6 +59,7 @@ import java.text.ParseException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Date;
+import java.util.Objects;
 import java.util.UUID;
 
 public class SecureFragment extends Fragment implements SelectMediaInterface {
@@ -84,6 +89,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     ImageView test;
     private  String secretPath;
     private ActivityResultLauncher<IntentSenderRequest> launcher;
+    private int spanCount = -1;
+    private int firstVisiblePosition;
+    private int offset;
 
 
     // App needs 200 MB within internal storage.
@@ -127,10 +135,61 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     public void onResume() {
         super.onResume();
         view.invalidate();
+        var sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(context);
+        var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+        var numGrid = 0;
+        if(numGridPref.equals("5")){
+            numGrid = 5;
+        }else if(numGridPref.equals("4")){
+            numGrid = 4;
+        }else{
+            numGrid = 3;
+        }
+        if (numGrid != spanCount) {
+            if (this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE) {
+                changeOrientation(numGrid * 2);
+            } else {
+                changeOrientation(numGrid);
+            }
+        }
+        refresh();
     }
 
-    public void changeOrientation() {
+    public void changeOrientation(int spanCount) {
         view.invalidate();
+        saveScroll();
+        if (spanCount != this.spanCount) {
+            this.spanCount = spanCount;
+            mediaList.clear();
+            createMediaList();
+            secureAdapter.setListImages(mediaList);
+            secureAdapter.setListCategory(null);
+            GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
+            secureRecyclerView.setAdapter(secureAdapter);
+            secureRecyclerView.setLayoutManager(layoutManager);
+            refresh();
+            ((LinearLayoutManager) Objects.requireNonNull(secureRecyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+//            callback.onDestroyActionMode(mode);
+        }
+    }
+
+    private void saveScroll() {
+        View firstChild = secureRecyclerView.getChildAt(0);
+        if (firstChild != null) {
+            firstVisiblePosition = secureRecyclerView.getChildAdapterPosition(firstChild);
+            offset = firstChild.getTop();
+        }
+    }
+
+    public void refresh() {
+        Log.d("refresh", "");
+
+    }
+
+    public void refresh(boolean scroll) {
+        Log.d("refresh with result", "");
+
     }
 
     @Nullable
@@ -254,13 +313,26 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         getPaths(secureDir);
 
         secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
-
+        secureAdapter.setImageSize(calculateImageSize());
         secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
         secureAdapter.setListImages(mediaList);
         secureAdapter.setListCategory(null);
-        GridLayoutManager layoutManager = new GridLayoutManager(context, 4);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         secureRecyclerView.setAdapter(secureAdapter);
         secureRecyclerView.setLayoutManager(layoutManager);
+    }
+
+    public int dpToPx(int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
+    }
+
+    private int calculateImageSize() {
+        int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
+        screenWidth -= dpToPx(10);
+        int spacing = dpToPx(5);
+        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
+        return (int)Math.floor(imageSize);
     }
 
     private void createSecuredFile(File fileName, String data) {

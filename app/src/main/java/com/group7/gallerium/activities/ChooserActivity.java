@@ -5,6 +5,7 @@ import android.app.Activity;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.View;
 import android.widget.LinearLayout;
@@ -33,6 +34,8 @@ public class ChooserActivity extends AppCompatActivity {
     ViewPager2 view_pager;
 
     PermissionManager permission;
+    private int spanCount;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -75,6 +78,17 @@ public class ChooserActivity extends AppCompatActivity {
             }
             return true;
         });
+        var sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+
+        if(numGridPref.equals("5")){
+            spanCount = 5;
+        }else if(numGridPref.equals("4")){
+            spanCount = 4;
+        }else{
+            spanCount = 3;
+        }
 
 //        SharedPreferences mySharedPref = getSharedPreferences("fav_media", MODE_PRIVATE);
 //        var favList = mySharedPref.getStringSet("path", null);
@@ -106,7 +120,7 @@ public class ChooserActivity extends AppCompatActivity {
             if(view_pager.getCurrentItem() == 0) {
                 var myFragment = (MediaFragmentChooser) this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null) {
-                    myFragment.changeOrientation(6);
+                    myFragment.changeOrientation(spanCount * 2);
                     if (refresh) myFragment.refresh(true);
                 }
             }
@@ -119,7 +133,7 @@ public class ChooserActivity extends AppCompatActivity {
                 var myFragment = (MediaFragmentChooser)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
                 if (myFragment != null)
                 {
-                    myFragment.changeOrientation(3);
+                    myFragment.changeOrientation(spanCount);
                     if (refresh) myFragment.refresh(true);
                 }
             }

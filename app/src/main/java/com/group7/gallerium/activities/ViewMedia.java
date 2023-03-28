@@ -101,6 +101,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
+    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -387,7 +388,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     public void setTitleToolbar(@NonNull Media m) {
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
-        toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
+        toolbar.setTitle(dateFormat.format(m.getRawDate()));
         toolbar.setSubtitle(name);
         if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
             favBtn.setIcon(R.drawable.ic_fav_solid);

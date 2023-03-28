@@ -8,6 +8,7 @@ import android.content.res.Configuration;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -329,16 +330,25 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     public void onResume() {
         super.onResume();
         Toast.makeText(this, "Resuming", Toast.LENGTH_SHORT).show();
+        var sharedPref =
+                PreferenceManager.getDefaultSharedPreferences(this);
+        var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+        if(numGridPref.equals("5")){
+            spanCount = 5;
+        }else if(numGridPref.equals("4")){
+            spanCount = 4;
+        }else{
+            spanCount = 3;
+        }
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            changeOrientation(6);
-            ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+            changeOrientation(spanCount * 2);
         }
         else {
+            changeOrientation(spanCount);
             adapter.setData(getListCategory());
             album_rec_item.setAdapter(adapter);
-            ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
         }
     }
 
@@ -367,10 +377,15 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     }
 
     public void changeOrientation(int spanCount) {
+        View firstChild = album_rec_item.getChildAt(0);
+        if (firstChild != null) {
+            firstVisiblePosition = album_rec_item.getChildAdapterPosition(firstChild);
+            offset = firstChild.getTop();
+        }
         adapter = new MediaCategoryAdapter(this, spanCount);
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
-        //((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
     void toolbarSetting(){
