@@ -1,0 +1,36 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/take_photo_tb_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera"
+        android:title="@string/camera"
+        app:showAsAction="always"
+        android:tooltipText="@string/camera"/>
+    <item
+        android:id="@+id/search_tb_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_search"
+        android:title="@string/search"
+        app:showAsAction="ifRoom|collapseActionView"
+        android:tooltipText="@string/share"/>
+
+    <item
+        android:id="@+id/set_display_menu_item"
+        android:enabled="true"
+        android:title="@string/set_display_type"
+        android:tooltipText=""/>
+    <item
+        android:id="@+id/sort_menu_item"
+        android:enabled="true"
+        android:title="@string/sort"
+        android:tooltipText=""/>
+    <item
+        android:id="@+id/setting_menu_item"
+        android:enabled="true"
+        android:title="@string/setting"
+        android:tooltipText=""/>
+
+</menu>

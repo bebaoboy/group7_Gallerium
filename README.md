@@ -1,8 +1,8 @@
-# group7_Gallerium
+# group7_Gallerium: Thư viện ảnh
 
 
 ### Thành viên:
-20127004: Huỳnh Minh Bảo
+20127004: Huỳnh Minh Bảo <br />
 20127600: Lưu Tuấn Quân
 
 ### Figma: 

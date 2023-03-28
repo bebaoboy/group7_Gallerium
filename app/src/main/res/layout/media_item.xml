@@ -1,0 +1,51 @@
+<?xml version="1.0" encoding="utf-8"?>
+<com.google.android.material.card.MaterialCardView  xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="wrap_content"
+    android:layout_height="wrap_content"
+    android:layout_marginBottom="5dp"
+    app:cardCornerRadius="2dp"
+    app:cardElevation="2dp"
+    style="@style/PhotoCardView"
+    >
+
+    <ImageView
+        android:id="@+id/photoItem"
+        style="@style/PhotoCardImageView"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:clickable="true"
+        android:contentDescription="@string/photo_item"
+        android:focusable="true"
+        android:scaleType="centerCrop"
+        tools:srcCompat="@tools:sample/avatars" />
+
+    <ImageView
+            android:id="@+id/play_video_button_child"
+            android:layout_width="40dp"
+            android:layout_height="40dp"
+            android:layout_gravity="center"
+            android:src="@drawable/ic_play"
+            android:visibility="invisible"
+            android:contentDescription="play icon" />
+
+    <ImageView
+        android:id="@+id/fav_icon"
+        android:layout_width="20dp"
+        android:layout_height="20dp"
+        android:layout_gravity="bottom|end"
+        android:src="@drawable/ic_fav_solid"
+        android:visibility="gone"
+        app:tint="@color/red" />
+
+    <androidx.appcompat.widget.AppCompatCheckBox
+        android:id="@+id/selectButton"
+        android:layout_width="30dp"
+        android:layout_height="20dp"
+        style="@style/selectCheckBox"
+        android:checked="true"
+        android:visibility="gone"
+        />
+</com.google.android.material.card.MaterialCardView>
+

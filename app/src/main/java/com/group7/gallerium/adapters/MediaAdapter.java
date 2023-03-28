@@ -2,132 +2,349 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.media.Image;
+import android.graphics.drawable.Drawable;
+import android.net.Uri;
 import android.os.AsyncTask;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
+import android.widget.CompoundButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
+import androidx.annotation.Nullable;
+import androidx.appcompat.widget.AppCompatCheckBox;
+import androidx.recyclerview.widget.DiffUtil;
+import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
+import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
+import com.bumptech.glide.load.engine.GlideException;
+import com.bumptech.glide.load.resource.gif.GifDrawable;
+import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.target.Target;
 import com.group7.gallerium.R;
-import com.group7.gallerium.activities.ViewPhoto;
-import com.group7.gallerium.activities.WatchVideo;
-import com.group7.gallerium.models.Category;
+import com.group7.gallerium.activities.ViewMedia;
+import com.group7.gallerium.activities.ViewMediaStandalone;
 import com.group7.gallerium.models.Media;
+import com.group7.gallerium.models.MediaCategory;
+import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.SelectMediaInterface;
 
+import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
-public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHolder> {
+public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolder> {
+    public static final DiffUtil.ItemCallback<Media> DIFF_CALLBACK =
+            new DiffUtil.ItemCallback<>() {
+                @Override
+                public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
+                    return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
+                            AccessMediaFile.isExistedAnywhere(oldItem.getPath())
+                                    == AccessMediaFile.isExistedAnywhere(newItem.getPath());
+                }
 
-    public static final int PHOTOVIEW = 0, VIDEOVIEW = 1;
-    enum Type{video, photo};
-    private List<Media> listMedia;
-    private Context context;
-    private List<Category> listCategory;
-    private Intent intent;
-    private ArrayList<String> listPath ;
-    private ArrayList<String> listThumb ;
+                @Override
+                public boolean areContentsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
+                    return Objects.equals(oldItem.getTitle(), newItem.getTitle());
+                }
+            };
+    private int spanCount = 3;
+    private SelectMediaInterface selecteMediaInterface;
+    List<Media> listMedia;
+    Context context;
+    List<MediaCategory> listMediaCategory;
+    Intent intent;
+    ArrayList<String> listPath;
+    boolean[] med;
 
-    public MediaAdapter(){}
+    private boolean isAllChecked = false;
+    private ArrayList<Media> selectedMedia;
+    private boolean isMultipleEnabled = false;
+    private int imageSize = 0;
 
-    public MediaAdapter(Context context){
-        this.context = context;
-    }
-
-    public void setListImages(ArrayList<Media> media){
-        this.listMedia = media;
+    public void setMultipleEnabled(boolean value){
+        isMultipleEnabled = value;
         notifyDataSetChanged();
     }
 
-    public  void setListCategory(ArrayList<Category> categories){
-        this.listCategory = categories;
+    public MediaAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface) {
+        super(DIFF_CALLBACK);
+        this.context = context;
+        this.selecteMediaInterface = selectMediaInterface;
+    }
+
+    public MediaAdapter(@NonNull Context context, @NonNull SelectMediaInterface selectMediaInterface, int spanCount) {
+        super(DIFF_CALLBACK);
+        this.context = context;
+        this.spanCount = spanCount;
+        this.selecteMediaInterface = selectMediaInterface;
+    }
+
+    public void setImageSize(int size) {
+        imageSize = size;
+    }
+
+    public void deleteMedia(@NonNull Media media){
+        int position = this.getCurrentList().indexOf(media);
+        this.getCurrentList().remove(media);
+        med = new boolean[this.getCurrentList().size()];
+        Arrays.fill(med, false);
+        notifyItemRemoved(position);
+    }
+    public void setListImages(@NonNull ArrayList<Media> media) {
+        this.listMedia = media;
+        submitList(listMedia);
+        med = new boolean[this.getCurrentList().size()];
+        Arrays.fill(med, false);
+    }
+
+    public void setListCategory(@NonNull ArrayList<MediaCategory> categories) {
+        this.listMediaCategory = categories;
     }
 
     @NonNull
     @Override
-    public PhotoViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
+    public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
-        return new PhotoViewHolder(layoutInflater.inflate(R.layout.photo_item, parent, false));
+
+        MediaViewHolder holder = new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
+        return holder;
     }
 
     @Override
-    public void onBindViewHolder(@NonNull PhotoViewHolder holder, int position) {
-        Media media = listMedia.get(position);
-        if (media == null) {
+    public void onViewAttachedToWindow(@NonNull MediaViewHolder holder) {
+        super.onViewAttachedToWindow(holder);
+        //Log.d("Attached", "" + holder.getBindingAdapterPosition());
+
+        if(isMultipleEnabled){
+            holder.select.setVisibility(View.VISIBLE);
+            if(isAllChecked){
+                holder.select.setChecked(true);
+            }else {
+                holder.select.setChecked(false);
+                if(selectedMedia != null) {
+                    //Log.d("Contained", "false");
+                    //Log.d("Contained", "false");
+                    holder.select.setChecked(selectedMedia.contains(this.getCurrentList().get(holder.getBindingAdapterPosition())));
+                }
+            }
+        }else{
+            holder.select.setVisibility(View.GONE);
+        }
+    }
+
+    @Override
+    public void onViewDetachedFromWindow(@NonNull MediaViewHolder holder) {
+        super.onViewDetachedFromWindow(holder);
+    }
+
+    @Override
+    public long getItemId(int position) {
+        return super.getItemId(position);
+    }
+    @Override
+    public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
+        Media media = getItem(holder.getLayoutPosition());
+
+        if(context == null) return;
+        if (media == null || media.getPath() == null) {
             return;
         }
-        Glide.with(context).load(media.getThumbnail()).into(holder.image);
 
-//
-//        if (holder instanceof PhotoViewHolder) {
-//            Log.d("photo-type", "1");
-//            PhotoViewHolder photoViewHolder = (PhotoViewHolder) holder;
-//            // Glide.with(context).load(media.getThumb()).into(photoViewHolder.image);
-//
-//        } else {
-//            Log.d("video-type", "2");
-//            VideoViewHolder videoViewHolder = (VideoViewHolder) holder;
-//
-//            Glide.with(context).load(media.getThumbnail()).into(videoViewHolder.videoThumbnail);
-//            videoViewHolder.videoThumbnail.setOnClickListener((view -> {
-//                intent = new Intent(context, WatchVideo.class);
-//                MyAsyncTask myAsyncTask = new MyAsyncTask();
-//                myAsyncTask.setPos(position);
-//                myAsyncTask.execute();
-//            }));
-//        }
+        holder.image.getLayoutParams().height = imageSize;
+        holder.image.getLayoutParams().width = imageSize;
 
-
-    }
-
-    @Override
-    public int getItemCount() {
-        if(listMedia.size() != 0){
-            return listMedia.size();
+        if(selectedMedia != null) {
+          //  Log.d("selected media size", " " + selectedMedia.size());
+            holder.select.setChecked(selectedMedia.contains(media));
         }
-        return 0;
+
+        // Log.d("gallerium", media.getMimeType());
+        if (!med[holder.getLayoutPosition()]) {
+            if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
+                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                med[holder.getLayoutPosition()] = false;
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[holder.getLayoutPosition()] = true;
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+            }
+            else {
+                Glide.with(context).load("file://" + media.getThumbnail())
+                        .dontAnimate()
+                        .sizeMultiplier(2.7f / spanCount)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                med[holder.getLayoutPosition()] = false;
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[holder.getLayoutPosition()] = true;
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+                Log.d("abc", "");
+            }
+        }
+
+        if (holder.image.getDrawable() != null) {
+            Log.d("draw", holder.image.getDrawable().toString());
+        } else {
+            Log.d("draw", "nulll");
+            if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
+                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
+                                med[holder.getLayoutPosition()] = false;
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[holder.getLayoutPosition()] = true;
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+            }
+            else {
+                Glide.with(context).load("file://" + media.getThumbnail())
+                        .dontAnimate()
+                        .sizeMultiplier(2.7f / spanCount)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .listener(new RequestListener<>() {
+                            @Override
+                            public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
+                                med[holder.getLayoutPosition()] = false;
+                                return false;
+                            }
+
+                            @Override
+                            public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
+                                Log.d("def", "");
+                                med[holder.getLayoutPosition()] = true;
+                                return false;
+                            }
+                        })
+                        .into(holder.image);
+                Log.d("abc", "");
+            }
+        }
+
+
+       if (AccessMediaFile.isExistedAnywhere(media.getPath())) {
+           holder.fav_icon.setVisibility(View.VISIBLE);
+       } else {
+           holder.fav_icon.setVisibility(View.GONE);
+
+       }
+
+        if(media.getType() != 1) {
+            holder.play_icon.setVisibility(View.VISIBLE);
+        }
+        else {
+            holder.play_icon.setVisibility(View.GONE);
+        }
+        holder.image.setOnClickListener((view -> {
+            if(isMultipleEnabled) {
+                if(holder.select.isChecked()){
+                    holder.select.setChecked(false);
+                    selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+                }else{
+                    holder.select.setChecked(true);
+                    selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+                }
+            }else {
+                intent = new Intent(context, ViewMedia.class);
+                navAsyncTask navAsyncTask = new navAsyncTask();
+                navAsyncTask.setPos(holder.getBindingAdapterPosition());
+                navAsyncTask.execute();
+            }
+        }));
+
+        holder.image.setOnLongClickListener((view -> {
+//            if(holder.select.isChecked()){
+//                Log.d("checkbox", "is checked");
+//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                holder.select.setChecked(false);
+//            }else{
+//                Log.d("checkbox", "is not checked");
+//                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                holder.select.setChecked(true);
+//            }
+            if(!isMultipleEnabled) {
+                selecteMediaInterface.showAllSelect();
+            } else {
+                Intent intent = new Intent(context, ViewMediaStandalone.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                intent.setDataAndType(Uri.fromFile(new File(media.getPath())), media.getMimeType());
+                context.startActivity(intent);
+            }
+            return true;
+        }));
+
+        holder.select.setOnClickListener((view)->{
+            if(((CompoundButton) view).isChecked()){
+                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+            }else{
+                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+            }
+        });
+
     }
-//
-//    @Override
-//    public int getItemViewType(int position) {
-//        if(listMedia.get(position).getType().equals("photo")){
-//            return PHOTOVIEW;
-//        }else if(listMedia.get(position).getType().equals("video")){
-//            return VIDEOVIEW;
-//        }
-//        return -1;
-//    }
+    public void setSelectedList(@NonNull ArrayList<Media> list) {
+        selectedMedia = list;
+    }
 
-//
-//    class VideoViewHolder extends RecyclerView.ViewHolder  {
-//        private ImageView videoThumbnail;
-//        private ImageView fav_icon;
-//
-//        private VideoViewHolder(View itemView) {
-//            super(itemView);
-//            videoThumbnail = itemView.findViewById(R.id.video_item);
-//        }
-//    }
+    public void setAllChecked(boolean b) {
+        isAllChecked = b;
+        notifyItemRangeChanged(0, this.getCurrentList().size());
+    }
 
-    class PhotoViewHolder extends RecyclerView.ViewHolder  {
-        private ImageView image;
-        private ImageView fav_icon;
-        private PhotoViewHolder(View itemView) {
+    static class MediaViewHolder extends RecyclerView.ViewHolder  {
+        ImageView image;
+        ImageView fav_icon;
+        ImageView play_icon;
+
+        AppCompatCheckBox select;
+        MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
+            play_icon = itemView.findViewById(R.id.play_video_button_child);
+            select = itemView.findViewById(R.id.selectButton);
         }
     }
 
 
-    public class MyAsyncTask extends AsyncTask<Void, Integer, Void> {
+    class navAsyncTask extends AsyncTask<Void, Integer, Void> {
         public int pos;
 
         public void setPos(int pos) {
@@ -137,12 +354,16 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHol
         @Override
         protected Void doInBackground(Void... voids) {
             listPath = new ArrayList<>();
-            listThumb = new ArrayList<>();
-            for(int i = 0;i<listCategory.size();i++) {
-                List<Media> listCat = listCategory.get(i).getList();
-                for (int j = 0; j < listCat.size(); j++) {
-                    listPath.add(listCat.get(j).getPath());
-                    listThumb.add(listCat.get(j).getThumbnail());
+            if(listMediaCategory != null) {
+                for (int i = 0; i < listMediaCategory.size(); i++) {
+                    List<Media> listCat = listMediaCategory.get(i).getList();
+                    for (int j = 0; j < listCat.size(); j++) {
+                        listPath.add(listCat.get(j).getPath());
+                    }
+                }
+            }else{
+                for (int j = 0; j < getCurrentList().size(); j++) {
+                    listPath.add(getCurrentList().get(j).getPath());
                 }
             }
             return null;
@@ -152,8 +373,11 @@ public class MediaAdapter extends RecyclerView.Adapter<MediaAdapter.PhotoViewHol
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             intent.putStringArrayListExtra("data_list_path", listPath);
-            intent.putStringArrayListExtra("data_list_thumb", listThumb);
             intent.putExtra("pos", listPath.indexOf(listMedia.get(pos).getPath()));
+            if(listMediaCategory == null)
+                intent.putExtra("view-type", 1);
+            else
+                intent.putExtra("view-type", 2);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }

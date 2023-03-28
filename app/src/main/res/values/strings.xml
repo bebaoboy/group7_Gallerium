@@ -1,10 +1,79 @@
 <resources>
     <string name="app_name">Gallerium</string>
     <string name="photo">Ảnh</string>
-    <string name="album">Album</string>
+    <string name="album">Album ảnh</string>
     <string name="secured">Riêng tư</string>
     <string name="fav">Yêu thích</string>
-    <!-- TODO: Remove or change this placeholder text -->
+
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="appbar">Thanh công cụ</string>
+    <string name="video">video</string>
+    <string name="photo_item">photo</string>
+    <string name="share">Chia sẻ</string>
+    <string name="edit">Chỉnh sửa</string>
+    <string name="delete">Xóa</string>
+    <string name="more">Xem thêm</string>
+    <string name="camera">Camera</string>
+    <string name="multiselect">Chọn nhiều mục</string>
+    <string name="set_display_type">Đổi hiển thị</string>
+    <string name="sort">Sắp xếp</string>
+    <string name="setting">Cài đặt</string>
+    <string name="add_album">Thêm album</string>
+    <string name="search">Tìm kiếm</string>
+    <string name="change_pass">Đổi mật khẩu</string>
+    <string name="remove_pass">Xóa riêng tư</string>
+    <string name="forget_pass">Quên mật khẩu</string>
+    <string name="album_avatar">album avatar</string>
+    <string name="sample_album_memory_title">Mùa hè của tôi</string>
+    <string name="sample_album_memory_content">Bất cứ nơi nào bạn đi, bất kể thời tiết như thế nào, luôn mang theo ánh nắng mặt trời của riêng bạn.</string>
+    <string name="view_pager">viewpager</string>
+    <string name="add_fav">Yêu thích</string>
+    <string name="change_info">Thay đổi thông tin</string>
+    <string name="select_all">Chọn tất cả</string>
+    <string name="creative">Sáng tạo</string>
+    <string name="add_to_album">Thêm vào album</string>
+    <string name="move">Di chuyển</string>
+    <string name="copy">Sao chép</string>
+    <string name="change_name">Đổi tên</string>
+    <string name="set_background">Đặt làm hình nền</string>
+    <string name="details">Chi tiết</string>
+    <string name="taken_datetime">Thời gian chụp/quay</string>
+    <string name="file_name">Tên tập tin</string>
+    <string name="sample_file_name">photo1.png</string>
+    <string name="file_size">Kích thước</string>
+    <string name="sample_file_size">1.4 MB</string>
+    <string name="resolution">Độ phân giải</string>
+    <string name="sample_resolution">2048 x 1024 13MP</string>
+    <string name="resolution_placeholder"> %1$d x %2$d\n%3$.1fMP</string>
+    <string name="video_resolution_placeholder"> %1$d x %2$d\n%3$s\n%4$s</string>
+    <string name="file_path">Đường dẫn</string>
+    <string name="sample_file_path">Bộ nhớ trong/DCIM/ScreenShot/photo 1.png</string>
+    <string name="location">Vị trí</string>
+    <string name="apply">Áp dụng</string>
+    <string name="exif_value">Dữ liệu EXIF</string>
+    <string name="exif_value_sample">Redmi Note 9, Xiaomi \n f/1.89 ISO11228 \n 5.43mm Không đèn flash</string>
+    <string name="exif_place_holder">%1$s%2$s\n%3$fmm f%4$s %5$s\n%6$s %7$s</string>
+    <string name="cancel">Hủy</string>
+    <string name="title_activity_settings">SettingsActivity</string>
+
+    <!-- Preference Titles -->
+    <string name="common_setting_header">Cài đặt chung</string>
+    <string name="private_header">Riêng tư</string>
+    <string name="other_header">Cài đặt khác</string>
+
+    <!-- Messages Preferences -->
+    <string name="ui_title">Giao diện</string>
+    <string name="location_title">Vị trí</string>
+    <string name="grid_title">Số cột của lưới</string>
+
+    <!-- Sync Preferences -->
+    <string name="lock_private_title">Khóa riêng tư</string>
+    <string name="reset_private_pass_title">Đặt lại mật khẩu</string>
+    <string name="trash_title">Thùng rác</string>
+    <string name="add_media_to_album">Thêm vào album</string>
+    <string name="question">Nhập câu hỏi</string>
+    <string name="answer">Nhập câu trả lời</string>
+    <string name="ok">Xác nhận</string>
+    <string name="remove_fav">Xóa yêu thích</string>
+    <string name="hide_media">Ẩn hình</string>
 </resources>

@@ -1,16 +1,163 @@
-<resources xmlns:tools="http://schemas.android.com/tools">
+<resources>
     <!-- Base application theme. -->
-    <style name="Theme.Group7_PhotoViewer" parent="Theme.MaterialComponents.DayNight.DarkActionBar">
+    <style name="Theme.Group7_PhotoViewer" parent="Theme.MaterialComponents.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">@color/white</item>
-        <item name="colorPrimaryVariant">@color/primary_color_light</item>
+        <item name="colorPrimary">@color/primary_color_light</item>
+        <item name="colorPrimaryVariant">@color/title_light</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
         <item name="colorSecondary">@color/primary_color_light_20a</item>
         <item name="colorSecondaryVariant">@color/primary_color_light</item>
         <item name="colorOnSecondary">@color/black</item>
+        <item name="iconTint">@color/black</item>
+
         <!-- Status bar color. -->
         <item name="android:statusBarColor">?attr/colorPrimaryVariant</item>
         <!-- Customize your theme here. -->
+        <item name="windowActionModeOverlay">true</item>
+        <item name="android:actionModeCloseDrawable">@drawable/ic_close</item>
+        <item name="actionModeStyle">@style/AppTheme.ActionMode</item>
+    </style>
+
+    <style name="AppTheme.ActionMode" parent="@style/Widget.AppCompat.ActionMode">
+        <item name="background">@color/primary_color_light</item>
+        <item name="minHeight">?attr/actionBarSize</item>
+        <item name="android:paddingVertical">10dp</item>
+        <item name="height">75dp</item>
+        <item name="elevation">20dp</item>
+        <item name="titleTextStyle">@style/ActionModeFont</item>
+        <item name="android:subtitleTextColor">@color/title_light</item>
+        <item name="android:subtitleTextAppearance">@style/ToolbarFont</item>
+    </style>
+
+
+    <style name="ViewPhotoItem" parent="Theme.AppCompat.DayNight.NoActionBar">
+
+    </style>
+
+    <style name="PhotoCardView" parent="Widget.MaterialComponents.CardView">
+        <item name="cardBackgroundColor">@android:color/transparent</item>
+    </style>
+
+    <style name="PhotoCardImageView" >
+        <item name="android:padding">0dp</item>
+    </style>
+
+    <style name="Toolbar">
+        <item name="android:background">@color/white</item>
+        <item name="android:subtitleTextColor">@color/title_light</item>
+        <item name="android:subtitleTextAppearance">@style/ToolbarFont</item>
+        <item name="android:colorControlNormal">@color/black</item>
+        <item name="navigationIconTint">@color/black</item>
+        <item name="windowActionModeOverlay">true</item>
+    </style>
+
+    <style name="MoreBottomSheetParent">
+        <item name="background">@color/primary_color_light</item>
+    </style>
+
+    <style name="MoreBottomSheetText">
+        <item name="android:textColor">@color/black</item>
+        <item name="android:fontFamily">@font/primary_font_bold</item>
+        <item name="android:textSize">20sp</item>
+        <item name="android:layout_marginVertical">10dp</item>
+    </style>
+
+    <style name="ToolbarTitleCommon">
+        <item name="android:textColor">@color/title_light</item>
+        <item name="android:fontFamily">@font/primary_font_extrabold</item>
+        <item name="android:textSize">25sp</item>
+    </style>
+
+    <style name="ToolbarTitle">
+        <item name="android:textColor">@color/title_dark</item>
+        <item name="android:fontFamily">@font/primary_font_extrabold</item>
+        <item name="android:textSize">25sp</item>
+    </style>
+
+    <style name="ToolbarTitleMediaView">
+        <item name="android:textColor">@color/title_light</item>
+        <item name="android:fontFamily">@font/primary_font_bold</item>
+    </style>
+
+    <style name="ToolbarFont">
+        <item name="android:fontFamily">@font/primary_font_extrabold</item>
+        <item name="android:textSize">30sp</item>
+    </style>
+
+    <style name="ToolbarSubtitle">
+        <item name="android:textSize">10sp</item>
+        <item name="android:fontFamily">@font/primary_font</item>
+    </style>
+
+    <style name="ToolbarRed" parent="Toolbar">
+        <item name="iconTint">@android:color/holo_red_light</item>
+    </style>
+
+    <style name="TextDetails" parent="Widget.AppCompat.TextView">
+        <item name="android:textColor">@color/primary_color_light</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textStyle">bold</item>
+    </style>
+
+    <style name="BottomSheetDialogThemeNoFloating" parent="Theme.Design.Light.BottomSheetDialog">
+        <item name="android:windowIsFloating">false</item>
+        <item name="android:windowSoftInputMode">adjustResize|stateVisible</item>
+        <item name="bottomSheetStyle">@style/AppModalStyle</item>
+    </style>
+
+    <style name="AppModalStyle"
+        parent="Widget.Design.BottomSheet.Modal">
+        <item name="android:background">@drawable/rounded_dialog</item>
+    </style>
+
+
+    <style name="selectCheckBox">
+        <item name="colorAccent">@color/white</item>
+        <item name="buttonTint">@color/primary_color_light</item>
+    </style>
+
+    <style name="SecureBackground">
+        <item name="android:background">@color/primary_color_light</item>
+    </style>
+
+    <style name="SecureButton">
+        <item name="android:layout_marginEnd">20dp</item>
+        <item name="android:paddingVertical">15dp</item>
+        <item name="android:layout_width">wrap_content</item>
+        <item name="android:background">@android:color/transparent</item>
+        <item name="android:fontFamily">@font/inter_extrabold</item>
+        <item name="android:textSize">30sp</item>
+        <item name="android:textColor">@color/white</item>
+        <item name="android:foreground">?android:attr/selectableItemBackground</item>
+    </style>
+
+    <style name="ActionModeFont">
+        <item name="android:fontFamily">@font/primary_font_bold</item>
+        <item name="android:textSize">18sp</item>
+        <item name="android:textColor">@color/white</item>
+    </style>
+
+    <style name="scrollbar_shape_style">
+        <item name="android:scrollbarStyle">outsideOverlay</item>
+        <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb</item>
+        <item name="android:scrollbarTrackVertical">@drawable/scrollbar_track</item>
+        <item name="msb_textColor">@color/white</item>
+        <item name="msb_handleColor">@color/title_dark</item>
+        <item name="android:scrollbarSize">1dp</item>
+    </style>
+
+    <style name="Fastscrollbar">
+        <item name="fastScrollPopupTextColor">@color/white</item>
+        <item name="fastScrollPopupBgColor">@color/primary_color_light</item>
+        <item name="fastScrollThumbColor">@color/primary_color_light</item>
+        <item name="fastScrollVerticalThumbDrawable">@drawable/scrollbar_thumb</item>
+        <item name="fastScrollPopupTextSize">15sp</item>
+        <item name="fastScrollTrackColor">@android:color/transparent</item>
+        <item name="android:scrollbarSize">2dp</item>
+        <item name="fastScrollAutoHide">true</item>
+        <item name="fastScrollAutoHideDelay">1500</item>
+        <item name="fastScrollPopupPosition">adjacent</item>
+        <item name="fastScrollPopupTextVerticalAlignmentMode">font_metrics</item>
     </style>
 </resources>

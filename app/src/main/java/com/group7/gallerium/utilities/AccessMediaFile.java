@@ -3,143 +3,284 @@ package com.group7.gallerium.utilities;
 import android.content.Context;
 import android.database.Cursor;
 import android.net.Uri;
+import android.os.Build;
 import android.provider.MediaStore;
 import android.util.Log;
 
-import androidx.loader.content.CursorLoader;
-
 import com.group7.gallerium.models.Media;
 
-import java.io.File;
-import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Calendar;
+import java.util.Comparator;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 public class AccessMediaFile {
 
-    public static List<Media> allMedia;
-
+    //public static List<Media> allMedia;
+    private static HashMap<String, Media> allMedia = new HashMap<>();
+    private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
+    private static HashMap<String, Boolean> allYourAlbum = new HashMap<>();
+    private static HashMap<String, Boolean> allTrashedMedia = new HashMap<>();
+    private static ArrayList<Media> cacheAllMedia = new ArrayList<>();
+    private static boolean cached = false;
     private static boolean allMediaPresent = false;
     private static boolean addNewestMediaOnly = false;
     // is used when an user deletes or takes a new media file from within
     // the app. Since the app is the only one open, we just have to check which media file has been deleted
     // or which media file has been created
 
-    public static List<Media> getAllMedia() {
+    static String[] columns = {MediaStore.Files.FileColumns._ID,
+            MediaStore.Files.FileColumns.DATA,
+            MediaStore.Files.FileColumns.DATE_MODIFIED,
+            MediaStore.Files.FileColumns.DATE_ADDED,
+            MediaStore.Files.FileColumns.DATE_TAKEN,
+            MediaStore.Files.FileColumns.MEDIA_TYPE,
+            MediaStore.Files.FileColumns.MIME_TYPE,
+            MediaStore.Files.FileColumns.TITLE,
+            MediaStore.Files.FileColumns.RESOLUTION,
+            MediaStore.Files.FileColumns.WIDTH,
+            MediaStore.Files.FileColumns.HEIGHT,
+            MediaStore.Files.FileColumns.DURATION,
+            MediaStore.Files.FileColumns.SIZE,
+            MediaStore.Files.FileColumns.BITRATE
+
+
+    };
+    static String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+            + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
+            + " OR "
+            + MediaStore.Files.FileColumns.MEDIA_TYPE + "="
+            + MediaStore.Files.FileColumns.MEDIA_TYPE_VIDEO;
+    static final String orderBy = MediaStore.Files.FileColumns.DATE_MODIFIED;
+    static Uri queryUri = MediaStore.Files.getContentUri("external");
+
+    public static void setAllFavMedia(Set<String> paths) {
+        allFavMedia.clear();
+        paths.forEach(AccessMediaFile::addToFavMedia);
+    }
+
+    public static void addToFavMedia(String path) {
+        allFavMedia.put(path, false);
+    }
+
+    public static void removeFromFavMedia(String path) {
+        allFavMedia.remove(path);
+    }
+
+    public static List<Media> getAllFavMedia() {
+        return getFavMedia().stream().map(x -> allMedia.get(x)).sorted((x1, x2) -> {
+            if (x1.getRawDate() == x2.getRawDate()) {
+                return 0;
+            } else if (x1.getRawDate() > x2.getRawDate()) {
+                return -1;
+            } else return 1;
+        }).collect(Collectors.toList());
+    }
+
+    public static void setAllYourALbum(Set<String> paths) {
+        allYourAlbum.clear();
+        paths.forEach(AccessMediaFile::addToYourAlbum);
+    }
+
+    public static void addToYourAlbum(String path) {
+        allYourAlbum.put(path, false);
+    }
+
+    public static void removeFromYourAlbum(String path) {
+        allYourAlbum.remove(path);
+    }
+
+    public static Set<String> getAllYourAlbum() {
+        return allYourAlbum.keySet().stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
+    }
+
+    public static Set<String> getFavMedia() {
+        var s = allFavMedia.keySet();
+        s.removeIf(x -> !allMedia.containsKey(x));
+        return new HashSet<>(s);
+    }
+
+    public static boolean isExistedAnywhere(String path) {
+        return allFavMedia.containsKey(path) || allTrashedMedia.containsKey(path);
+    }
+
+    private static HashMap<String, Media> getAllMedia() {
         return allMedia;
+    }
+
+    public static Media getMediaWithPath(String path){
+        return allMedia.get(path);
     }
     public static void refreshAllMedia(){
         allMediaPresent = false;
     }
+    public static String renameMedia(String path, String fullName) {
+        var newPath = path.substring(0, path.lastIndexOf("/")) + "/" + fullName;
+        allMedia.put(newPath, allMedia.remove(path));
+        Objects.requireNonNull(allMedia.get(newPath)).setPath(newPath);
+        Objects.requireNonNull(allMedia.get(newPath)).setTitle(fullName);
+        return newPath;
+    }
     public static void updateNewMedia(){
         addNewestMediaOnly = true;
+        allMediaPresent = false;
     }
-    public static void removeMediaFromAllMedia(String path) {  // remove deleted photo from "database"
-        for(int i=0;i<allMedia.size();i++) {
-            if(allMedia.get(i).getPath().equals(path)) {
-                allMedia.remove(i);
-                break;
-            }
-        }
+    public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
+        allMedia.remove(path);
+        refreshAllMedia();
     }
 
-    public static final List<Media> getAllMediaFromGallery(Context context) {
-        if(!allMediaPresent) { // Do not fetch photos between Activity switching.
-            // MASSIVE performance improvement. Like over 9000.
-            Uri uri;
-            int columnIndexData, thumb, dateIndex, typeIndex;
-            List<Media> listImage = new ArrayList<>();
-            Cursor cursor;
-            String type= null;
-
-            String absolutePath = null;
-            String thumbnail = null;
-            Long dateTaken = null;
-            uri = MediaStore.Images.Media.EXTERNAL_CONTENT_URI;
-
-            String[] projection = {
-                    MediaStore.MediaColumns.DATA,
-                    MediaStore.Images.Media.BUCKET_DISPLAY_NAME,
-                    MediaStore.Images.Media.DATE_TAKEN
+    public static ArrayList<Media> getAllMedia(Context context) {
+        Log.d("CACHED", String.valueOf(cached));
+        var temp = getAllMediaFromGallery(context);
+        if (!cached) {
+            cacheAllMedia.clear();
+            Comparator<Map.Entry<String, Media>> customComparator = (media1, media2) -> {
+                return Long.compare(media2.getValue().getRawDate(), media1.getValue().getRawDate());
             };
+            cached = true;
+            cacheAllMedia = temp.entrySet()
+                    .stream()
+                    .sorted(customComparator)
+                    .map(Map.Entry::getValue).collect(Collectors.toCollection(ArrayList::new));
+        }
+        return cacheAllMedia;
+    }
 
-            final String orderBy = MediaStore.Images.Media.DATE_TAKEN;
+    private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
 
-            cursor = context.getApplicationContext().getContentResolver().query(uri, projection, null, null, orderBy + " DESC");
-            columnIndexData = cursor.getColumnIndexOrThrow(MediaStore.MediaColumns.DATA);
-            thumb = cursor.getColumnIndexOrThrow(MediaStore.Images.Thumbnails.DATA);
-            dateIndex = cursor.getColumnIndexOrThrow(MediaStore.Images.Media.DATE_TAKEN);
-//            int mimeindex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.MIME_TYPE);
-//            int titleIndex = cursor.getColumnIndexOrThrow(MediaStore.Files.FileColumns.TITLE);
-            Calendar myCal = Calendar.getInstance();
-            SimpleDateFormat formatter = new SimpleDateFormat("EEE, dd-MM-yyyy");
+        if (!allMediaPresent) {
+            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn,
+                    videoLengthColumn, widthColumn, heightColumn, sizeColumn, bitrateColumn, resColumn;
+            int count, type, width, height, bitrate;
+            String mimeType;
+            String absolutePath, id, title, res;
+            long dateTaken, videoLength=0, size;
+            HashMap<String, Media> listMedia = new HashMap<>();
+
+
+            Cursor cursor = context.getContentResolver().query(queryUri,
+                    columns,
+                    selection,
+                    null, // Selection args (none).
+                    orderBy + " DESC" // Sort order.
+            );
+            count = cursor.getCount();
+            Log.d("Amount-pic", String.valueOf(count));
+            int multiplier = 1000;
+            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                multiplier = 1;
+            }
+
+            idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
+            pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+            typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
+            mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
+            videoLengthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION);
+            widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
+            heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
+            sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
+            bitrateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.BITRATE);
+            resColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.RESOLUTION);
+
+            dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
+            int dt = 0;
+            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                dt = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN);
+            }
+            var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
+            titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
+            if (!allMediaPresent || cursor.getCount() != allMedia.size()) {
+                cached = false;
+                allMedia.clear();
+            }
             while (cursor.moveToNext()) {
-                Log.d("gallerium", "reading");
-                try {
-
-                    absolutePath = cursor.getString(columnIndexData);
-                    File file = new File(absolutePath);
-                    if (!file.canRead()) {
-                        continue;
-                    }
-                } catch (Exception e) {
-                    continue;
+                id = cursor.getString(idColumn);
+                absolutePath = cursor.getString(pathColumn);
+                if (allMedia.containsKey(absolutePath)) {
+                    addNewestMediaOnly = false;
+                    allMediaPresent = true;
+                    break;
                 }
-                thumbnail = cursor.getString(thumb);
-                dateTaken = cursor.getLong(dateIndex);
 
-                myCal.setTimeInMillis(dateTaken);
-                String dateText = formatter.format(myCal.getTime());
+                type = cursor.getInt(typeColumn);
+                mimeType = cursor.getString(mimeTypeColumn);
+                dateTaken = cursor.getLong(dateColumn);
+                title = cursor.getString(titleColumn);
+//                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
+//                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
+                if (mimeType!=null && mimeType.startsWith("video")) {
+                    videoLength = cursor.getLong(videoLengthColumn);
+                }
+                width = cursor.getInt(widthColumn);
+                height = cursor.getInt(heightColumn);
+                size = cursor.getLong(sizeColumn);
+                bitrate = cursor.getInt(bitrateColumn);
+                res = cursor.getString(resColumn);
+
                 Media media = new Media();
                 media.setPath(absolutePath);
-              
-                media.setThumbnail(thumbnail);
-                media.setDateTaken(dateText);
-                media.setType("photo");
-                if (media.getPath() == "") {
+                media.setThumbnail(absolutePath);
+                media.setDateTaken(dateTaken * multiplier);
+                media.setType(type);
+                media.setMimeType(mimeType);
+                media.setTitle(title);
+                media.setDuration(videoLength);
+                media.setWidth(width);
+                media.setHeight(height);
+                media.setSize(size);
+                media.setBitrate(bitrate);
+                media.setResolution(res);
+
+                if (media.getPath().equals("")) {
                     continue;
                 }
-                if(addNewestMediaOnly){
-                    boolean iscontained = false; // in the "database"
-                    for(Media i : allMedia){
-                        if(i.getPath().equals(media.getPath())){
-                            iscontained = true;
-                            break;
-                        }
-                    }
-                    if(iscontained){
-                        Log.d("Simple-Gallery","GetAllPhotosFromGallery -> Image already in allImages. Breaking");
+                if (addNewestMediaOnly) {
+                    boolean iscontained = allMedia.containsKey(media.getPath()); // in the "all media database"
+//                    for(Media m: allMedia){
+//                        if(m.getPath().equals(media.getPath())){
+//                            iscontained = true;
+//                            break;
+//                        }
+//                    }
+                    if (iscontained) {
                         addNewestMediaOnly = false;
                         allMediaPresent = true;
-                        cursor.close(); // Android Studio suggestion
-                        return allMedia;
-                    } else{
-                        Log.d("Simple-Gallery", allMedia.size() + "");
-                        if(allMedia.size()>1200){
+                        break;
+                    } else {
+                        if (allMedia.size() == count) {
                             addNewestMediaOnly = false;
                             allMediaPresent = true;
-                            cursor.close(); // Android Studio suggestion
-                            return allMedia;
+                            cursor.close();
+                            return getAllMedia();
                         }
-                        allMedia.add(0, media);
+                        allMedia.put(media.getPath(), media);
+                        cached = false;
+                        //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                     }
                 } else {
-                    listImage.add(media);
+                    listMedia.put(media.getPath(), media);
+                    cached = false;
+//                    paths.put(media.getPath(), true);
+//                    Log.d("gallerium", "adding new pic" + dateTaken);
                 }
+//                if (listMedia.size() >= 2000) {
+//                    break;
+//                }
 
-                if(listImage.size()>1000) { // Just for testing.
-                    break;                  // I don't want to load 10 000 photos at once.
-                }
             }
             cursor.close(); // Android Studio suggestion
-            allMedia = listImage;
+            allMedia.putAll(listMedia);
             addNewestMediaOnly = false;
             allMediaPresent = true;
-            return listImage;
+            cached = false;
         }
-        else{
-            return allMedia;
-        }
+        return getAllMedia();
     }
 }
