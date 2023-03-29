@@ -751,6 +751,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     String getMimeType(String path){
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension.isBlank()) {
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        }
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         }

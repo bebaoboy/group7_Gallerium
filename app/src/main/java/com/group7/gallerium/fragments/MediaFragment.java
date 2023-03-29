@@ -2,20 +2,24 @@ package com.group7.gallerium.fragments;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -32,6 +36,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -39,6 +44,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
 import com.group7.gallerium.activities.SettingsActivity;
@@ -53,13 +59,16 @@ import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
+import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -389,7 +398,37 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //
 //        refresh();
 //        callback.onDestroyActionMode(mode);
-        }.execute();
+        }
+//        .execute()
+        ;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                var newFileName = fileUtils.trashFileMultiple(selectedMedia);
+                SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("trash_media", MODE_PRIVATE);
+                SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                myEdit.clear();
+                // write all the data entered by the user in SharedPreference and apply
+                myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                myEdit.apply();
+                refresh();
+            } else {
+                try {
+                    Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                    startActivity(intent);
+                } catch (Exception ex) {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivity(intent);
+                }
+            }
+        } else {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                fileUtils.trashFileMultiple(selectedMedia);
+            }
+        }
+
     }
 
     @Override
@@ -642,54 +681,62 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     public void rescanForUnAddedAlbum(){
+        Cursor cursor =  context.getContentResolver().query(
+                MediaStore.Files.getContentUri("external")
+                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
         String name;
         try {
-            Cursor cursor =  context.getContentResolver().query(
-                    MediaStore.Files.getContentUri("external")
-                    , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
-                    , MediaStore.Files.FileColumns.DATA + " LIKE ?"
-                    , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+            if (cursor != null) {
+                Log.d("size", "" + cursor.getCount());
 
-            int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
-            // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
-            int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-            Log.d("size", "" + cursor.getCount());
-
-            ArrayList<Album> temp = new ArrayList<>();
-            while (cursor.moveToNext()) {
-                String path = cursor.getString(pathColumn);
-                Log.d("path", path);
-                name = cursor.getString(nameColumn);
-                Log.d("name", name);
-                String[] subDirs = path.split("/");
-                if(!subDirs[subDirs.length-2].equals("owner")) continue;
-                Album album = new Album(null, name);
-                album.setPath(path);
-                temp.add(album);
-            }
-            for(Album album: albumList){
-                for(int i=0;i<temp.size();i++){
-                    if(temp.get(i).getPath().equals(album.getPath())){
-                        temp.remove(i);
+                ArrayList<Album> temp = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(pathColumn);
+                    Log.d("path", path);
+                    name = cursor.getString(nameColumn);
+                    Log.d("name", name);
+                    String[] subDirs = path.split("/");
+                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                    Album album = new Album(null, name);
+                    album.setPath(path);
+                    temp.add(album);
+                }
+                for(Album album: albumList){
+                    for(int i=0;i<temp.size();i++){
+                        if(temp.get(i).getPath().equals(album.getPath())){
+                            temp.remove(i);
+                        }
                     }
                 }
+                if(temp.size() >0)albumList.addAll(temp);
             }
-            if(temp.size() >0)albumList.addAll(temp);
-            cursor.close();
         }catch (Exception e){
             Log.d("tag", e.getMessage());
         }
     }
 
-    @NonNull
-    public ArrayList<Album> getAllAlbum(@NonNull ArrayList<Media> listMedia) {
+    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
-
+        for(var a : AccessMediaFile.getAllYourAlbum()) {
+            String[] subDirs = a.split("/");
+            String name = subDirs[subDirs.length - 1];
+            Album album = new Album(null, name);
+            album.setPath(a);
+            paths.add(a);
+            albums.add(album);
+        }
         for (int i = 0; i < listMedia.size(); i++) {
             String[] subDirectories = listMedia.get(i).getPath().split("/");
             String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
             String name = subDirectories[subDirectories.length - 2];
+            if (name.equals("t3mp")) continue;
             if (!paths.contains(folderPath)) {
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
@@ -701,10 +748,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             } else {
                 if (listMedia.get(i).getHeight() != 0) {
                     albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                    if (albums.get(paths.indexOf(folderPath)).getAvatar() == null) {
+                        albums.get(paths.indexOf(folderPath)).setAvatar(listMedia.get(i));
+                    }
                 }
             }
         }
-
+//        for(Album album: albums){
+//            Log.d("album", album.toString());
+//        }
         return albums;
     }
 

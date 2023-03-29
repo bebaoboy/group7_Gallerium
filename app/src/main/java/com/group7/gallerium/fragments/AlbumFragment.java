@@ -322,6 +322,36 @@ public class AlbumFragment extends Fragment{
 //        for(Album album: albums){
 //            Log.d("album", album.toString());
 //        }
+        HashMap<String, Boolean> albumDirs = new HashMap<>();
+
+        for (Album album : albumList) {
+            if (!albumDirs.containsKey(album.getPath())) {
+                if (!album.getPath().equals("/internal/DCIM/Ảnh")
+                        && !album.getName().equals("/internal/DCIM/Video")
+                        && !album.getName().equals("/internal/DCIM/Trash")) {
+                    albumDirs.put(album.getPath(), true);
+                }
+            }
+        }
+        SharedPreferences mySharedPref = context.getSharedPreferences("trash_media", MODE_PRIVATE);
+        var tList = mySharedPref.getStringSet("path", null);
+        if (tList != null) {
+            AccessMediaFile.setAllTrashMedia(tList);
+        }
+        Album trashBin = new Album("Thùng rác");
+        var trashes = AccessMediaFile.getAllTrashMedia();
+        for(var m : trashes) {
+            var media = AccessMediaFile.getMediaWithPath(m);
+//            media.setPath(m);
+//            media.setTitle(m.substring(m.lastIndexOf("/") + 1));
+            trashBin.addMedia(media);
+        }
+        if (trashBin.getListMedia().size() > 0) {
+            trashBin.setAvatar(trashBin.getListMedia().get(0));
+        }
+        trashBin.setPath("/internal/DCIM/Trash");
+        paths.add(trashBin.getPath());
+        albums.add(trashBin);
         return albums;
     }
 
@@ -353,7 +383,8 @@ public class AlbumFragment extends Fragment{
                     if (subDir[subDir.length - 1].equals("Camera")
                             || subDir[subDir.length - 1].equals("Screenshots")
                             || subDir[subDir.length - 1].equals("Ảnh")
-                            || subDir[subDir.length - 1].equals("Video") ) {
+                            || subDir[subDir.length - 1].equals("Video")
+                            || subDir[subDir.length - 1].equals("Trash")) {
                         //categoryList.get("Mặc định").addAlbumToList(album);
                         catName = "Mặc định";
                     }
@@ -429,6 +460,7 @@ public class AlbumFragment extends Fragment{
 //                }
 //            }
 //        }
+
         albumList.clear();
         albumCategories.clear();
         for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){

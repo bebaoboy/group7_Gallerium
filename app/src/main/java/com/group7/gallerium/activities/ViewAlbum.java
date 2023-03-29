@@ -5,10 +5,13 @@ import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
+import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.MediaStore;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -382,7 +385,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             firstVisiblePosition = album_rec_item.getChildAdapterPosition(firstChild);
             offset = firstChild.getTop();
         }
-        adapter = new MediaCategoryAdapter(this, spanCount);
+        adapter = new MediaCategoryAdapter(this, spanCount, this);
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
         ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -521,14 +524,64 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     }
 
     @NonNull
-    public ArrayList<Album> getAllAlbum(@NonNull ArrayList<Media> listMedia) {
+    public void rescanForUnAddedAlbum(){
+        Cursor cursor =  getContentResolver().query(
+                MediaStore.Files.getContentUri("external")
+                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+        String name;
+        try {
+            if (cursor != null) {
+                Log.d("size", "" + cursor.getCount());
+
+                ArrayList<Album> temp = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(pathColumn);
+                    Log.d("path", path);
+                    name = cursor.getString(nameColumn);
+                    Log.d("name", name);
+                    String[] subDirs = path.split("/");
+                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                    Album album = new Album(null, name);
+                    album.setPath(path);
+                    temp.add(album);
+                }
+                for(Album album: albumList){
+                    for(int i=0;i<temp.size();i++){
+                        if(temp.get(i).getPath().equals(album.getPath())){
+                            temp.remove(i);
+                        }
+                    }
+                }
+                if(temp.size() >0)albumList.addAll(temp);
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+    }
+
+    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
+        for(var a : AccessMediaFile.getAllYourAlbum()) {
+            String[] subDirs = a.split("/");
+            String name = subDirs[subDirs.length - 1];
+            Album album = new Album(null, name);
+            album.setPath(a);
+            paths.add(a);
+            albums.add(album);
+        }
 
         for (int i = 0; i < listMedia.size(); i++) {
             String[] subDirectories = listMedia.get(i).getPath().split("/");
             String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
             String name = subDirectories[subDirectories.length - 2];
+            if (name.equals("t3mp")) continue;
             if (!paths.contains(folderPath)) {
                 paths.add(folderPath);
                 Album album = new Album(listMedia.get(i), name);
@@ -540,12 +593,18 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             } else {
                 if (listMedia.get(i).getHeight() != 0) {
                     albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                    if (albums.get(paths.indexOf(folderPath)).getAvatar() == null) {
+                        albums.get(paths.indexOf(folderPath)).setAvatar(listMedia.get(i));
+                    }
                 }
             }
         }
-
+//        for(Album album: albums){
+//            Log.d("album", album.toString());
+//        }
         return albums;
     }
+
 
     public void categorizeWithExcludeAlbum() {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
@@ -554,7 +613,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
 
-        //rescanForUnAddedAlbum();
+        rescanForUnAddedAlbum();
         for (Album album : albumList) {
             if(Objects.equals(album.getName(), albumName)) continue;
             String path = album.getPath();

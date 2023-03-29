@@ -1,5 +1,6 @@
 package com.group7.gallerium.utilities;
 
+import android.Manifest;
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.content.ContentResolver;
@@ -8,6 +9,7 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.Intent;
 import android.content.IntentSender;
+import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
@@ -21,6 +23,7 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.annotation.NonNull;
+import androidx.core.app.ActivityCompat;
 
 import com.group7.gallerium.models.Media;
 
@@ -772,5 +775,22 @@ public class FileUtils {
         } catch (IOException e) {
             e.printStackTrace();
         }
+    }
+
+    public ArrayList<String> trashFileMultiple(ArrayList<Media> selectedMedia) {
+        ArrayList<String> newNames = new ArrayList<>();
+        for(var media : selectedMedia) {
+            var s = media.getPath();
+            var parentPath = s.substring(0, s.lastIndexOf("/"));
+            File fileDir = new File(parentPath);
+            var fileName = s.substring(s.lastIndexOf("/") + 1);
+            File from = new File(fileDir, fileName);
+            var nf = ".gtrashed-" + System.currentTimeMillis() + "-" + fileName;
+            File to = new File(fileDir, nf);
+            from.renameTo(to);
+            newNames.add(fileDir + "/" + nf);
+            AccessMediaFile.addToTrashMedia(fileDir + "/" + nf);
+        }
+        return newNames;
     }
 }
