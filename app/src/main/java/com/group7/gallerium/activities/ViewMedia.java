@@ -110,7 +110,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         albumCategories = new ArrayList<>();
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
+
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
+
+        applyData();
+        if(viewType == 1){
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_media_secured);
+        }else{
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
+        }
         viewPager = findViewById(R.id.viewPager_picture);
         videoController = new MediaController(this){
             public boolean dispatchKeyEvent(KeyEvent event)
@@ -121,7 +129,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 return super.dispatchKeyEvent(event);
             }
         };
-        applyData();
+
         toolbarSetting();
         setUpSlider();
         bottomNavCustom();
@@ -378,6 +386,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);
+
+                if(viewType == 1){
+                    hideAllFuction();
+                }
             }
 
             @Override
@@ -389,6 +401,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
             }
         });
+    }
+
+    private void hideAllFuction() {
+        favBtn.setVisible(false);
+        btnRename.setVisibility(View.GONE);
+        btnSetBackGround.setVisibility(View.GONE);
+        btnRename.setVisibility(View.GONE);
+
+
     }
 
     public void setTitleToolbar(@NonNull Media m) {
@@ -418,13 +439,13 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
 
-            switch (item.getItemId()){
-                case R.id.edit_nav_item->{
+            switch (item.getItemId()) {
+                case R.id.edit_nav_item -> {
                     Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
 
-                    if(mediaPath.contains("gif")){
-                        Toast.makeText(this,"Cannot edit GIF images",Toast.LENGTH_SHORT).show();
-                    } else{
+                    if (mediaPath.contains("gif")) {
+                        Toast.makeText(this, "Cannot edit GIF images", Toast.LENGTH_SHORT).show();
+                    } else {
                         // Set data
                         editIntent.setData(Uri.fromFile(new File(mediaPath)));
                         // Set output directory
@@ -451,9 +472,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         behavior.setPeekHeight(820);
                         behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
+
+                    if (viewType == 1) {
+                        btnRename.setVisibility(View.GONE);
+                        btnSetBackGround.setVisibility(View.GONE);
+                        btnAddToAlbum.setVisibility(View.GONE);
+                    }
                 }
 
-                case R.id.delete_nav_item ->{
+                case R.id.delete_nav_item -> {
                     //String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
@@ -473,115 +500,78 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                    AlertDialog alert = builder.create();
 //                    alert.show();
 
-                    if (fileUtils.delete(launcher, mediaPath, this) > 0) {
-                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
-                        slideAdapter.removePath(mediaPath);
-                        finish();
+                    if (viewType == 2) {
+                        if (fileUtils.delete(launcher, mediaPath, this) > 0) {
+                            Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                            AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                            slideAdapter.removePath(mediaPath);
+                            finish();
+                        }
+                    } else {
+                        File mediaFile = new File(mediaPath);
+                        if (mediaFile.delete()) {
+                            slideAdapter.removePath(mediaPath);
+                            finish();
+                            Toast.makeText(getApplicationContext(), "Hình đã được xóa", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Hình chưa được xóa", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
 
                 case R.id.share_nav_item -> {
-                        var m = AccessMediaFile.getMediaWithPath(mediaPath);
-                        // Create intent to deliver some kind of result data
-                        Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                        ArrayList<Uri> uris = new ArrayList<>();
-                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+                    var m = AccessMediaFile.getMediaWithPath(mediaPath);
+                    // Create intent to deliver some kind of result data
+                    Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                    ArrayList<Uri> uris = new ArrayList<>();
+                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
 
-                        result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                        result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-                        result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-                        result.setType("*/*");
-                        startActivity(result);
+                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                    result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                    result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                    result.setType("*/*");
+                    startActivity(result);
 
                 }
 
-                case R.id.view_photo_secured_nav_item->{
-//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//                    builder.setTitle("Confirm");
-//                    builder.setMessage("Do you want to hide/show this image?");
-//
-//                    builder.setPositiveButton("YES", (dialog, which) -> {
-//                        String scrPath = Environment.getExternalStorageDirectory() + File.separator+".secret";
-//                        File scrDir = new File(scrPath);
-//                        if(!scrDir.exists()){
-//                            Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-//                        }
-//                        else{
-//                            FileUtility fu = new FileUtility();
-//                            File mediaFile = new File(mediaPath);
-//                            if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
-//                                fu.moveFile(mediaPath, mediaFile.getName(),scrPath);
-//                                Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-//                            }
-//                            else{
-//                                String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
-//                                File folder = new File(outputPath);
-//                                File file = new File(mediaFile.getPath());
-//                                File desImgFile = new File(outputPath,mediaFile.getName());
-//                                if(!folder.exists()) {
-//                                    folder.mkdir();
-//                                }
-//                                mediaFile.renameTo(desImgFile);
-//                                mediaFile.deleteOnExit();
-//                                desImgFile.getPath();
-//                                MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
-//                            }
-//                        }
-//                        Intent intentResult = new Intent();
-//                        intentResult.putExtra("path_media", mediaPath);
-//                        setResult(RESULT_OK, intentResult);
-//                        finish();
-//                        dialog.dismiss();
-//                    });
-//                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-//
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//
-//                            // Do nothing
-//                            dialog.dismiss();
-//                        }
-//                    });
-//
-//                    AlertDialog alert = builder.create();
-//                    alert.show();
-//
-//                    break;
-
-
-                    String scrPath =  getFilesDir().getAbsolutePath() + File.separator+ "secure-subfolder";
+                case R.id.view_photo_secured_nav_item -> {
+                    String scrPath = getFilesDir().getAbsolutePath() + File.separator + "secure-subfolder";
                     File scrDir = new File(scrPath);
-                    if(!scrDir.exists()){
+                    if (!scrDir.exists()) {
                         Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
+                    } else {
                         File mediaFile = new File(mediaPath);
-                        if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
+                        if (!(scrPath + File.separator + mediaFile.getName()).equals(mediaPath)) {
                             String[] subDirs = mediaPath.split("/");
-                            String name = subDirs[subDirs.length-1];
+                            String name = subDirs[subDirs.length - 1];
                             fileUtils.secureFile(getApplicationContext(), mediaPath, name, launcher);
                             Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
+                        } else {
+                            String outputPath = Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "Restore";
                             File folder = new File(outputPath);
                             File file = new File(mediaFile.getPath());
-                            File desImgFile = new File(outputPath,mediaFile.getName());
-                            if(!folder.exists()) {
+                            File desImgFile = new File(outputPath, mediaFile.getName());
+                            if (!folder.exists()) {
                                 folder.mkdir();
                             }
                             mediaFile.renameTo(desImgFile);
                             mediaFile.deleteOnExit();
                             desImgFile.getPath();
-                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath + File.separator + desImgFile.getName()}, null, null);
                         }
                     }
+                }
+
+                case R.id.remove_from_secured_nav_item -> {
+                    String mimeType = getMimeType(mediaPath);
+                    fileUtils.moveFromInternal(mediaPath, launcher, "Pictures/Gallerium", mimeType, getType(mimeType), getApplicationContext());
+                    slideAdapter.removePath(mediaPath);
+                    finish();
                 }
             }
             return true;
         });
+
     }
 
     @Override

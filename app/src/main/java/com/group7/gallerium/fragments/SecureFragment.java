@@ -184,21 +184,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
-            File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-            try {
-                paths.clear();
-                getPaths(secureDir);
-            }catch (Exception e){
-                Log.d("tag", e.getMessage());
-            }
-            mediaList.clear();
-            createMediaList();
-            secureAdapter.setListImages(mediaList);
-            secureAdapter.setListCategory(null);
-            GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
-            secureRecyclerView.setAdapter(secureAdapter);
-            secureRecyclerView.setLayoutManager(layoutManager);
-            secureAdapter.setImageSize(calculateImageSize());
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(secureRecyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
 //            callback.onDestroyActionMode(mode);
@@ -214,6 +199,21 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     }
 
     public void refresh() {
+        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+        try {
+            paths.clear();
+            getPaths(secureDir);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+        mediaList.clear();
+        createMediaList();
+        secureAdapter.setListImages(mediaList);
+        secureAdapter.setListCategory(null);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
+        secureRecyclerView.setAdapter(secureAdapter);
+        secureRecyclerView.setLayoutManager(layoutManager);
+        secureAdapter.setImageSize(calculateImageSize());
         Log.d("refresh", "");
 
     }

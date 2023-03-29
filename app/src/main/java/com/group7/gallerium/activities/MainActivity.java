@@ -235,6 +235,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(numGridVal * 2);
+                    if (refresh) myFragment.refresh();
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -269,6 +270,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(numGridVal);
+                    if (refresh) myFragment.refresh();
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());

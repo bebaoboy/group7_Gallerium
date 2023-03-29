@@ -118,6 +118,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
+        bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
         viewPager = findViewById(R.id.viewPager_picture);
         videoController = new MediaController(this){
             public boolean dispatchKeyEvent(KeyEvent event)
