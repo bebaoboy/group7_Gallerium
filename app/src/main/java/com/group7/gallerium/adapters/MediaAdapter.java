@@ -2,6 +2,7 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
+import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -21,11 +22,14 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.bumptech.glide.Glide;
 import com.bumptech.glide.load.DataSource;
+import com.bumptech.glide.load.DecodeFormat;
 import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.bumptech.glide.load.engine.GlideException;
 import com.bumptech.glide.load.resource.gif.GifDrawable;
 import com.bumptech.glide.request.RequestListener;
+import com.bumptech.glide.request.RequestOptions;
 import com.bumptech.glide.request.target.Target;
+import com.google.android.material.card.MaterialCardView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.ViewMedia;
 import com.group7.gallerium.activities.ViewMediaStandalone;
@@ -63,6 +67,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     Intent intent;
     ArrayList<String> listPath;
     boolean[] med;
+    private static RequestOptions requestOptions = new RequestOptions().format(DecodeFormat.PREFER_RGB_565);
 
     private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
@@ -89,6 +94,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
     public void setImageSize(int size) {
         imageSize = size;
+        requestOptions = requestOptions.override((int)(size * 0.98));
     }
 
     public void deleteMedia(@NonNull Media media){
@@ -124,7 +130,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         //Log.d("Attached", "" + holder.getBindingAdapterPosition());
 
         if(isMultipleEnabled){
-            holder.select.setVisibility(View.VISIBLE);
+            holder.select.setCheckable(true);
+            holder.blur.setVisibility(View.VISIBLE);
             if(isAllChecked){
                 holder.select.setChecked(true);
             }else {
@@ -136,7 +143,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 }
             }
         }else{
-            holder.select.setVisibility(View.GONE);
+            holder.blur.setVisibility(View.GONE);
+            holder.select.setChecked(false);
+            holder.select.setCheckable(false);
         }
     }
 
@@ -160,28 +169,32 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
         holder.image.getLayoutParams().height = imageSize;
         holder.image.getLayoutParams().width = imageSize;
+        holder.blur.getLayoutParams().height = imageSize;
+        holder.blur.getLayoutParams().width = imageSize;
 
-        if(selectedMedia != null) {
-          //  Log.d("selected media size", " " + selectedMedia.size());
-            holder.select.setChecked(selectedMedia.contains(media));
-        }
+//        if(selectedMedia != null) {
+//          //  Log.d("selected media size", " " + selectedMedia.size());
+//            holder.select.setChecked(selectedMedia.contains(media));
+//        }
 
         // Log.d("gallerium", media.getMimeType());
         if (!med[holder.getLayoutPosition()]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .onlyRetrieveFromCache(true)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        .apply(requestOptions)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[holder.getLayoutPosition()] = false;
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[holder.getLayoutPosition()] = true;
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -191,18 +204,20 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
                         .sizeMultiplier(2.7f / spanCount)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .onlyRetrieveFromCache(true)
+                        .apply(requestOptions)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[holder.getLayoutPosition()] = false;
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[holder.getLayoutPosition()] = true;
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -217,7 +232,9 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             Log.d("draw", "nulll");
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .apply(requestOptions)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        .apply(requestOptions)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
@@ -238,18 +255,19 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
                         .sizeMultiplier(2.7f / spanCount)
-                        .diskCacheStrategy(DiskCacheStrategy.ALL)
+                        .apply(requestOptions)
+                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[holder.getLayoutPosition()] = false;
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 Log.d("def", "");
-                                med[holder.getLayoutPosition()] = true;
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -274,6 +292,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }
         holder.image.setOnClickListener((view -> {
             if(isMultipleEnabled) {
+                holder.blur.setVisibility(View.VISIBLE);
                 if(holder.select.isChecked()){
                     holder.select.setChecked(false);
                     selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
@@ -282,6 +301,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
                 }
             }else {
+                holder.blur.setVisibility(View.GONE);
                 intent = new Intent(context, ViewMedia.class);
                 navAsyncTask navAsyncTask = new navAsyncTask();
                 navAsyncTask.setPos(holder.getBindingAdapterPosition());
@@ -311,7 +331,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         }));
 
         holder.select.setOnClickListener((view)->{
-            if(((CompoundButton) view).isChecked()){
+            if(((MaterialCardView) view).isChecked()){
                 selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
             }else{
                 selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
@@ -332,14 +352,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView image;
         ImageView fav_icon;
         ImageView play_icon;
+        View blur;
 
-        AppCompatCheckBox select;
+        MaterialCardView select;
         MediaViewHolder(View itemView) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
             play_icon = itemView.findViewById(R.id.play_video_button_child);
-            select = itemView.findViewById(R.id.selectButton);
+            select = itemView.findViewById(R.id.media_card);
+            blur = itemView.findViewById(R.id.blur_view);
         }
     }
 

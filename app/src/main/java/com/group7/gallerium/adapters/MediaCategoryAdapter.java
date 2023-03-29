@@ -141,7 +141,11 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     @NonNull
     @Override
     public String getSectionName(int position) {
-        return getItem(position).getNameCategory();
+        if (getItem(position).getNameCategory().isEmpty()) {
+            return getItem(position).getBackup();
+        } else {
+            return getItem(position).getNameCategory();
+        }
     }
 
     public class CategoryViewHolder extends RecyclerView.ViewHolder{

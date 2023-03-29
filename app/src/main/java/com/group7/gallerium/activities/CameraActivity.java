@@ -134,7 +134,11 @@ public class CameraActivity extends AppCompatActivity {
         btnStop.setOnClickListener(view -> stop());
 
         // Get LocationManager object from System Service LOCATION_SERVICE
-        locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        try {
+            locationManager = (LocationManager) getSystemService(Context.LOCATION_SERVICE);
+        } catch (Exception e) {
+            // currentLocation = null;
+        }
 
         startCamera();
     }
@@ -318,50 +322,81 @@ public class CameraActivity extends AppCompatActivity {
         if (Build.VERSION.SDK_INT > Build.VERSION_CODES.P) {
             contentValues.put(MediaStore.Video.Media.RELATIVE_PATH, "Movies/G-Camera");
         }
+
+        var mediaStoreOutput = new MediaStoreOutputOptions.Builder(
+                getContentResolver(),
+                MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
+                .setContentValues(contentValues)
+                .build();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             // here to request the missing permissions, and then overriding
             //   public void onRequestPermissionsResult(int requestCode, String[] permissions,
             //                                          int[] grantResults)
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
-            return;
-        }
-        var mediaStoreOutput = new MediaStoreOutputOptions.Builder(
-                getContentResolver(),
-                MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                .setContentValues(contentValues)
-                .build();
+            recording = recorder
+                    .prepareRecording(getApplicationContext(), mediaStoreOutput)
+                    .start(ContextCompat.getMainExecutor(this), videoRecordEvent -> {
+                        RecordingStats recordingStats = videoRecordEvent.getRecordingStats();
+                        if (videoRecordEvent instanceof VideoRecordEvent.Start) {
+                            // Handle the start of a new active recording              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Pause) {
+                            // Handle the case where the active recording is paused              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Resume) {
+                            // Handles the case where the active recording is resumed              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
+                            VideoRecordEvent.Finalize finalizeEvent = (VideoRecordEvent.Finalize) videoRecordEvent;
+                            duration.setText("00:00:00");
+                            // Handles a finalize event for the active recording, checking Finalize.getError()
+                            int error = finalizeEvent.getError();
+                            if (error != VideoRecordEvent.Finalize.ERROR_NONE) {
 
-        recording = recorder
-                .prepareRecording(getApplicationContext(), mediaStoreOutput)
-                .withAudioEnabled()
-                .start(ContextCompat.getMainExecutor(this), videoRecordEvent -> {
-                    RecordingStats recordingStats = videoRecordEvent.getRecordingStats();
-                    if (videoRecordEvent instanceof VideoRecordEvent.Start) {
-                        // Handle the start of a new active recording              ...
-                    } else if (videoRecordEvent instanceof VideoRecordEvent.Pause) {
-                        // Handle the case where the active recording is paused              ...
-                    } else if (videoRecordEvent instanceof VideoRecordEvent.Resume) {
-                        // Handles the case where the active recording is resumed              ...
-                    } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
-                        VideoRecordEvent.Finalize finalizeEvent = (VideoRecordEvent.Finalize) videoRecordEvent;
-                        duration.setText("00:00:00");
-                        // Handles a finalize event for the active recording, checking Finalize.getError()
-                        int error = finalizeEvent.getError();
-                        if (error != VideoRecordEvent.Finalize.ERROR_NONE) {
-
+                            }
                         }
-                    }
-                    String newDuration;
-                    long duration = recordingStats.getRecordedDurationNanos() / 1000000000;
-                    var hours = duration / 3600;
-                    var minutes = (duration % 3600) / 60;
-                    var seconds = duration % 60;
+                        String newDuration;
+                        long duration = recordingStats.getRecordedDurationNanos() / 1000000000;
+                        var hours = duration / 3600;
+                        var minutes = (duration % 3600) / 60;
+                        var seconds = duration % 60;
 
-                    newDuration = String.format(Locale.CHINA,"%02d:%02d:%02d", hours, minutes, seconds);
-                    Log.d("viddur", newDuration);
-                    this.duration.setText(newDuration);
-                });
+                        newDuration = String.format(Locale.CHINA,"%02d:%02d:%02d", hours, minutes, seconds);
+                        Log.d("viddur", newDuration);
+                        this.duration.setText(newDuration);
+                    });
+
+        }
+        else {
+            recording = recorder
+                    .prepareRecording(getApplicationContext(), mediaStoreOutput)
+                    .withAudioEnabled()
+                    .start(ContextCompat.getMainExecutor(this), videoRecordEvent -> {
+                        RecordingStats recordingStats = videoRecordEvent.getRecordingStats();
+                        if (videoRecordEvent instanceof VideoRecordEvent.Start) {
+                            // Handle the start of a new active recording              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Pause) {
+                            // Handle the case where the active recording is paused              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Resume) {
+                            // Handles the case where the active recording is resumed              ...
+                        } else if (videoRecordEvent instanceof VideoRecordEvent.Finalize) {
+                            VideoRecordEvent.Finalize finalizeEvent = (VideoRecordEvent.Finalize) videoRecordEvent;
+                            duration.setText("00:00:00");
+                            // Handles a finalize event for the active recording, checking Finalize.getError()
+                            int error = finalizeEvent.getError();
+                            if (error != VideoRecordEvent.Finalize.ERROR_NONE) {
+
+                            }
+                        }
+                        String newDuration;
+                        long duration = recordingStats.getRecordedDurationNanos() / 1000000000;
+                        var hours = duration / 3600;
+                        var minutes = (duration % 3600) / 60;
+                        var seconds = duration % 60;
+
+                        newDuration = String.format(Locale.CHINA,"%02d:%02d:%02d", hours, minutes, seconds);
+                        Log.d("viddur", newDuration);
+                        this.duration.setText(newDuration);
+                    });
+        }
 
 
 
@@ -456,8 +491,13 @@ public class CameraActivity extends AppCompatActivity {
             // to handle the case where the user grants the permission. See the documentation
             // for ActivityCompat#requestPermissions for more details.
             return;
+        } else {
+            try {
+                locationManager.requestLocationUpdates(provider, 1000, 0.0f, mLocationListener);
+            } catch (Exception e) {
+
+            }
         }
-        locationManager.requestLocationUpdates(provider, 1000, 0.0f, mLocationListener);
     }
 
     @Override

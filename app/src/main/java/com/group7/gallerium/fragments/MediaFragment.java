@@ -82,6 +82,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private int spanCount = 3;
     int firstVisiblePosition;
     int offset;
+    int numGrid;
     boolean isAllChecked = false;
 
     private boolean changeMode = false;
@@ -127,7 +128,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
-        var numGrid = 0;
+        numGrid = 3;
         if(numGridPref.equals("5")){
             numGrid = 5;
         }else if(numGridPref.equals("4")){
@@ -525,13 +526,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
             var newCatList = new ArrayList<MediaCategory>();
-            int partitionSize = 60;
+            int partitionSize = numGrid * 5;
             for (var cat : categoryList.values()) {
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
                     String name = i == 0 ? cat.getNameCategory() : "";
-                    newCatList.add(new MediaCategory(name, new ArrayList<>(cat.getList().subList(i,
-                            Math.min(i + partitionSize, cat.getList().size())))));
+                    var c = new MediaCategory(name, new ArrayList<>(cat.getList().subList(i,
+                            Math.min(i + partitionSize, cat.getList().size()))));
+                    c.setBackup(cat.getNameCategory());
+                    newCatList.add(c);
 
                 }
             }

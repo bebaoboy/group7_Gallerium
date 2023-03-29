@@ -5,6 +5,7 @@ import java.util.ArrayList;
 public class MediaCategory {
 
     private String nameCategory;
+    private String backup;
     private ArrayList<Media> listMedia;
 
     public String getNameCategory() {
@@ -28,6 +29,14 @@ public class MediaCategory {
     public MediaCategory(String nameCategory, ArrayList<Media> listMedia) {
         this.nameCategory = nameCategory;
         this.listMedia = listMedia;
+    }
+
+    public void setBackup(String backup) {
+        this.backup = backup;
+    }
+
+    public String getBackup() {
+        return backup;
     }
 
     public MediaCategory(ArrayList<Media> listMedia) {

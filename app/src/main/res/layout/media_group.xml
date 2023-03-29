@@ -2,21 +2,20 @@
 <LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
-    android:orientation="vertical"
-    android:layout_marginBottom="-40dp"
-    >
+    android:layout_marginBottom="0dp"
+    android:orientation="vertical">
 
     <LinearLayout
-        android:layout_width="wrap_content"
+        android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:layout_marginTop="40dp">
+        android:layout_marginTop="0dp">
 
         <TextView
             android:id="@+id/txtDate"
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:layout_marginTop="36dp"
-            android:text="Ngày tháng"
+            android:layout_width="150dp"
+            android:layout_height="25dp"
+            android:layout_marginTop="76dp"
+            android:text="Thứ 4, 21-03-2023"
             android:textSize="15sp"
             android:textStyle="bold" />
 
@@ -25,7 +24,7 @@
             android:layout_width="match_parent"
             android:layout_height="1dp"
             android:layout_marginStart="10dp"
-            android:layout_marginTop="46dp"
+            android:layout_marginTop="86dp"
             android:layout_marginEnd="10dp"
             android:background="@color/title_dark" />
     </LinearLayout>
@@ -35,6 +34,5 @@
         android:id="@+id/photos_recview"
         android:layout_width="match_parent"
         android:layout_height="match_parent"
-        android:layout_marginTop="8dp"
-        android:nestedScrollingEnabled="false"/>
+        android:nestedScrollingEnabled="false" />
 </LinearLayout>
