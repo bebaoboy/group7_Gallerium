@@ -81,9 +81,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
     private ArrayList<Media> mediaList;
 
-    boolean isLandscape = false, isReset = false;
+    boolean isLandscape = false, isReset = false, lockable = true;
 
-    SharedPreferences sharedPreferences;
+    SharedPreferences sharedPreferences, sharedPref;
 
     FileUtils fileUtils;
     String password, question, answer;
@@ -177,6 +177,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             }
         }
         refresh();
+
+        lockable = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
+        showViewLogic();
     }
 
     public void changeOrientation(int spanCount) {
@@ -266,6 +269,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             }
         });
         context = requireContext();
+
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        lockable =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
 
         showViewLogic();
         toolbarSetting();
@@ -517,6 +523,12 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
             view.findViewById(R.id.create_pass_page).setVisibility(View.VISIBLE);
         }
+
+        if(!lockable){
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+        }
     }
 
     void resetPasswordLogic(String password){
@@ -681,5 +693,13 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     @Override
     public void moveMedia(@NonNull String albumPath) {
 
+    }
+
+    public void setLockable(boolean lockable) {
+        this.lockable = lockable;
+    }
+
+    public boolean isLockable() {
+        return lockable;
     }
 }
