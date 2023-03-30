@@ -8,9 +8,9 @@ public class Album {
     String dateCreated;
     String name;
 
-    String memoryTitle;
-    String memoryContent;
-    String memoryDate;
+    String memoryTitle = "";
+    String memoryContent = "";
+    String memoryDate = "";
 
     public String getMemoryTitle() {
         return memoryTitle;

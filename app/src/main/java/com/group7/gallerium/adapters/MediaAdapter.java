@@ -2,7 +2,6 @@ package com.group7.gallerium.adapters;
 
 import android.content.Context;
 import android.content.Intent;
-import android.graphics.Color;
 import android.graphics.drawable.Drawable;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -10,12 +9,10 @@ import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
-import android.widget.CompoundButton;
 import android.widget.ImageView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
-import androidx.appcompat.widget.AppCompatCheckBox;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
@@ -193,7 +190,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-                                Log.d("def", "");
+                                // Log.d("def", "");
                                 med[position] = true;
                                 return false;
                             }
@@ -216,20 +213,20 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                Log.d("def", "");
+                                // Log.d("def", "");
                                 med[position] = true;
                                 return false;
                             }
                         })
                         .into(holder.image);
-                Log.d("abc", "");
+               // Log.d("abc", "");
             }
         }
 
         if (holder.image.getDrawable() != null) {
-            Log.d("draw", holder.image.getDrawable().toString());
+            //Log.d("draw", holder.image.getDrawable().toString());
         } else {
-            Log.d("draw", "nulll");
+            //Log.d("draw", "nulll");
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
                         .apply(requestOptions)
@@ -244,7 +241,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
-                                Log.d("def", "");
+              //                  Log.d("def", "");
                                 med[holder.getLayoutPosition()] = true;
                                 return false;
                             }
@@ -266,13 +263,13 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
-                                Log.d("def", "");
+                //                Log.d("def", "");
                                 med[position] = true;
                                 return false;
                             }
                         })
                         .into(holder.image);
-                Log.d("abc", "");
+                // Log.d("abc", "");
             }
         }
 

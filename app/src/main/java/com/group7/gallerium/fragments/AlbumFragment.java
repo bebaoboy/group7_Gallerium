@@ -7,7 +7,6 @@ import android.content.Context;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
@@ -30,9 +29,15 @@ import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
+import com.group7.gallerium.models.AlbumCustomContent;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -49,19 +54,21 @@ public class AlbumFragment extends Fragment{
 
     private int spanCount = 3;
 
-    private ArrayList<Album> albumList = new ArrayList<>();
+    ArrayList<Album> albumList = new ArrayList<>();
     private int mediaAmount = 0;
 
-    private ArrayList<AlbumCategory> albumCategories;
+    private ArrayList<AlbumCustomContent> albumCustomContents;
+
+    ArrayList<AlbumCategory> albumCategories;
 
     private AlbumListTask albumListTask;
 
-    private AlbumCategoryAdapter adapter;
-    private RecyclerView album_rec;
+    AlbumCategoryAdapter adapter;
+    RecyclerView album_rec;
     long delaySecond = 2000;
     ProgressDialog progressDialog;
-    private int firstVisiblePosition;
-    private int offset;
+    int firstVisiblePosition;
+    int offset;
 
     private boolean isTrashEnable;
 
@@ -192,6 +199,7 @@ public class AlbumFragment extends Fragment{
         album_rec.setItemViewCacheSize(3);
         adapter = new AlbumCategoryAdapter(context, 3);
 
+        albumCustomContents = new ArrayList<>();
         albumCategories = new ArrayList<>();
         toolbarSetting();
         return view;
@@ -205,12 +213,9 @@ public class AlbumFragment extends Fragment{
 
         MenuItem createAlbumButton = toolbar.getMenu().findItem(R.id.create_album_tb_item);
 
-        createAlbumButton.setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                openBottomDialog();
-                return true;
-            }
+        createAlbumButton.setOnMenuItemClickListener(item -> {
+            openBottomDialog();
+            return true;
         });
     }
 
@@ -467,6 +472,14 @@ public class AlbumFragment extends Fragment{
            // Log.d("Key", entry.getKey());
             albumCategories.add(entry.getValue());
             for(Album album: entry.getValue().getList()){
+                for(AlbumCustomContent content: albumCustomContents){
+                    if(album.getPath().equals(content.getAlbumPath())){
+                        album.setMemoryContent(content.getContent());
+                        album.setMemoryTitle(content.getTitle());
+                        album.setMemoryDate(content.getDate());
+                        break;
+                    }
+                }
                 albumList.add(album);
                 //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
             }
@@ -484,6 +497,36 @@ public class AlbumFragment extends Fragment{
         isTrashEnable = lockTrashPref;
     }
 
+    public void getAlbumInfo(){
+        File albumInfoFile = new File(context.getFilesDir(), "albumsInfo.txt");
+        String contents;
+        if(albumInfoFile.exists()) {
+            int length = (int) albumInfoFile.length();
+
+            byte[] bytes = new byte[length];
+            try {
+                FileInputStream in = new FileInputStream(albumInfoFile);
+                in.read(bytes);
+                in.close();
+            } catch (Exception e) {
+                Log.d("tag", e.getMessage());
+            }
+            contents = new String(bytes);
+            Log.d("content-album", contents);
+            try {
+                JSONArray array = new JSONArray(contents);
+                for(int i=0;i<array.length();i++){
+                    JSONObject object = array.getJSONObject(i);
+                    albumCustomContents.add(new AlbumCustomContent(object));
+                }
+            } catch (Exception e) {
+                Log.d("json error", e.getMessage());
+            }
+        }
+    }
+
+    void setAlbumInfo(){
+    }
 
     public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
         boolean scroll = false;
@@ -503,7 +546,7 @@ public class AlbumFragment extends Fragment{
             Log.d("refresh", "refresh album frag ");
             // album_rec.addOnScrollListener(new ToolbarScrollListener(toolbar));
             if (scroll) {
-                ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPosition(0);
+                Objects.requireNonNull(album_rec.getLayoutManager()).scrollToPosition(0);
             }
             else {
                 ((LinearLayoutManager) Objects.requireNonNull(album_rec.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
@@ -517,6 +560,8 @@ public class AlbumFragment extends Fragment{
 //            {
                 albumList = getAllAlbum(listMediaTemp);
 //            }
+            getAlbumInfo();
+            //setAlbumInfo();
             categorizeAlbum();
             return null;
         }
