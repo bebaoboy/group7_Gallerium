@@ -77,4 +77,9 @@
     <string name="remove_fav">Xóa yêu thích</string>
     <string name="hide_media">Ẩn hình</string>
     <string name="remove_secure">Chuyển về chỗ cũ</string>
+    <string name="shortcut_camera_shortlabel">Mở camera</string>
+    <string name="shortcut_camera_longlabel">Chụp ảnh và quay video</string>
+    <string name="shortcut_share_shortlabel">Gửi ảnh</string>
+    <string name="shortcut_share_longlabel">Chia sẻ ảnh và video</string>
+    <string name="shortcut_edit_shortlabel">Cài đặt</string>
 </resources>

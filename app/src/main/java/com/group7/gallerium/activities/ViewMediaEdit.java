@@ -1,13 +1,13 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
+import android.content.ClipData;
+import android.content.ContentResolver;
+import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
 import android.graphics.Color;
-import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -54,6 +54,10 @@ import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
+import java.io.FileOutputStream;
+import java.io.IOException;
+import java.io.InputStream;
+import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -61,16 +65,18 @@ import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
+import java.util.Random;
 import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
-public class ViewMedia extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
+public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
 
     BottomNavigationView bottom_nav;
     private Toolbar toolbar;
     MenuItem favBtn;
     MediaController videoController;
-    private int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg;
+    private int mediaPos;
     String mediaPath;
     private Intent intent;
 
@@ -101,24 +107,18 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
-    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
+    ArrayList<Media> n = new ArrayList<>();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         albumList = new ArrayList<>();
         albumCategories = new ArrayList<>();
+        listPath = new ArrayList<>();
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
-
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
-
-        applyData();
-        if(viewType == 1){
-            bottom_nav.inflateMenu(R.menu.menu_bottom_view_media_secured);
-        }else{
-            bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
-        }
+        bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
         viewPager = findViewById(R.id.viewPager_picture);
         videoController = new MediaController(this){
             public boolean dispatchKeyEvent(KeyEvent event)
@@ -129,7 +129,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 return super.dispatchKeyEvent(event);
             }
         };
+        fileUtils = new FileUtils();
 
+        applyData();
         toolbarSetting();
         setUpSlider();
         bottomNavCustom();
@@ -142,13 +144,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
         bottom_nav.setBackgroundTintList(null);
 
-        fileUtils = new FileUtils();
-
         launcher = registerForActivityResult(
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewMediaEdit.this, "deleted", Toast.LENGTH_SHORT).show();
                         AccessMediaFile.removeMediaFromAllMedia(mediaPath);
                         slideAdapter.removePath(mediaPath);
                         finish();
@@ -159,11 +159,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 new ActivityResultContracts.StartIntentSenderForResult(),
                 result -> {
                     if (result.getResultCode() == Activity.RESULT_OK) {
-                        Toast.makeText(getApplicationContext(), "renaming", Toast.LENGTH_SHORT).show();
+                        Toast.makeText(ViewMediaEdit.this, "renaming", Toast.LENGTH_SHORT).show();
                         renameBottomDialogFragment.renameAgain();
                     }
                 });
-
     }
 
     private void bottomSheetConfig() {
@@ -177,15 +176,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
                 switch (newState) {
                     case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaEdit.this, "Hidden sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(getApplicationContext(), "Expand sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaEdit.this, "Expand sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(getApplicationContext(), "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaEdit.this, "Collapsed sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(getApplicationContext(), "Dragging sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaEdit.this, "Dragging sheet", Toast.LENGTH_SHORT).show();
                     case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(getApplicationContext(), "Settling sheet", Toast.LENGTH_SHORT).show();
+                            Toast.makeText(ViewMediaEdit.this, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -213,9 +212,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         btnSetBackGround.setOnClickListener((v) -> {
             behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
             bottomSheet.setVisibility(View.GONE);
-            Uri contentURI = fileUtils.getUri(mediaPath, AccessMediaFile.getMediaWithPath(mediaPath).getType(), getApplicationContext());
+            Uri contentURI = fileUtils.getUri(mediaPath, AccessMediaFile.getMediaWithPath(mediaPath).getType(), ViewMediaEdit.this);
 //            try {
-//                WallpaperManager wallpaperManager = WallpaperManager.getInstance(getApplicationContext());
+//                WallpaperManager wallpaperManager = WallpaperManager.getInstance(ViewMediaStandalone.this);
 //                intent = wallpaperManager.getCropAndSetWallpaperIntent(contentURI);
 //            } catch (Exception e) {
                 intent = new Intent(Intent.ACTION_ATTACH_DATA);
@@ -235,10 +234,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     void openAlbumSelectView() {
         Log.d("Open bottom sheet", "true");
-        View viewDialog = LayoutInflater.from(ViewMedia.this).inflate(R.layout.add_to_album_bottom_dialog, null);
+        View viewDialog = LayoutInflater.from(ViewMediaEdit.this).inflate(R.layout.add_to_album_bottom_dialog, null);
         addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
-        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(ViewMedia.this, 1));
-        bottomSheetDialog = new BottomSheetDialog(ViewMedia.this);
+        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(ViewMediaEdit.this, 1));
+        bottomSheetDialog = new BottomSheetDialog(ViewMediaEdit.this);
         bottomSheetDialog.setContentView(viewDialog);
         AlbumListTask albumAsyncTask = new AlbumListTask();
         albumAsyncTask.execute();
@@ -280,19 +279,106 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     void showDetails(){
        Intent intent = new Intent(this, MediaDetails.class);
-       intent.putExtra("view-type", viewType);
        intent.putExtra("media_path", mediaPath);
        startActivity(intent);
     }
 
 
     void applyData() {
+        AccessMediaFile.getAllMedia(ViewMediaEdit.this);
         intent = getIntent();
-        listPath = intent.getStringArrayListExtra("data_list_path");
+        ArrayList<Uri> uriArrayList = new ArrayList<>();
+        Uri uri = intent.getData();
+        if (uri != null) {
+            uriArrayList.add(uri);
+        }
+        var uris = intent.getParcelableArrayExtra(Intent.EXTRA_STREAM);
+        if (uris != null)
+        {
+            for(var u : uris) {
+                uriArrayList.add((Uri)u);
+            }
+        }
+        ClipData clipData = intent.getClipData();
+        String s = "";
+        if (clipData != null) {
+            for (int i = 0; i < clipData.getItemCount(); i++) {
+                ClipData.Item item = clipData.getItemAt(i);
+                uriArrayList.add(item.getUri());
+            }
+        }
+        try {
+            var dir = Environment.getExternalStorageDirectory();
+            String relativePath = "Pictures/t3mp";
+            String path = dir.getPath() + File.separator + relativePath;
+            fileUtils.createDir(this, path, "t3mp", relativePath);
+        }  catch (Exception e) {
+            Log.d("tag", e.getMessage());
+            // Toast.makeText(context, "Needed permission. \nPress 'Choose this folder' to continue. ", Toast.LENGTH_LONG).show();
+        }
+        for(var u : uriArrayList) {
+            if (AccessMediaFile.getMediaWithPath(u.getPath()) == null) {
+                var temp = getFileFromContentUri(this, u, true);
+                AccessMediaFile.refreshAllMedia();
+                AccessMediaFile.getAllMedia(this);
+                listPath.add(temp.getPath());
+                n.add(AccessMediaFile.getMediaWithPath(temp.getPath()));
+            } else {
+                listPath.add(u.getPath());
+            }
+        }
+        //listPath = intent.getStringArrayListExtra("data_list_path");
         mediaPos = intent.getIntExtra("pos", 0);
-        viewType = intent.getIntExtra("view-type", 2);
         mediaItemInterface = this;
+    }
 
+    private File getFileFromContentUri(Context context, Uri contentUri,Boolean uniqueName) {
+        // Preparing Temp file name
+        var fileExtension = getFileExtension(context, contentUri);
+        int leftLimit = 97; // letter 'a'
+        int rightLimit = 122; // letter 'z'
+        int targetStringLength = 7;
+        Random random = new Random();
+
+        String generatedString = random.ints(leftLimit, rightLimit + 1)
+                .limit(targetStringLength)
+                .collect(StringBuilder::new, StringBuilder::appendCodePoint, StringBuilder::append)
+                .toString();
+        var timeStamp = new SimpleDateFormat("yyyyMMdd_HHmmss").format(System.currentTimeMillis()) + generatedString;
+        var fileName = ("temp_file_" + timeStamp + "." + fileExtension);
+        var dir = Environment.getExternalStorageDirectory();
+        String relativePath = "Pictures/t3mp";
+        String path = dir.getPath() + File.separator + relativePath;
+        var tempFile = new File(Environment.getExternalStorageDirectory() + "/Pictures/t3mp/" + fileName);
+        // Initialize streams
+
+        try (InputStream inputStream = getContentResolver().openInputStream(contentUri);
+             OutputStream oStream = new FileOutputStream(tempFile)){
+            copy(inputStream, oStream);
+            oStream.flush();
+
+        } catch (IOException e) {
+            e.printStackTrace();
+        }
+
+        return tempFile;
+    }
+
+    private String getFileExtension(Context context, Uri uri) {
+        if (Objects.equals(uri.getScheme(), ContentResolver.SCHEME_CONTENT))
+            return MimeTypeMap.getSingleton().getExtensionFromMimeType(context.getContentResolver().getType(uri));
+        else {
+            return MimeTypeMap.getFileExtensionFromUrl(Uri.fromFile(new File(uri.getPath())).toString());
+        }
+    }
+
+    private void copy(InputStream inputStream, OutputStream out)  throws IOException {
+        byte[] buf = new byte[8096];
+        int len;
+        while ((len = inputStream.read(buf)) > 0) {
+            out.write(buf, 0, len); //write input file data to output file
+        }
+        out.close();
     }
 
 
@@ -301,8 +387,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         toolbar.inflateMenu(R.menu.menu_top_view_photo);
         favBtn = toolbar.getMenu().findItem(R.id.add_fav);
         toolbar.setTitle("hello");
-        toolbar.setTitleTextAppearance(getApplicationContext(), R.style.ToolbarTitleMediaView);
-        toolbar.setSubtitleTextAppearance(getApplicationContext(), R.style.ToolbarSubtitle);
+        toolbar.setTitleTextAppearance(ViewMediaEdit.this, R.style.ToolbarTitleMediaView);
+        toolbar.setSubtitleTextAppearance(ViewMediaEdit.this, R.style.ToolbarSubtitle);
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
         favBtn.setOnMenuItemClickListener(menuItem -> {
@@ -331,12 +417,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     private void setUpSlider() {
 
-        slideAdapter = new SlideAdapter(getApplicationContext());
+        slideAdapter = new SlideAdapter(ViewMediaEdit.this);
         slideAdapter.setData(listPath);
         slideAdapter.setInterface(mediaItemInterface);
         viewPager.setAdapter(slideAdapter);
         viewPager.setCurrentItem(mediaPos);
-        slideAdapter.setViewType(viewType);
 
         viewPager.addOnPageChangeListener(new ViewPager.OnPageChangeListener() {
             @Override
@@ -348,12 +433,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     }
                 }
                 mediaPath = listPath.get(position);
-                Media m;
-                if(viewType == 1){
-                    m = createMediaFromFile(mediaPath);
-                }else {
-                    m = AccessMediaFile.getMediaWithPath(mediaPath);
-                }
+                final Media m = AccessMediaFile.getMediaWithPath(mediaPath);
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
@@ -367,29 +447,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     img.setVisibility(View.VISIBLE);
                     playButton.setVisibility(View.VISIBLE);
                 }
-                if(viewType == 2) {
-                    if (AccessMediaFile.getMediaWithPath(mediaPath).getType() != 1) {
-                        btnSetBackGround.setVisibility(View.GONE);
-                    } else {
-                        btnSetBackGround.setVisibility(View.VISIBLE);
-                    }
-                }else{
-                    String mimeType = getMimeType(mediaPath);
-                    int mediaType = getType(mimeType);
-                    if (mediaType != 1) {
-                        btnSetBackGround.setVisibility(View.GONE);
-                    } else {
-                        btnSetBackGround.setVisibility(View.VISIBLE);
-                    }
+                if (AccessMediaFile.getMediaWithPath(mediaPath).getType() != 1) {
+                    btnSetBackGround.setVisibility(View.GONE);
+                } else {
+                    btnSetBackGround.setVisibility(View.VISIBLE);
                 }
 
                 favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);
-
-                if(viewType == 1){
-                    hideAllFuction();
-                }
             }
 
             @Override
@@ -403,22 +469,30 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         });
     }
 
-    private void hideAllFuction() {
-        favBtn.setVisible(false);
-        btnRename.setVisibility(View.GONE);
-        btnSetBackGround.setVisibility(View.GONE);
-        btnRename.setVisibility(View.GONE);
-
-
-    }
-
     public void setTitleToolbar(@NonNull Media m) {
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
-        Log.d("name", name);
-        toolbar.setTitle(dateFormat.format(m.getRawDate()));
+        toolbar.setTitle(new SimpleDateFormat("EEE, d MMM (HH:mm)").format(m.getRawDate()));
         toolbar.setSubtitle(name);
         if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
             favBtn.setIcon(R.drawable.ic_fav_solid);
+        }
+        Intent editIntent = new Intent(ViewMediaEdit.this, DsPhotoEditorActivity.class);
+
+        if(mediaPath.contains("gif")){
+            Toast.makeText(this,"Cannot edit GIF images",Toast.LENGTH_SHORT).show();
+            finish();
+        } else{
+            // Set data
+            editIntent.setData(Uri.fromFile(new File(mediaPath)));
+            // Set output directory
+            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "Gallerium");
+            // Set toolbar color
+            editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+            // Set background color
+            editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+            // Start activity
+            startActivity(editIntent);
+            finish();
         }
     }
     @Override
@@ -439,13 +513,13 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
 
-            switch (item.getItemId()) {
-                case R.id.edit_nav_item -> {
-                    Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
+            switch (item.getItemId()){
+                case R.id.edit_nav_item->{
+                    Intent editIntent = new Intent(ViewMediaEdit.this, DsPhotoEditorActivity.class);
 
-                    if (mediaPath.contains("gif")) {
-                        Toast.makeText(this, "Cannot edit GIF images", Toast.LENGTH_SHORT).show();
-                    } else {
+                    if(mediaPath.contains("gif")){
+                        Toast.makeText(this,"Cannot edit GIF images",Toast.LENGTH_SHORT).show();
+                    } else{
                         // Set data
                         editIntent.setData(Uri.fromFile(new File(mediaPath)));
                         // Set output directory
@@ -472,15 +546,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         behavior.setPeekHeight(820);
                         behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
-
-                    if (viewType == 1) {
-                        btnRename.setVisibility(View.GONE);
-                        btnSetBackGround.setVisibility(View.GONE);
-                        btnAddToAlbum.setVisibility(View.GONE);
-                    }
                 }
 
-                case R.id.delete_nav_item -> {
+                case R.id.delete_nav_item ->{
                     //String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
@@ -500,83 +568,71 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                    AlertDialog alert = builder.create();
 //                    alert.show();
 
-                    if (viewType == 2) {
-                        if (fileUtils.delete(launcher, mediaPath, this) > 0) {
-                            Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-                            AccessMediaFile.removeMediaFromAllMedia(mediaPath);
-                            slideAdapter.removePath(mediaPath);
-                            finish();
-                        }
-                    } else {
-                        File mediaFile = new File(mediaPath);
-                        if (mediaFile.delete()) {
-                            slideAdapter.removePath(mediaPath);
-                            finish();
-                            Toast.makeText(getApplicationContext(), "Hình đã được xóa", Toast.LENGTH_SHORT).show();
-                        } else {
-                            Toast.makeText(getApplicationContext(), "Hình chưa được xóa", Toast.LENGTH_SHORT).show();
-                        }
+                    if (fileUtils.delete(launcher, mediaPath, this) > 0) {
+                        Toast.makeText(ViewMediaEdit.this, "deleted", Toast.LENGTH_SHORT).show();
+                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                        slideAdapter.removePath(mediaPath);
+                        finish();
                     }
                 }
 
-                case R.id.share_nav_item -> {
-                    var m = AccessMediaFile.getMediaWithPath(mediaPath);
-                    // Create intent to deliver some kind of result data
-                    Intent result = new Intent(Intent.ACTION_SEND);
-                    result.putExtra(Intent.EXTRA_STREAM, new FileUtils().getUri(m.getPath(), m.getType(), this));
-//                    ArrayList<Uri> uris = new ArrayList<>();
-//                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+//                case R.id.view_photo_secured_nav_item->{
+//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
-//                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                    result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-                    result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-                    if (m.getType() == 1) {
-                        result.setType("image/*");
-                    } else {
-                        result.setType("video/*");
-                    }
-                    startActivity(result);
-
-                }
-
-                case R.id.view_photo_secured_nav_item -> {
-                    String scrPath = getFilesDir().getAbsolutePath() + File.separator + "secure-subfolder";
-                    File scrDir = new File(scrPath);
-                    if (!scrDir.exists()) {
-                        Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-                    } else {
-                        File mediaFile = new File(mediaPath);
-                        if (!(scrPath + File.separator + mediaFile.getName()).equals(mediaPath)) {
-                            String[] subDirs = mediaPath.split("/");
-                            String name = subDirs[subDirs.length - 1];
-                            fileUtils.secureFile(getApplicationContext(), mediaPath, name, launcher);
-                            Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-                        } else {
-                            String outputPath = Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "Restore";
-                            File folder = new File(outputPath);
-                            File file = new File(mediaFile.getPath());
-                            File desImgFile = new File(outputPath, mediaFile.getName());
-                            if (!folder.exists()) {
-                                folder.mkdir();
-                            }
-                            mediaFile.renameTo(desImgFile);
-                            mediaFile.deleteOnExit();
-                            desImgFile.getPath();
-                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath + File.separator + desImgFile.getName()}, null, null);
-                        }
-                    }
-                }
-
-                case R.id.remove_from_secured_nav_item -> {
-                    String mimeType = getMimeType(mediaPath);
-                    fileUtils.moveFromInternal(mediaPath, launcher, "Pictures/Gallerium", mimeType, getType(mimeType), getApplicationContext());
-                    slideAdapter.removePath(mediaPath);
-                    finish();
-                }
+//                    builder.setTitle("Confirm");
+//                    builder.setMessage("Do you want to hide/show this image?");
+//
+//                    builder.setPositiveButton("YES", (dialog, which) -> {
+//                        String scrPath = Environment.getExternalStorageDirectory() + File.separator+".secret";
+//                        File scrDir = new File(scrPath);
+//                        if(!scrDir.exists()){
+//                            Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
+//                        }
+//                        else{
+//                            FileUtility fu = new FileUtility();
+//                            File mediaFile = new File(mediaPath);
+//                            if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
+//                                fu.moveFile(mediaPath, mediaFile.getName(),scrPath);
+//                                Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
+//                            }
+//                            else{
+//                                String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
+//                                File folder = new File(outputPath);
+//                                File file = new File(mediaFile.getPath());
+//                                File desImgFile = new File(outputPath,mediaFile.getName());
+//                                if(!folder.exists()) {
+//                                    folder.mkdir();
+//                                }
+//                                mediaFile.renameTo(desImgFile);
+//                                mediaFile.deleteOnExit();
+//                                desImgFile.getPath();
+//                                MediaScannerConnection.scanFile(ViewMediaStandalone.this, new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+//                            }
+//                        }
+//                        Intent intentResult = new Intent();
+//                        intentResult.putExtra("path_media", mediaPath);
+//                        setResult(RESULT_OK, intentResult);
+//                        finish();
+//                        dialog.dismiss();
+//                    });
+//                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
+//
+//                        @Override
+//                        public void onClick(DialogInterface dialog, int which) {
+//
+//                            // Do nothing
+//                            dialog.dismiss();
+//                        }
+//                    });
+//
+//                    AlertDialog alert = builder.create();
+//                    alert.show();
+//
+//                    break;
+//                }
             }
             return true;
         });
-
     }
 
     @Override
@@ -720,7 +776,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     public void moveMedia(@NonNull String albumPath) {
         var temp = new ArrayList<Media>();
         temp.add(AccessMediaFile.getMediaWithPath(mediaPath));
-        fileUtils.copyFileMultiple(temp, albumPath, getApplicationContext());
+        fileUtils.copyFileMultiple(temp, albumPath, ViewMediaEdit.this);
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottomSheet.setVisibility(View.GONE);
         bottomSheetDialog.dismiss();
@@ -736,7 +792,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            albumAdapter = new AlbumCategoryAdapter(ViewMedia.this, ViewMedia.this, 3);
+            albumAdapter = new AlbumCategoryAdapter(ViewMediaEdit.this, ViewMediaEdit.this, 3);
             albumAdapter.setViewType(1);
             albumAdapter.setData(albumCategories);
             addAlbumRecyclerView.setAdapter(albumAdapter);
@@ -745,7 +801,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
         @Override
         protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(ViewMedia.this);
+            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(ViewMediaEdit.this);
             albumList = getAllAlbum(listMediaTemp);
             categorizeAlbum();
 
@@ -753,85 +809,58 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         }
     }
 
-    String getMimeType(String path){
-        String type = null;
-        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
-        if (extension.isBlank()) {
-            extension = path.substring(path.lastIndexOf(".") + 1);
-        }
-        if (extension != null) {
-            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
-        Log.d("mime-type", type
-        );
-        return type;
-    }
-
-    int getType(String mimeType){
-        int mediaType = -1;
-        if(mimeType.startsWith("image")){ mediaType = 1;}
-        else mediaType = 3;
-        return mediaType;
-    }
-
-    private Media createMediaFromFile(String path) {
-        String[] dirs = path.split("/");
-        Media media = new Media();
-        String mimeType = getMimeType(path);
-        int mediaType = getType(mimeType);
-        media.setMimeType(mimeType);
-        media.setType(mediaType);
-        media.setPath(path);
-        media.setTitle(dirs[dirs.length-1]);
-        media.setThumbnail(path);
-
-        return media;
-    }
-
     public void rescanForUnAddedAlbum(){
+        Cursor cursor =  getContentResolver().query(
+                MediaStore.Files.getContentUri("external")
+                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+
+        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
         String name;
         try {
-            Cursor cursor =  getContentResolver().query(
-                    MediaStore.Files.getContentUri("external")
-                    , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
-                    , MediaStore.Files.FileColumns.DATA + " LIKE ?"
-                    , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+            if (cursor != null) {
+                Log.d("size", "" + cursor.getCount());
 
-            int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
-            // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
-            int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-            Log.d("size", "" + cursor.getCount());
-
-            ArrayList<Album> temp = new ArrayList<>();
-            while (cursor.moveToNext()) {
-                String path = cursor.getString(pathColumn);
-                Log.d("path", path);
-                name = cursor.getString(nameColumn);
-                Log.d("name", name);
-                String[] subDirs = path.split("/");
-                if(!subDirs[subDirs.length-2].equals("owner")) continue;
-                Album album = new Album(null, name);
-                album.setPath(path);
-                temp.add(album);
-            }
-            for(Album album: albumList){
-                for(int i=0;i<temp.size();i++){
-                    if(temp.get(i).getPath().equals(album.getPath())){
-                        temp.remove(i);
+                ArrayList<Album> temp = new ArrayList<>();
+                while (cursor.moveToNext()) {
+                    String path = cursor.getString(pathColumn);
+                    Log.d("path", path);
+                    name = cursor.getString(nameColumn);
+                    Log.d("name", name);
+                    String[] subDirs = path.split("/");
+                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+                    Album album = new Album(null, name);
+                    album.setPath(path);
+                    temp.add(album);
+                }
+                for(Album album: albumList){
+                    for(int i=0;i<temp.size();i++){
+                        if(temp.get(i).getPath().equals(album.getPath())){
+                            temp.remove(i);
+                        }
                     }
                 }
+                if(temp.size() >0)albumList.addAll(temp);
             }
-            if(temp.size() >0)albumList.addAll(temp);
-            cursor.close();
         }catch (Exception e){
             Log.d("tag", e.getMessage());
         }
     }
 
-    @NonNull
-    public ArrayList<Album> getAllAlbum(@NonNull ArrayList<Media> listMedia) {
+    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
         ArrayList<Album> albums = new ArrayList<>();
+        for(var a : AccessMediaFile.getAllYourAlbum()) {
+            String[] subDirs = a.split("/");
+            String name = subDirs[subDirs.length - 1];
+            Album album = new Album(null, name);
+            album.setPath(a);
+            paths.add(a);
+            albums.add(album);
+        }
 
         for (int i = 0; i < listMedia.size(); i++) {
             String[] subDirectories = listMedia.get(i).getPath().split("/");
@@ -849,10 +878,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
             } else {
                 if (listMedia.get(i).getHeight() != 0) {
                     albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
+                    if (albums.get(paths.indexOf(folderPath)).getAvatar() == null) {
+                        albums.get(paths.indexOf(folderPath)).setAvatar(listMedia.get(i));
+                    }
                 }
             }
         }
-
+//        for(Album album: albums){
+//            Log.d("album", album.toString());
+//        }
         return albums;
     }
 
@@ -934,4 +968,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         }
     }
 
+    @Override
+    protected void onStop() {
+        fileUtils.deleteMultiple(launcher, n, this);
+        super.onStop();
+    }
 }

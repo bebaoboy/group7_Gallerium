@@ -14,6 +14,7 @@ import androidx.annotation.NonNull;
 import androidx.viewpager.widget.PagerAdapter;
 import androidx.viewpager.widget.ViewPager;
 
+import com.bumptech.glide.load.engine.DiskCacheStrategy;
 import com.github.chrisbanes.photoview.PhotoView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Media;
@@ -77,7 +78,9 @@ public class SlideAdapter extends PagerAdapter {
             if (m.getType() == 1) {
                 view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
                 img = view.findViewById(R.id.imageView);
-                Glide.with(context).load(path).into(img);
+                Glide.with(context).load(path)
+                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+                        .into(img);
 
                 img.setOnClickListener((view1) -> {
                     mediaItemInterface.showActionBar(trigger);
@@ -91,7 +94,9 @@ public class SlideAdapter extends PagerAdapter {
                 ImageView img2;
                 ImageView playButton;
                 img2 = view.findViewById(R.id.preview_thumbnail);
-                Glide.with(context).load("file://" + m.getThumbnail()).into(img2);
+                Glide.with(context).load("file://" + m.getThumbnail())
+                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+                        .into(img2);
                 img2.setOnClickListener((view1) -> {
                     mediaItemInterface.showActionBar(trigger);
                     trigger = !trigger;

@@ -140,6 +140,27 @@
         </activity>
 
         <activity
+            android:name=".activities.ViewMediaEdit"
+            android:exported="true"
+            android:label="Chỉnh sửa ảnh">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SENDTO" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
+
+        <activity
             android:name=".activities.ChooserActivity"
             android:exported="true"
             android:label="Chọn ảnh / video">
@@ -170,6 +191,8 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+            <meta-data android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
         </activity>
         <activity
             android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity"

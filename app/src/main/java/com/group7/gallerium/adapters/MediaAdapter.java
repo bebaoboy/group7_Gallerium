@@ -94,7 +94,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
     public void setImageSize(int size) {
         imageSize = size;
-        requestOptions = requestOptions.override((int)(size * 0.98));
+        requestOptions = requestOptions.override((int)(size * 0.95));
     }
 
     public void deleteMedia(@NonNull Media media){
@@ -180,9 +180,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         // Log.d("gallerium", media.getMimeType());
         if (!med[holder.getLayoutPosition()]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
+                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount)
+                        .load("file://" + media.getThumbnail())
                         .onlyRetrieveFromCache(true)
-                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        //.diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .apply(requestOptions)
                         .listener(new RequestListener<>() {
                             @Override
@@ -206,7 +207,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .sizeMultiplier(2.7f / spanCount)
                         .onlyRetrieveFromCache(true)
                         .apply(requestOptions)
-                        .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
+                        //.diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {

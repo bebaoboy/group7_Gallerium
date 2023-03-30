@@ -152,7 +152,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 changeOrientation(numGrid);
             }
         }
-        refresh();
+        if (selectedMedia.size() == 0) {
+            refresh();
+        }
     }
 
 
@@ -308,17 +310,35 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
         btnShare.setOnClickListener((v) -> {
             if (selectedMedia.size() <= 0) return;
-            // Create intent to deliver some kind of result data
-            Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            ArrayList<Uri> uris = new ArrayList<>();
-            for(var m : selectedMedia) {
-                uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+            if (selectedMedia.size() == 1) {
+                Intent result = new Intent(Intent.ACTION_SEND);
+                var m = selectedMedia.get(0);
+                result.putExtra(Intent.EXTRA_STREAM, new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+//                    ArrayList<Uri> uris = new ArrayList<>();
+//                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+//
+//                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                if (m.getType() == 1) {
+                    result.setType("image/*");
+                } else {
+                    result.setType("video/*");
+                }
+                getActivity().startActivity(result);
+            } else {
+                // Create intent to deliver some kind of result data
+                Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                ArrayList<Uri> uris = new ArrayList<>();
+                for (var m : selectedMedia) {
+                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                }
+                result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                result.setType("*/*");
+                getActivity().startActivity(result);
             }
-            result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-            result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-            result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-            result.setType("*/*");
-            getActivity().startActivity(result);
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
@@ -552,9 +572,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         listMedia = AccessMediaFile.getAllMedia(context);
 
         try {
-            categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
-            for (int i = 1; i < listMedia.size(); i++) {
+//            if (listMedia.get(0).getRawDate() != 0) {
+//                categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
+//                categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
+//            } else {
+//
+//            }
+
+            for (int i = 0; i < listMedia.size(); i++) {
+                if (listMedia.get(i).getRawDate() == 0) {
+                    continue;
+                }
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
                     categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                 }
@@ -565,7 +593,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
 //            });
             var newCatList = new ArrayList<MediaCategory>();
-            int partitionSize = numGrid * 5;
+            int partitionSize = numGrid == 3 ? 30 : numGrid == 4 ? 24 : 20;
             for (var cat : categoryList.values()) {
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
@@ -645,7 +673,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             fileUtils.copyFileMultiple(selectedMedia, albumPath, context);
         }
         for(var r : selectedMedia) {
-            if (r.getPath().lastIndexOf("/") != -1) {
+            if (AccessMediaFile.isExistedAnywhere(r.getPath()) && r.getPath().lastIndexOf("/") != -1) {
                 AccessMediaFile.addToFavMedia(albumPath + r.getPath().substring(r.getPath().lastIndexOf("/")));
             }
         }

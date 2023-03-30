@@ -6,6 +6,7 @@ import android.content.Context;
 import android.content.Intent;
 import android.content.res.Configuration;
 import android.graphics.Bitmap;
+import android.graphics.Color;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
@@ -30,6 +31,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
@@ -46,6 +48,7 @@ import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.ToolbarScrollListener;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -140,7 +143,9 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                 changeOrientation(numGrid);
             }
         }
-        refresh();
+        if (selectedMedia.size() == 0) {
+            refresh();
+        }
     }
 
 
@@ -281,29 +286,44 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         btnDelete = view.findViewById(R.id.delete_button);
         btnShare = view.findViewById(R.id.share_button);
         btnCreative = view.findViewById(R.id.create_button);
-
+        var btnFav = view.findViewById(R.id.add_to_fav_button);
+        btnFav.setVisibility(View.GONE);
         btnShare.setText("Hoàn tất");
         btnShare.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View view) {
                 if (selectedMedia.size() <= 0) return;
                 // Create intent to deliver some kind of result data
-                Intent result = new Intent(getActivity().getIntent().getAction());
-                ArrayList<Uri> uris = new ArrayList<>();
-                for(var m : selectedMedia) {
-                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                var currentIntent = getActivity().getIntent();
+                if (currentIntent.getAction().equals(Intent.ACTION_SEND_MULTIPLE)) {
+                    Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                    ArrayList<Uri> uris = new ArrayList<>();
+                    for(var m : selectedMedia) {
+                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                    }
+                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                    result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                    result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                    result.setType("*/*");
+                    getActivity().startActivity(result);
+                } else {
+                    Intent result = new Intent(currentIntent.getAction());
+                    ArrayList<Uri> uris = new ArrayList<>();
+                    for (var m : selectedMedia) {
+                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                    }
+                    ClipData clipData = null;
+                    for (Uri u : uris) {
+                        if (clipData == null)
+                            clipData = ClipData.newRawUri(null, u);
+                        else
+                            clipData.addItem(new ClipData.Item(u));
+                    }
+                    result.setClipData(clipData);
+                    result.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    getActivity().setResult(Activity.RESULT_OK, result);
+                    getActivity().finish();
                 }
-                ClipData clipData = null;
-                for (Uri u : uris) {
-                    if (clipData == null)
-                        clipData = ClipData.newRawUri(null, u);
-                    else
-                        clipData.addItem(new ClipData.Item(u));
-                }
-                result.setClipData(clipData);
-                result.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
-                getActivity().setResult(Activity.RESULT_OK, result);
-                getActivity().finish();
             }
         });
         btnCopy.setVisibility(View.GONE);
@@ -473,9 +493,15 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         listMedia = AccessMediaFile.getAllMedia(requireContext());
 
         try {
-            categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
-            categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
-            for (int i = 1; i < listMedia.size(); i++) {
+//            if (listMedia.get(0).getRawDate() != 0) {
+//                categoryList.put(listMedia.get(0).getDateTaken(), new MediaCategory(listMedia.get(0).getDateTaken(), new ArrayList<>()));
+//                categoryList.get(listMedia.get(0).getDateTaken()).addMediaToList(listMedia.get(0));
+//            }
+
+            for (int i = 0; i < listMedia.size(); i++) {
+                if (listMedia.get(i).getRawDate() == 0) {
+                    continue;
+                }
                 if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
                     categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
                 }

@@ -249,16 +249,35 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         btnShare.setOnClickListener((v) -> {
             if (selectedMedia.size() <= 0) return;
             // Create intent to deliver some kind of result data
-            Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
-            ArrayList<Uri> uris = new ArrayList<>();
-            for(var m : selectedMedia) {
-                uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+            if (selectedMedia.size() == 1) {
+                Intent result = new Intent(Intent.ACTION_SEND);
+                var m = selectedMedia.get(0);
+                result.putExtra(Intent.EXTRA_STREAM, new FileUtils().getUri(m.getPath(), m.getType(), this));
+//                    ArrayList<Uri> uris = new ArrayList<>();
+//                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+//
+//                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                if (m.getType() == 1) {
+                    result.setType("image/*");
+                } else {
+                    result.setType("video/*");
+                }
+                startActivity(result);
+            } else {
+                // Create intent to deliver some kind of result data
+                Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                ArrayList<Uri> uris = new ArrayList<>();
+                for (var m : selectedMedia) {
+                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+                }
+                result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                result.setType("*/*");
+                startActivity(result);
             }
-            result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-            result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-            result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-            result.setType("*/*");
-            startActivity(result);
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {

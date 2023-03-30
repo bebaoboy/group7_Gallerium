@@ -439,7 +439,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
+        } else
         Log.d("mime-type", type);
         return type;
     }
