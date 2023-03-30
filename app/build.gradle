@@ -55,7 +55,6 @@ dependencies {
     implementation(name:'ds-photo-editor-sdk-v10', ext:'aar')
 
     implementation 'androidx.recyclerview:recyclerview:1.2.1'
-    implementation 'com.github.valkriaine:Bouncy:2.3'
 
     def camerax_version = "1.1.0-beta01"
     implementation "androidx.camera:camera-core:${camerax_version}"
@@ -69,4 +68,5 @@ dependencies {
 
     implementation 'com.github.wynneplaga:MaterialScrollbar2:1.0.5'
     implementation 'com.simplecityapps:recyclerview-fastscroll:2.0.1'
+    implementation "androidx.swiperefreshlayout:swiperefreshlayout:1.2.0-alpha01"
 }

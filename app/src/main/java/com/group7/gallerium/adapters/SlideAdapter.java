@@ -79,7 +79,7 @@ public class SlideAdapter extends PagerAdapter {
                 view = LayoutInflater.from(context).inflate(R.layout.view_photo_item, container, false);
                 img = view.findViewById(R.id.imageView);
                 Glide.with(context).load(path)
-                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(img);
 
                 img.setOnClickListener((view1) -> {
@@ -95,7 +95,7 @@ public class SlideAdapter extends PagerAdapter {
                 ImageView playButton;
                 img2 = view.findViewById(R.id.preview_thumbnail);
                 Glide.with(context).load("file://" + m.getThumbnail())
-                        .diskCacheStrategy(DiskCacheStrategy.DATA)
+                        .diskCacheStrategy(DiskCacheStrategy.ALL)
                         .into(img2);
                 img2.setOnClickListener((view1) -> {
                     mediaItemInterface.showActionBar(trigger);

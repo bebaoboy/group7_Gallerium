@@ -121,6 +121,22 @@
             app:drawableTopCompat="@drawable/ic_fav_empty"
             android:foreground="?android:attr/selectableItemBackground"/>
         <TextView
+            android:visibility="gone"
+            android:layout_weight="0.25"
+            android:id="@+id/restore_button"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:clickable="true"
+            android:minWidth="48dp"
+            android:minHeight="48dp"
+            android:text="@string/restore"
+            android:textSize="11sp"
+            android:paddingStart="5dp"
+            android:paddingEnd="10dp"
+            android:textAlignment="center"
+            app:drawableTopCompat="@drawable/ic_restore"
+            android:foreground="?android:attr/selectableItemBackground"/>
+        <TextView
             android:layout_weight="0.25"
             android:id="@+id/delete_button"
             android:layout_width="match_parent"

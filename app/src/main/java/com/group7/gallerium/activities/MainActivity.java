@@ -41,6 +41,7 @@ import com.karan.churi.PermissionManager.PermissionManager;
 
 import java.io.File;
 import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -115,9 +116,8 @@ public class MainActivity extends AppCompatActivity {
             AccessMediaFile.setAllYourALbum(albList);
         }
 
-        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
-        layoutParams.setBehavior(new BottomNavigationViewBehavior());
-
+//        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
+//        layoutParams.setBehavior(new BottomNavigationViewBehavior());
         sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(this);
         getAllSettingValues();

@@ -188,7 +188,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottom_sheet.setVisibility(View.GONE);
         bottomSheetButtonConfig();
-        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
+        // recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
         callback = new ActionMode.Callback() {
             @Override
             public boolean onCreateActionMode(ActionMode actionMode, Menu menu) {
@@ -570,9 +570,8 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
             fileUtils.copyFileMultiple(selectedMedia, albumPath, context);
         }
         for(var r : selectedMedia) {
-            if (r.getPath().lastIndexOf("/") != -1) {
-                var p = albumPath + r.getPath().substring(r.getPath().lastIndexOf("/"));
-                AccessMediaFile.addToFavMedia(p);
+            if (AccessMediaFile.isExistedAnywhere(r.getPath()) && r.getPath().lastIndexOf("/") != -1) {
+                AccessMediaFile.addToFavMedia(albumPath + r.getPath().substring(r.getPath().lastIndexOf("/")));
             }
         }
         refresh();

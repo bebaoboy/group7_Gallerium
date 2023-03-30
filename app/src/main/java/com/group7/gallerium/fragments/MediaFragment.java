@@ -41,6 +41,7 @@ import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
+import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -107,6 +108,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
     boolean isPendingForIntent = false;
+    private SwipeRefreshLayout swipeLayout;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -258,6 +260,35 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 }
             }
         };
+        swipeLayout = view.findViewById(R.id.swipe_layout);
+        swipeLayout.setOnRefreshListener(
+                new SwipeRefreshLayout.OnRefreshListener() {
+                    @Override
+                    public void onRefresh() {
+                        Log.i("SWIPE", "onRefresh called from SwipeRefreshLayout");
+
+                        // This method performs the actual data-refresh operation.
+                        // The method calls setRefreshing(false) when it's finished.
+                        refresh(true);
+                    }
+                }
+        );
+        swipeLayout.setColorSchemeResources(R.color.primary_color_light_20a,
+                R.color.primary_color_light,
+                R.color.primary_color_dark,
+                R.color.primary_color_dark_bg);
+
+        /**
+         * Showing Swipe Refresh animation on activity create
+         * As animation won't start on onCreate, post runnable is used
+         */
+        swipeLayout.post(new Runnable() {
+
+            @Override
+            public void run() {
+                swipeLayout.setRefreshing(true);
+            }
+        });
 
         return view;
     }
@@ -430,6 +461,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 // write all the data entered by the user in SharedPreference and apply
                 myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
                 myEdit.apply();
+                callback.onDestroyActionMode(mode);
                 refresh();
             } else {
                 try {
@@ -441,12 +473,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
                     startActivity(intent);
                 }
+                callback.onDestroyActionMode(mode);
             }
         } else {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 fileUtils.trashFileMultiple(selectedMedia);
             }
+            callback.onDestroyActionMode(mode);
         }
 
     }
@@ -881,6 +915,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
+            swipeLayout.setRefreshing(false);
             adapter.setData(mediaCategories);
             recyclerView.setAdapter(adapter);
             Log.d("refresh", "refresh media adapter");

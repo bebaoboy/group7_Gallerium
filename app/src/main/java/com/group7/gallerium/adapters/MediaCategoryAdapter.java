@@ -19,8 +19,6 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
-import com.wynneplaga.materialScrollBar2.inidicators.CustomIndicator;
-import com.wynneplaga.materialScrollBar2.inidicators.DateTimeIndicator;
 
 import java.util.ArrayList;
 import java.util.Date;

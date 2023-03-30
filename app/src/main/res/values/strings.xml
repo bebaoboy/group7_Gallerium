@@ -82,4 +82,6 @@
     <string name="shortcut_share_shortlabel">Gửi ảnh</string>
     <string name="shortcut_share_longlabel">Chia sẻ ảnh và video</string>
     <string name="shortcut_edit_shortlabel">Cài đặt</string>
+    <string name="restore">Khôi phục</string>
+    <string name="menu_refresh">Refresh</string>
 </resources>

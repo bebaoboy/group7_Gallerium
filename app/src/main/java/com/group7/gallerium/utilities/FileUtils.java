@@ -793,4 +793,27 @@ public class FileUtils {
         }
         return newNames;
     }
+
+    public void restoreFileMultiple(ArrayList<Media> selectedMedia) {
+        for(var media : selectedMedia) {
+            var s = media.getPath();
+            var parentPath = s.substring(0, s.lastIndexOf("/"));
+            File fileDir = new File(parentPath);
+            var fileName = s.substring(s.lastIndexOf("/") + 1);
+            File from = new File(fileDir, fileName);
+            fileName = fileName.substring(1);
+            var nf = fileName.substring(fileName.indexOf("-", fileName.indexOf("-") + 1) + 1);
+            File to = new File(fileDir, nf);
+            from.renameTo(to);
+            Log.d("RESTORE", nf);
+            AccessMediaFile.removeFromTrashMedia( media.getPath());
+        }
+    }
+
+    public void deleteTrashMultiple(ArrayList<Media> selectedMedia) {
+        for (var m : selectedMedia) {
+            new File(m.getPath()).delete();
+            AccessMediaFile.removeFromTrashMedia(m.getPath());
+        }
+    }
 }

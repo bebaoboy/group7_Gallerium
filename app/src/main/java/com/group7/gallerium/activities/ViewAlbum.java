@@ -102,7 +102,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     BottomSheetBehavior behavior;
 
     BottomSheetDialog bottomSheetDialog;
-    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav;
+    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnRestore;
 
     private boolean changeMode = false;
 
@@ -194,7 +194,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 }
                 mode = null;
                 bottom_sheet.setVisibility(View.GONE);
-                bottom_sheet.setVisibility(View.GONE);
+                behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
                 if (bottomSheetDialog != null) {
                     bottomSheetDialog.cancel();
                 }
@@ -273,7 +273,16 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         btnShare = findViewById(R.id.share_button);
         btnCreative = findViewById(R.id.create_button);
         btnFav = findViewById(R.id.add_to_fav_button);
-
+        btnRestore = findViewById(R.id.restore_button);
+        btnRestore.setVisibility(View.VISIBLE);
+        btnRestore.setOnClickListener((v) -> restoreMedia());
+        if (albumName.equals("Thùng rác")) {
+            btnCopy.setVisibility(View.GONE);
+            btnMove.setVisibility(View.GONE);
+            btnFav.setVisibility(View.GONE);
+            btnShare.setVisibility(View.GONE);
+            btnCreative.setVisibility(View.GONE);
+        }
         btnCopy.setOnClickListener((v)->{
             changeMode = false;
             openAlbumSelectView();
@@ -324,6 +333,22 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         });
     }
 
+    private void restoreMedia() {
+        if (!albumName.equals("Thùng rác")) return;
+        try {
+            fileUtils.restoreFileMultiple(selectedMedia);
+            SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+            SharedPreferences.Editor myEdit = sharedPreferences.edit();
+            myEdit.clear();
+            // write all the data entered by the user in SharedPreference and apply
+            myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+            myEdit.apply();
+        } catch (Exception e) {
+            Toast.makeText(this, "No permission!", Toast.LENGTH_SHORT).show();
+        }
+        callback.onDestroyActionMode(mode);
+    }
+
     private void addToFavorite() {
         for(var m : selectedMedia) {
             AccessMediaFile.addToFavMedia(m.getPath());
@@ -334,34 +359,51 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
 
     private void deleteMedia() {
         //saveScroll();
-        new AsyncTask<Void, Integer, Void>() {
-            @Override
-            protected void onPostExecute(Void unused) {
-                super.onPostExecute(unused);
+        if (albumName.equals("Thùng rác")) {
+//            if (1 == 1) {
+                try {
+                    fileUtils.deleteTrashMultiple(selectedMedia);
+                    SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                    myEdit.clear();
+                    // write all the data entered by the user in SharedPreference and apply
+                    myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                    myEdit.apply();
+                } catch (Exception e) {
+                    Toast.makeText(this, "No permission", Toast.LENGTH_SHORT).show();
+                }
                 callback.onDestroyActionMode(mode);
-                isPendingForIntent = false;
-                refresh();
-            }
+//            }
+        } else {
+            new AsyncTask<Void, Integer, Void>() {
+                @Override
+                protected void onPostExecute(Void unused) {
+                    super.onPostExecute(unused);
+                    callback.onDestroyActionMode(mode);
+                    isPendingForIntent = false;
+                    refresh();
+                }
 
-            @Override
-            protected Void doInBackground(Void... voids) {
-                if (fileUtils.deleteMultiple(launcher, selectedMedia, getApplicationContext()) > 0) {
-                    for(var m : selectedMedia) {
-                        AccessMediaFile.removeMediaFromAllMedia(m.getPath());
-                        listMedia.remove(m);
-                        mediaPaths.remove(m.getPath());
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    if (fileUtils.deleteMultiple(launcher, selectedMedia, getApplicationContext()) > 0) {
+                        for (var m : selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                            listMedia.remove(m);
+                            mediaPaths.remove(m.getPath());
+                        }
+                    } else {
+                        isPendingForIntent = true;
                     }
+                    while (isPendingForIntent) {
+                    }
+                    return null;
                 }
-                else {
-                    isPendingForIntent = true;
-                }
-                while (isPendingForIntent) {}
-                return null;
-            }
 
 //        refresh();
 //        callback.onDestroyActionMode(mode);
-        }.execute();
+            }.execute();
+        }
     }
 
     void refresh(){
@@ -443,6 +485,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         adapter = new MediaCategoryAdapter(this, spanCount, this);
         adapter.setData(getListCategory());
         album_rec_item.setAdapter(adapter);
+        callback.onDestroyActionMode(mode);
         ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
@@ -598,6 +641,11 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 }
             }
 
+            if (albumName.equals("Thùng rác")) {
+                for(var c : newCatList) {
+                    c.setNameCategory("");
+                }
+            }
             return newCatList;
         } catch (Exception e) {
             return null;
@@ -654,7 +702,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             fileUtils.copyFileMultiple(selectedMedia, albumPath, getApplicationContext());
         }
         for(var r : selectedMedia) {
-            if (r.getPath().lastIndexOf("/") != -1) {
+            if (AccessMediaFile.isExistedAnywhere(r.getPath()) && r.getPath().lastIndexOf("/") != -1) {
                 AccessMediaFile.addToFavMedia(albumPath + r.getPath().substring(r.getPath().lastIndexOf("/")));
             }
         }
