@@ -48,7 +48,6 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
-import com.group7.gallerium.utilities.ToolbarScrollListener;
 
 import java.io.File;
 import java.io.FileNotFoundException;
@@ -64,11 +63,11 @@ import java.util.UUID;
 
 public class SecureFragment extends Fragment implements SelectMediaInterface {
     private View view;
-    private Toolbar toolbar;
-    private Context context;
+    Toolbar toolbar;
+    Context context;
     private NestedScrollView scroll;
     private GridLayout numGrid;
-    private EditText txtPass;
+    EditText txtPass;
     private MaterialButton btnClear, btnEnter;
 
     private Button createFolder;
@@ -490,7 +489,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             if(intf == null)
             {
                 Date lastModDate = new Date(file.lastModified());
-                Log.i("PHOTO DATE", "Dated : "+ lastModDate.toString());//Dispaly lastModDate. You can do/use it your own way
+                Log.i("PHOTO DATE", "Dated : "+ lastModDate);//Dispaly lastModDate. You can do/use it your own way
                 return lastModDate.getTime();
             }
         }
@@ -514,7 +513,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
     
-    private void showViewLogic() {
+    void showViewLogic() {
         if(txtPass.getText().toString().equals("")){
             view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
             view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
@@ -578,7 +577,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
 
-    private void resetEveryhthing(){
+    void resetEveryhthing(){
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
         myEdit.putString("question", "");
         myEdit.putString("answer", "");
@@ -594,39 +593,33 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
         
-         toolbar.getMenu().findItem(R.id.forget_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                requestForAnswer();
-                return true;
+         toolbar.getMenu().findItem(R.id.forget_pass_menu_item).setOnMenuItemClickListener(item -> {
+             requestForAnswer();
+             return true;
+         });
+
+
+
+        toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(item -> {
+            if(!password.equals("")) {
+                AlertDialog.Builder builder = new AlertDialog.Builder(context);
+                builder.setTitle("Confirm");
+                builder.setMessage("Do you want to delete secured folder?");
+                builder.setPositiveButton("YES", (dialog, which) -> {
+                    File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+                    secureDir.delete();
+                    resetEveryhthing();
+                    dialog.dismiss();
+                });
+
+                builder.setNegativeButton("NO", (dialog, which) -> {
+                    dialog.dismiss();
+                });
+                builder.show();
+            }else{
+                Toast.makeText(context.getApplicationContext(), "Bạn chưa có tạo folder bảo mật", Toast.LENGTH_SHORT).show();
             }
-        });
-
-
-
-        toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
-                if(!password.equals("")) {
-                    AlertDialog.Builder builder = new AlertDialog.Builder(context);
-                    builder.setTitle("Confirm");
-                    builder.setMessage("Do you want to delete secured folder?");
-                    builder.setPositiveButton("YES", (dialog, which) -> {
-                        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-                        secureDir.delete();
-                        resetEveryhthing();
-                        dialog.dismiss();
-                    });
-
-                    builder.setNegativeButton("NO", (dialog, which) -> {
-                        dialog.dismiss();
-                    });
-                    builder.show();
-                }else{
-                    Toast.makeText(context.getApplicationContext(), "Bạn chưa có tạo folder bảo mật", Toast.LENGTH_SHORT).show();
-                }
-                return false;
-            }
+            return false;
         });
         
         scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())

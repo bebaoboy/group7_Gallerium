@@ -18,6 +18,7 @@ import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
+import android.widget.EditText;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -26,6 +27,7 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.recyclerview.widget.GridLayoutManager;
@@ -36,17 +38,28 @@ import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
+import com.group7.gallerium.adapters.MediaAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
+import com.group7.gallerium.models.AlbumCustomContent;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
+import org.json.JSONArray;
+import org.json.JSONObject;
+
+import java.io.File;
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.OutputStream;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
+import java.util.Date;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
@@ -56,7 +69,7 @@ import java.util.stream.Collectors;
 
 public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface {
 
-    private String albumName;
+    private String albumName, albumPath, memoryDate, memoryTitle, memoryContent;
     private ArrayList<String> mediaPaths;
     ArrayList<Album> albumList;
     ArrayList<Media> selectedMedia;
@@ -64,10 +77,14 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     ArrayList<Media> listMedia;
     private Intent intent;
     MediaCategoryAdapter adapter;
+
+    MediaAdapter mediaAdapter;
     private int spanCount = 3;
 
     private Toolbar toolbar;
     private RecyclerView album_rec_item;
+
+    TextView txtDate, txtTitle, txtContent;
 
     RecyclerView addAlbumRecyclerView;
 
@@ -102,6 +119,11 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         intent = getIntent();
         mediaPaths = intent.getStringArrayListExtra("media_paths");
         albumName = intent.getStringExtra("name");
+        albumPath = intent.getStringExtra("folder_path");
+
+        memoryContent = intent.getStringExtra("content");
+        memoryTitle = intent.getStringExtra("title");
+        memoryDate = intent.getStringExtra("date");
 
         selectedMedia = new ArrayList<>();
         listMedia = new ArrayList<>();
@@ -199,6 +221,20 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottom_sheet.setVisibility(View.GONE);
         bottomSheetButtonConfig();
+
+        txtContent = findViewById(R.id.album_memory_content);
+        txtDate = findViewById(R.id.album_memory_time);
+        txtTitle = findViewById(R.id.album_memory_title);
+
+        if(memoryContent.isBlank() || memoryDate.isBlank() || memoryTitle.isBlank()){
+            txtContent.setVisibility(View.GONE);
+            txtDate.setVisibility(View.GONE);
+            txtTitle.setVisibility(View.GONE);
+        }else {
+            txtContent.setText(memoryContent);
+            txtDate.setText(memoryDate);
+            txtTitle.setText(memoryTitle);
+        }
     }
 
     void bottomSheetConfig() {
@@ -418,6 +454,116 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         toolbar.setNavigationIcon(R.drawable.ic_back_arrow);
         toolbar.setNavigationOnClickListener((view) -> finish());
         toolbar.setTitle(albumName);
+
+        toolbar.getMenu().findItem(R.id.change_info_tb_item).setOnMenuItemClickListener(menuItem -> {
+            showForm();
+            return false;
+        });
+
+        toolbar.getMenu().findItem(R.id.add_media_item).setOnMenuItemClickListener(menuItem -> {
+            openSelectionView();
+            return false;
+        });
+    }
+
+    void showForm(){
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+
+        LayoutInflater inflater = getLayoutInflater();
+        View dialogView = inflater.inflate(R.layout.dialog_questionaire, null);
+
+        var editTitle = (EditText)dialogView.findViewById(R.id.question);
+        var editContent = (EditText)dialogView.findViewById(R.id.answer);
+        editTitle.setHint("Nhập tiêu đề cho album");
+        editContent.setHint("Nhập nội dung cho album");
+
+        builder.setView(dialogView)
+                .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                    var title = editTitle.getText().toString();
+                    var content = editContent.getText().toString();
+                    var time = new Date().getTime();
+
+                    writeToAlbumFile(title, content, time);
+                }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
+                    dialogInterface.dismiss();
+                }));
+        builder.show();
+    }
+
+    private void writeToAlbumFile(String title, String content, Long time) {
+
+        File albumInfoFile = new File(this.getFilesDir(), "albumsInfo.txt");
+        if(albumInfoFile.exists()){
+            try {
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("path", albumPath);
+                jsonObject.put("title", title);
+                jsonObject.put("content", content);
+                jsonObject.put("date", time);
+
+                JSONArray array = getAlbumInfo();
+
+                Log.d("content-view", array.toString());
+
+                FileOutputStream stream = new FileOutputStream(albumInfoFile, false);
+
+                boolean existed = false;
+
+                for(int i=0;i< array.length();i++){
+                    if(array.getJSONObject(i).equals(jsonObject)){
+                        array.put(i, jsonObject);
+                        existed = true;
+                        break;
+                    }
+                }
+
+                if(!existed){
+                    array.put(jsonObject);
+                }
+                
+                stream.write(array.toString().getBytes(StandardCharsets.UTF_8));
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
+        }
+    }
+
+    public JSONArray getAlbumInfo(){
+        String contents;
+        File albumInfoFile = new File(getFilesDir(), "albumsInfo.txt");
+        if(albumInfoFile.exists()) {
+            int length = (int) albumInfoFile.length();
+
+            byte[] bytes = new byte[length];
+            try {
+                FileInputStream in = new FileInputStream(albumInfoFile);
+                in.read(bytes);
+                in.close();
+            } catch (Exception e) {
+                Log.d("tag", e.getMessage());
+            }
+            contents = new String(bytes);
+            try {
+                return new JSONArray(contents);
+            } catch (Exception e) {
+                Log.d("json error", e.getMessage());
+                return new JSONArray();
+            }
+        }
+        return new JSONArray();
+    }
+
+    void openSelectionView(){
+        ArrayList<Media> rawMedia = AccessMediaFile.getAllMedia(this);
+        rawMedia.removeAll(listMedia);
+
+        View viewDialog = LayoutInflater.from(this).inflate(R.layout.add_to_album_bottom_dialog, null);
+        addAlbumRecyclerView = viewDialog.findViewById(R.id.rec_add_to_album);
+        addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(this, 1));
+        bottomSheetDialog = new BottomSheetDialog(this);
+        bottomSheetDialog.setContentView(viewDialog);
+
+
     }
 
     private List<MediaCategory> getListCategory() {

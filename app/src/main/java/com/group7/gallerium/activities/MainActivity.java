@@ -39,6 +39,7 @@ import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.group7.gallerium.utilities.FileUtils;
 import com.karan.churi.PermissionManager.PermissionManager;
 
+import java.io.File;
 import java.io.FileNotFoundException;
 import java.util.Objects;
 
@@ -121,6 +122,7 @@ public class MainActivity extends AppCompatActivity {
                 PreferenceManager.getDefaultSharedPreferences(this);
         getAllSettingValues();
         setUiMode();
+        createAlbumInfoFile();
     }
 
     void getAllSettingValues(){
@@ -148,9 +150,9 @@ public class MainActivity extends AppCompatActivity {
             lockPrivatePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
             lockTrashPref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
 
-            Log.d("ui-pref", "" + uiPref);
-            Log.d("location-pref", "" + locationPref);
-            Log.d("num-grid", ""+numGridPref);
+//            Log.d("ui-pref", "" + uiPref);
+//            Log.d("location-pref", "" + locationPref);
+//            Log.d("num-grid", ""+numGridPref);
 
         }catch (Exception e){
             Log.d("tag-e", e.getMessage());
@@ -207,6 +209,23 @@ public class MainActivity extends AppCompatActivity {
     private void setCurrentPage(int page) {
         changeOrientation(getResources().getConfiguration().orientation, page == view_pager.getCurrentItem());
         view_pager.setCurrentItem(page, false);
+    }
+
+    private void createAlbumInfoFile(){
+        File albumInfo = new File(getFilesDir(), "albumsInfo.txt");
+//        if(albumInfo.exists()){
+//            if(albumInfo.isDirectory()){
+//                albumInfo.delete();
+//            }
+//            //albumInfo.delete();
+//        }
+        if(!albumInfo.exists()){
+            try {
+                albumInfo.createNewFile();
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
+        }
     }
 
     private void changeOrientation(int orientation, boolean refresh) {

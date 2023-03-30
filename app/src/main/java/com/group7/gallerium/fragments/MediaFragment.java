@@ -199,7 +199,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottom_sheet.setVisibility(View.GONE);
         bottomSheetButtonConfig();
-        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
+        // recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
 
         callback = new ActionMode.Callback() {
             @Override
