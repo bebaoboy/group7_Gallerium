@@ -10,6 +10,7 @@ import android.widget.TextView;
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.DiffUtil;
 import androidx.recyclerview.widget.GridLayoutManager;
+import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.ListAdapter;
 import androidx.recyclerview.widget.RecyclerView;
 
@@ -49,12 +50,20 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     private List<MediaCategory> listMediaCategory;
 
     private boolean isMultipleEnabled = false;
+    final int UI_MODE_GRID = 1, UI_MODE_LIST = 2;
+
+    private int uiMode = UI_MODE_GRID;
 
     public int getLastBound(){
         return lastBound;
     }
     public int getLastDetach(){
         return  lastDetach;
+    }
+
+    public void setUiMode(int uiMode){
+        this.uiMode = uiMode;
+        notifyDataSetChanged();
     }
     public void setMultipleEnabled(boolean value){
         isMultipleEnabled = value;
@@ -101,13 +110,21 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
             holder.tvNameCategory.setText(mediaCategory.getNameCategory());
         }
 
-        GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
-        holder.rcvPictures.setLayoutManager(gridLayoutManager);
-
         mediaAdapter = new MediaAdapter(context.getApplicationContext(), this.selectMediaInterface, spanCount);
         mediaAdapter.setImageSize(calculateImageSize());
         mediaAdapter.setListImages((ArrayList<Media>) mediaCategory.getList());
         mediaAdapter.setListCategory((ArrayList<MediaCategory>) listMediaCategory);
+
+        mediaAdapter.setUiMode(uiMode);
+
+        if(uiMode == UI_MODE_GRID) {
+            GridLayoutManager gridLayoutManager = new GridLayoutManager(context, spanCount);
+            holder.rcvPictures.setLayoutManager(gridLayoutManager);
+        }else{
+            LinearLayoutManager linearLayoutManager = new LinearLayoutManager(context, LinearLayoutManager.VERTICAL, false);
+            holder.rcvPictures.setLayoutManager(linearLayoutManager);
+        }
+
         holder.rcvPictures.setAdapter(mediaAdapter);
         holder.rcvPictures.setItemViewCacheSize(24);
         holder.rcvPictures.setRecycledViewPool(viewPool);

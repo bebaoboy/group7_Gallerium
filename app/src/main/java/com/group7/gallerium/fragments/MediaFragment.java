@@ -4,14 +4,12 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
@@ -58,18 +56,14 @@ import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
-import com.group7.gallerium.utilities.ToolbarScrollListener;
 
-import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
-import java.util.HashSet;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Objects;
-import java.util.Set;
 import java.util.stream.Collectors;
 
 
@@ -95,6 +89,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     int numGrid;
     boolean isAllChecked = false;
 
+    final int UI_MODE_GRID = 1, UI_MODE_LIST = 2;
+
+    int uiMode = UI_MODE_GRID;
     private boolean changeMode = false;
     ActionMode mode;
     ActionMode.Callback callback;
@@ -104,6 +101,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     LinearLayout bottom_sheet;
     BottomSheetBehavior behavior;
     BottomSheetDialog bottomSheetDialog;
+
+    SharedPreferences sharedPreferences;
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
@@ -290,6 +289,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             }
         });
 
+        Log.d("modeUI","" + uiMode);
         return view;
     }
 
@@ -546,6 +546,22 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         settingButton.setOnMenuItemClickListener(menuItem -> {
             openSetting̣̣̣̣̣̣̣();
+            return false;
+        });
+
+        toolbar.getMenu().findItem(R.id.set_display_menu_item).setOnMenuItemClickListener(menuItem -> {
+           if(uiMode == UI_MODE_GRID){
+               uiMode = UI_MODE_LIST;
+           }else{
+               uiMode = UI_MODE_GRID;
+           }
+
+           SharedPreferences.Editor editor = sharedPreferences.edit();
+
+           editor.putInt("ui_mode", uiMode);
+           editor.apply();
+           refresh();
+
             return false;
         });
     }
@@ -910,12 +926,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         protected void onPreExecute() {
             super.onPreExecute();
             AccessMediaFile.refreshAllMedia();
+            sharedPreferences = context.getSharedPreferences("ui_list", MODE_PRIVATE);
+            uiMode = sharedPreferences.getInt("ui_mode", UI_MODE_GRID);
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             swipeLayout.setRefreshing(false);
+            adapter.setUiMode(uiMode);
             adapter.setData(mediaCategories);
             recyclerView.setAdapter(adapter);
             Log.d("refresh", "refresh media adapter");

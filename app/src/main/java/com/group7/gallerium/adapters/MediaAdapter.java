@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
@@ -63,13 +64,16 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     List<MediaCategory> listMediaCategory;
     Intent intent;
     ArrayList<String> listPath;
+
+    final int UI_MODE_GRID = 1, UI_MODE_LIST = 2;
+
     boolean[] med;
     private static RequestOptions requestOptions = new RequestOptions().format(DecodeFormat.PREFER_RGB_565);
 
     private boolean isAllChecked = false;
     private ArrayList<Media> selectedMedia;
     private boolean isMultipleEnabled = false;
-    private int imageSize = 0;
+    private int imageSize = 0, uiMode; // uiMode = 1 -> grid, uiMode = 2 -> list
 
     public void setMultipleEnabled(boolean value){
         isMultipleEnabled = value;
@@ -112,12 +116,21 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         this.listMediaCategory = categories;
     }
 
+    public void setUiMode(int uiMode){
+        this.uiMode = uiMode;
+        notifyItemRangeChanged(0, getItemCount());
+    }
+
     @NonNull
     @Override
     public MediaViewHolder onCreateViewHolder(@NonNull ViewGroup parent, int viewType) {
         LayoutInflater layoutInflater = LayoutInflater.from(parent.getContext());
 
-        MediaViewHolder holder = new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false));
+        MediaViewHolder holder;
+        if(uiMode == UI_MODE_GRID)
+            holder = new MediaViewHolder(layoutInflater.inflate(R.layout.media_item, parent, false), uiMode);
+        else
+            holder = new MediaViewHolder(layoutInflater.inflate(R.layout.media_item_list, parent, false), uiMode);
         return holder;
     }
 
@@ -162,6 +175,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         if(context == null) return;
         if (media == null || media.getPath() == null) {
             return;
+        }
+
+        if(uiMode == UI_MODE_LIST){
+            String[] dirs = media.getPath().split("/");
+            holder.media_name.setText(dirs[dirs.length - 1]);
+            holder.created_time.setText(media.getDateTaken());
         }
 
         holder.image.getLayoutParams().height = imageSize;
@@ -352,14 +371,21 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView play_icon;
         View blur;
 
+        TextView media_name, created_time;
+
         MaterialCardView select;
-        MediaViewHolder(View itemView) {
+        MediaViewHolder(View itemView, int uiMode) {
             super(itemView);
             image = itemView.findViewById(R.id.photoItem);
             fav_icon = itemView.findViewById(R.id.fav_icon);
             play_icon = itemView.findViewById(R.id.play_video_button_child);
             select = itemView.findViewById(R.id.media_card);
             blur = itemView.findViewById(R.id.blur_view);
+
+            if(uiMode == 2){
+                media_name = itemView.findViewById(R.id.media_name);
+                created_time = itemView.findViewById(R.id.media_taken_time);
+            }
         }
     }
 

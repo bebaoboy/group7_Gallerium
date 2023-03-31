@@ -26,10 +26,6 @@
             android:layout_height="wrap_content"
             android:text="@string/taken_datetime"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_taken_time"
             android:layout_width="wrap_content"
@@ -55,10 +51,6 @@
             android:layout_height="wrap_content"
             android:text="@string/file_name"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_name"
             android:layout_width="wrap_content"
