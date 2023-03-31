@@ -218,6 +218,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         secureAdapter.setImageSize(calculateImageSize());
         Log.d("refresh", "");
 
+        password = sharedPreferences.getString("password", "");
+        question = sharedPreferences.getString("question", "");
+        answer = sharedPreferences.getString("answer", "");
     }
 
     public void refresh(boolean scroll) {
@@ -550,6 +553,8 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     }
 
     void requestForAnswer() {
+        question = sharedPreferences.getString("question", "");
+        answer = sharedPreferences.getString("answer", "");
         if (question.isBlank() && answer.isBlank()) {
             Toast.makeText(context.getApplicationContext(), "Bạn chưa tạo mật khẩu", Toast.LENGTH_SHORT).show();
         } else {
@@ -577,13 +582,12 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
 
-    void resetEveryhthing(){
+    void resetEverything(){
         SharedPreferences.Editor myEdit = sharedPreferences.edit();
         myEdit.putString("question", "");
         myEdit.putString("answer", "");
         myEdit.putString("password","");
         myEdit.apply();
-        password = sharedPreferences.getString("password", "");
         txtPass.setText("");
     }
 
@@ -595,6 +599,8 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         
          toolbar.getMenu().findItem(R.id.forget_pass_menu_item).setOnMenuItemClickListener(item -> {
              requestForAnswer();
+
+             refresh();
              return true;
          });
 
@@ -606,9 +612,16 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
                 builder.setTitle("Confirm");
                 builder.setMessage("Do you want to delete secured folder?");
                 builder.setPositiveButton("YES", (dialog, which) -> {
-                    File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-                    secureDir.delete();
-                    resetEveryhthing();
+                    File secureDir = new File(context.getFilesDir()+"/secure-subfolder");
+                    if(secureDir.exists()) {
+                        fileUtils.deleteRecursive(secureDir);
+                        resetEverything();
+
+                        refresh();
+                        showViewLogic();
+                    }else{
+                        Toast.makeText(context, "Cant delete", Toast.LENGTH_SHORT).show();
+                    }
                     dialog.dismiss();
                 });
 

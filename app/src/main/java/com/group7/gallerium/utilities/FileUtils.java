@@ -45,16 +45,16 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
-//    public void moveFile1(String inputPath, String inputFilename, String outputPath, Context context){
-//        String[] subDirs = inputPath.split("/");
-//        String parent = subDirs[subDirs.length - 2];
-//        String root = subDirs[2];
-//
-//      var contentUri = MediaStore.Files.getContentUri("external");
-//        var selectionArgs = new ArrayList<String>();
-//      selectionArgs.add(Environment.DIRECTORY_DCIM + "/parent/");
-//
-//    }
+    public void deleteRecursive(File fileOrDirectory) {
+
+        if (fileOrDirectory.isDirectory()) {
+            for (File child : fileOrDirectory.listFiles()) {
+                deleteRecursive(child);
+            }
+        }
+
+        fileOrDirectory.delete();
+    }
 
     public void moveFile(@NonNull String inputPath, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String outputPath, @NonNull Context context) {
 

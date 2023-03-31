@@ -410,6 +410,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         adapter.setData(getListCategory());
         callback.onDestroyActionMode(mode);
         album_rec_item.setAdapter(adapter);
+        ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
     }
 
 
@@ -433,22 +434,19 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(this);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
+        var numGrid = 3;
         if(numGridPref.equals("5")){
-            spanCount = 5;
+            numGrid = 5;
         }else if(numGridPref.equals("4")){
-            spanCount = 4;
+            numGrid = 4;
         }else{
-            spanCount = 3;
+            numGrid = 3;
         }
-        adapter.setData(getListCategory());
-        album_rec_item.setAdapter(adapter);
         if(this.getResources().getConfiguration().orientation == Configuration.ORIENTATION_LANDSCAPE){
-            changeOrientation(spanCount * 2);
+            changeOrientation(numGrid * 2);
         }
         else {
-            changeOrientation(spanCount);
-            adapter.setData(getListCategory());
-            album_rec_item.setAdapter(adapter);
+            changeOrientation(numGrid);
         }
     }
 
@@ -482,11 +480,11 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             firstVisiblePosition = album_rec_item.getChildAdapterPosition(firstChild);
             offset = firstChild.getTop();
         }
-        adapter = new MediaCategoryAdapter(this, spanCount, this);
-        adapter.setData(getListCategory());
-        album_rec_item.setAdapter(adapter);
-        callback.onDestroyActionMode(mode);
-        ((LinearLayoutManager) Objects.requireNonNull(album_rec_item.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
+        if (spanCount != this.spanCount) {
+            this.spanCount = spanCount;
+            adapter = new MediaCategoryAdapter(this, spanCount, this);
+
+        }refresh();
     }
 
     void toolbarSetting(){
