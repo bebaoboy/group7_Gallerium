@@ -6,13 +6,10 @@ import android.content.ContentResolver;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.database.Cursor;
 import android.graphics.Color;
 import android.net.Uri;
-import android.os.AsyncTask;
 import android.os.Bundle;
 import android.os.Environment;
-import android.provider.MediaStore;
 import android.util.Log;
 import android.view.KeyEvent;
 import android.view.LayoutInflater;
@@ -60,14 +57,8 @@ import java.io.InputStream;
 import java.io.OutputStream;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
-import java.util.LinkedHashMap;
-import java.util.List;
-import java.util.Map;
 import java.util.Objects;
 import java.util.Random;
-import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterface, SelectMediaInterface {
@@ -239,8 +230,8 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
         addAlbumRecyclerView.setLayoutManager(new GridLayoutManager(ViewMediaEdit.this, 1));
         bottomSheetDialog = new BottomSheetDialog(ViewMediaEdit.this);
         bottomSheetDialog.setContentView(viewDialog);
-        AlbumListTask albumAsyncTask = new AlbumListTask();
-        albumAsyncTask.execute();
+//        AlbumListTask albumAsyncTask = new AlbumListTask();
+//        albumAsyncTask.execute();
     }
 
     void rename(){
@@ -254,28 +245,6 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
         renameBottomDialogFragment.setLauncher(launcherModified);
 
     }
-
-//    void bottomSheetDialogConfig() {
-//
-//        View moreBottomView = LayoutInflater.from(this).inflate(R.layout.more_bottom_sheet,
-//                (LinearLayout)findViewById(R.id.more_bottom_sheet),  false);
-//        bottomSheetDialog = new BottomSheetDialog(this);
-//        bottomSheetDialog.setContentView(moreBottomView);
-//
-//        btnAddToAlbum = moreBottomView.findViewById(R.id.add_to_album_item);
-//        btnRename = moreBottomView.findViewById(R.id.change_name_item);
-//        btnSetBackGround = moreBottomView.findViewById(R.id.set_sys_background_item);
-//        btnShowDetails = moreBottomView.findViewById(R.id.show_details_item);
-//
-//        btnAddToAlbum.setOnClickListener((v) -> bottomSheetDialog.cancel());
-//        btnRename.setOnClickListener((v) -> bottomSheetDialog.cancel());
-//        btnSetBackGround.setOnClickListener((v) -> bottomSheetDialog.cancel());
-//        btnShowDetails.setOnClickListener((v) -> {
-//            Uri mediaUri = Uri.parse("file://" + mediaPath);
-//            showDetails(mediaUri);
-//            bottomSheetDialog.cancel();
-//        });
-//    }
 
     void showDetails(){
        Intent intent = new Intent(this, MediaDetails.class);
@@ -549,24 +518,6 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
                 }
 
                 case R.id.delete_nav_item ->{
-                    //String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
-//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//                    builder.setTitle("Confirm");
-//                    builder.setMessage("Do you want to delete this " + type + "?");
-//                    builder.setPositiveButton("YES", (dialog, which) -> {
-//                        FileUtils fileUtils = new FileUtils();
-//                        fileUtils.deleteFile(mediaPath);
-//                        dialog.dismiss();
-//                        finish();
-//                    });
-//
-//                    builder.setNegativeButton("NO", (dialog, which) -> {
-//                        dialog.dismiss();
-//                    });
-//
-//                    AlertDialog alert = builder.create();
-//                    alert.show();
 
                     if (fileUtils.delete(launcher, mediaPath, this) > 0) {
                         Toast.makeText(ViewMediaEdit.this, "deleted", Toast.LENGTH_SHORT).show();
@@ -575,61 +526,6 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
                         finish();
                     }
                 }
-
-//                case R.id.view_photo_secured_nav_item->{
-//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//                    builder.setTitle("Confirm");
-//                    builder.setMessage("Do you want to hide/show this image?");
-//
-//                    builder.setPositiveButton("YES", (dialog, which) -> {
-//                        String scrPath = Environment.getExternalStorageDirectory() + File.separator+".secret";
-//                        File scrDir = new File(scrPath);
-//                        if(!scrDir.exists()){
-//                            Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-//                        }
-//                        else{
-//                            FileUtility fu = new FileUtility();
-//                            File mediaFile = new File(mediaPath);
-//                            if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
-//                                fu.moveFile(mediaPath, mediaFile.getName(),scrPath);
-//                                Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-//                            }
-//                            else{
-//                                String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
-//                                File folder = new File(outputPath);
-//                                File file = new File(mediaFile.getPath());
-//                                File desImgFile = new File(outputPath,mediaFile.getName());
-//                                if(!folder.exists()) {
-//                                    folder.mkdir();
-//                                }
-//                                mediaFile.renameTo(desImgFile);
-//                                mediaFile.deleteOnExit();
-//                                desImgFile.getPath();
-//                                MediaScannerConnection.scanFile(ViewMediaStandalone.this, new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
-//                            }
-//                        }
-//                        Intent intentResult = new Intent();
-//                        intentResult.putExtra("path_media", mediaPath);
-//                        setResult(RESULT_OK, intentResult);
-//                        finish();
-//                        dialog.dismiss();
-//                    });
-//                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-//
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//
-//                            // Do nothing
-//                            dialog.dismiss();
-//                        }
-//                    });
-//
-//                    AlertDialog alert = builder.create();
-//                    alert.show();
-//
-//                    break;
-//                }
             }
             return true;
         });
@@ -705,13 +601,6 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
         float screenProportion = (float) screenHeight / (float) screenWidth;
         android.view.ViewGroup.LayoutParams lp = videoView.getLayoutParams();
 
-//        if (videoProportion < screenProportion) {
-//            lp.height= screenHeight;
-//            lp.width = (int) ((float) screenHeight / videoProportion);
-//        } else {
-//            lp.width = screenWidth;
-//            lp.height = (int) ((float) screenWidth * videoProportion);
-//        }
         if (videoProportion > screenProportion) {
             if (screenProportion < 1) { // screen width > height (landscape)
                 if (m.getHeight() > screenHeight) {
@@ -782,191 +671,6 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
         bottomSheetDialog.dismiss();
     }
 
-    public class AlbumListTask extends AsyncTask<Void, Integer, Void> {
-        @Override
-        protected void onPreExecute() {
-            super.onPreExecute();
-            AccessMediaFile.refreshAllMedia();
-        }
-
-        @Override
-        protected void onPostExecute(Void unused) {
-            super.onPostExecute(unused);
-            albumAdapter = new AlbumCategoryAdapter(ViewMediaEdit.this, ViewMediaEdit.this, 3);
-            albumAdapter.setViewType(1);
-            albumAdapter.setData(albumCategories);
-            addAlbumRecyclerView.setAdapter(albumAdapter);
-            bottomSheetDialog.show();
-        }
-
-        @Override
-        protected Void doInBackground(Void... voids) {
-            ArrayList<Media> listMediaTemp = AccessMediaFile.getAllMedia(ViewMediaEdit.this);
-            albumList = getAllAlbum(listMediaTemp);
-            categorizeAlbum();
-
-            return null;
-        }
-    }
-
-    public void rescanForUnAddedAlbum(){
-        Cursor cursor =  getContentResolver().query(
-                MediaStore.Files.getContentUri("external")
-                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
-                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
-                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
-
-        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
-        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
-        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-        String name;
-        try {
-            if (cursor != null) {
-                Log.d("size", "" + cursor.getCount());
-
-                ArrayList<Album> temp = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    String path = cursor.getString(pathColumn);
-                    Log.d("path", path);
-                    name = cursor.getString(nameColumn);
-                    Log.d("name", name);
-                    String[] subDirs = path.split("/");
-                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
-                    Album album = new Album(null, name);
-                    album.setPath(path);
-                    temp.add(album);
-                }
-                for(Album album: albumList){
-                    for(int i=0;i<temp.size();i++){
-                        if(temp.get(i).getPath().equals(album.getPath())){
-                            temp.remove(i);
-                        }
-                    }
-                }
-                if(temp.size() >0)albumList.addAll(temp);
-            }
-        }catch (Exception e){
-            Log.d("tag", e.getMessage());
-        }
-    }
-
-    public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
-        List<String> paths = new ArrayList<>();
-        ArrayList<Album> albums = new ArrayList<>();
-        for(var a : AccessMediaFile.getAllYourAlbum()) {
-            String[] subDirs = a.split("/");
-            String name = subDirs[subDirs.length - 1];
-            Album album = new Album(null, name);
-            album.setPath(a);
-            paths.add(a);
-            albums.add(album);
-        }
-
-        for (int i = 0; i < listMedia.size(); i++) {
-            String[] subDirectories = listMedia.get(i).getPath().split("/");
-            String folderPath = listMedia.get(i).getPath().substring(0, listMedia.get(i).getPath().lastIndexOf("/"));
-            String name = subDirectories[subDirectories.length - 2];
-            if (name.equals("t3mp")) continue;
-            if (!paths.contains(folderPath)) {
-                paths.add(folderPath);
-                Album album = new Album(listMedia.get(i), name);
-                album.setPath(folderPath);
-                if (listMedia.get(i).getHeight() != 0) {
-                    album.addMedia(listMedia.get(i));
-                }
-                albums.add(album);
-            } else {
-                if (listMedia.get(i).getHeight() != 0) {
-                    albums.get(paths.indexOf(folderPath)).addMedia(listMedia.get(i));
-                    if (albums.get(paths.indexOf(folderPath)).getAvatar() == null) {
-                        albums.get(paths.indexOf(folderPath)).setAvatar(listMedia.get(i));
-                    }
-                }
-            }
-        }
-//        for(Album album: albums){
-//            Log.d("album", album.toString());
-//        }
-        return albums;
-    }
-
-
-    public void categorizeAlbum() {
-        HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
-        String[] subDir;
-        categoryList.put("Mặc định", new AlbumCategory("Mặc định", new ArrayList<>()));
-        categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
-        categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
-
-        rescanForUnAddedAlbum();
-        for (Album album : albumList) {
-            String path = album.getPath();
-            subDir = path.split("/");
-            String catName = "";
-            String parent = subDir[subDir.length - 1];
-            if(subDir.length>=2) {
-                parent = subDir[subDir.length - 2];
-                if (parent.equals("DCIM")) {
-                    if (subDir[subDir.length - 1].equals("Camera")
-                            || subDir[subDir.length - 1].equals("Screenshots")
-                            || subDir[subDir.length - 1].equals("Ảnh")
-                            || subDir[subDir.length - 1].equals("Video") ) {
-                        //categoryList.get("Mặc định").addAlbumToList(album);
-                        catName = "Mặc định";
-                    }
-                } else if (parent.equals("owner")) {
-                    //categoryList.get("Của tôi").addAlbumToList(album);
-                    catName = "Của tôi";
-                }
-            }
-
-            if (catName.length() == 0) {
-
-                catName = "Thêm album";
-            }
-
-            boolean needToMerge = false;
-            for(Album album1: categoryList.get(catName).getList()){
-                if (!album.getPath().equals(album1.getPath()) && album.getName().equalsIgnoreCase(album1.getName()))
-                {
-                    String path1 = album1.getPath();
-                    String[] subDir1 = path1.split("/");
-                    String parent1 = subDir1[subDir1.length - 2];
-                    if (parent1.equalsIgnoreCase(parent))
-                    {
-                        // Log.d("merge", "merging " + album.getPath() + " and " + album1.getPath());
-                        album1.getListMedia().addAll(album.getListMedia());
-                        album1.setListMedia(
-                                new ArrayList<>(album1.getListMedia()
-                                        .stream()
-                                        .sorted(Comparator.comparingLong(Media::getRawDate).reversed())
-                                        .collect(Collectors.toList())));
-                        needToMerge = true;
-                    }
-                    else
-                    {
-                        album.setName(album1.getName() + " (" + parent + ")");
-                    }
-                    break;
-                }
-            }
-
-            if (!needToMerge)
-            {
-                categoryList.get(catName).addAlbumToList(album);
-            }
-
-        }
-
-        albumList.clear();
-        albumCategories.clear();
-        for(Map.Entry<String, AlbumCategory> entry: categoryList.entrySet()){
-            // Log.d("Key", entry.getKey());
-            albumCategories.add(entry.getValue());
-            //Log.d("value", album.getPath() + " " + album.getName() + " " + album.getListMedia().size());
-            albumList.addAll(entry.getValue().getList());
-        }
-    }
 
     @Override
     protected void onStop() {

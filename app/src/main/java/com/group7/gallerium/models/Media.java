@@ -13,9 +13,10 @@ public class Media {
 
     private long duration;
     private long size;
-    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
+    static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
+    static final SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
 
-    SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy hh:mm");
+    static final SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy hh:mm");
 
     private String title;
     private int width;
@@ -120,6 +121,10 @@ public class Media {
         this.size = size;
     }
 
+    public long getRealSize() {
+        return size;
+    }
+
     public String getSize() {
         String format = "%1$.2f ";
         if (size < 1024) {
@@ -148,5 +153,9 @@ public class Media {
 
     public String getResolution() {
         return resolution;
+    }
+
+    public String getTimeTaken() {
+        return timeFormat.format(dateTaken);
     }
 }

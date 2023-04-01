@@ -4,6 +4,7 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.app.ProgressDialog;
 import android.content.Context;
+import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
 import android.database.Cursor;
@@ -26,6 +27,7 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
+import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
@@ -73,6 +75,7 @@ public class AlbumFragment extends Fragment{
     private boolean isTrashEnable;
 
     private ActionBottomDialogFragment createAlbumBottomDialogFragment;
+    private MenuItem settingButton;
 
     public AlbumFragment() {}
 
@@ -217,6 +220,18 @@ public class AlbumFragment extends Fragment{
             openBottomDialog();
             return true;
         });
+
+        settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
+
+        settingButton.setOnMenuItemClickListener(menuItem -> {
+            openSetting();
+            return false;
+        });
+    }
+
+    private void openSetting(){
+        Intent intent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(intent);
     }
 
     public void openBottomDialog(){

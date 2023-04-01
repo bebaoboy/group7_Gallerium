@@ -13,6 +13,7 @@ import android.webkit.MimeTypeMap;
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -24,7 +25,9 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AccessMediaFile {
-
+    public static final int DATE_DESC = 0, DATE_ASC = 1, SIZE_DESC = 2, SIZE_ASC = 3,
+            SIZE_DESC_NO_GROUP = 4,  SIZE_ASC_NO_GROUP = 5;
+    public static final int SORT_MODE_COUNT = 6;
     //public static List<Media> allMedia;
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
@@ -136,6 +139,32 @@ public class AccessMediaFile {
     public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
         allMedia.remove(path);
         refreshAllMedia();
+    }
+
+    public static ArrayList<Media> getAllMedia(Context context, int mode) {
+        ArrayList<Media> tempMedias;
+        switch (mode) {
+            case DATE_ASC: { // ngày tăng dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                Collections.reverse(tempMedias);
+                break;
+            }
+            case SIZE_DESC_NO_GROUP: { // size giảm dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                tempMedias.sort(Comparator.comparingLong(Media::getRealSize).reversed());
+                break;
+            }
+            case SIZE_ASC_NO_GROUP: { // size tăng dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                tempMedias.sort(Comparator.comparingLong(Media::getRealSize));
+                break;
+            }
+            default: { // ngày giảm dần
+                tempMedias = getAllMedia(context);
+                break;
+            }
+        }
+        return tempMedias;
     }
 
     public static ArrayList<Media> getAllMedia(Context context) {

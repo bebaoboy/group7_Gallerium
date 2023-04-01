@@ -10,6 +10,7 @@ import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.ImageView;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
@@ -63,6 +64,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     Context context;
     List<MediaCategory> listMediaCategory;
     Intent intent;
+    float mul = 0.9f;
     ArrayList<String> listPath;
 
     final int UI_MODE_GRID = 1, UI_MODE_LIST = 2;
@@ -96,6 +98,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     public void setImageSize(int size) {
         imageSize = size;
         requestOptions = requestOptions.override((int)(size * 0.95));
+        mul = spanCount == 3 ? 0.9f : spanCount == 4 ? 0.85f : 0.8f;
     }
 
     public void deleteMedia(@NonNull Media media){
@@ -180,13 +183,15 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         if(uiMode == UI_MODE_LIST){
             String[] dirs = media.getPath().split("/");
             holder.media_name.setText(dirs[dirs.length - 1]);
-            holder.created_time.setText(media.getDateTaken());
+            holder.created_time.setText(media.getTimeTaken());
+            holder.media_size.setText(media.getSize());
         }
-
-        holder.image.getLayoutParams().height = imageSize;
-        holder.image.getLayoutParams().width = imageSize;
-        holder.blur.getLayoutParams().height = imageSize;
-        holder.blur.getLayoutParams().width = imageSize;
+        else {
+            holder.image.getLayoutParams().height = imageSize;
+            holder.image.getLayoutParams().width = imageSize;
+            holder.blur.getLayoutParams().height = imageSize;
+            holder.blur.getLayoutParams().width = imageSize;
+        }
 
 //        if(selectedMedia != null) {
 //          //  Log.d("selected media size", " " + selectedMedia.size());
@@ -196,7 +201,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         // Log.d("gallerium", media.getMimeType());
         if (!med[holder.getLayoutPosition()]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount)
+                Glide.with(context).asGif().sizeMultiplier(mul)
                         .load("file://" + media.getThumbnail())
                         .onlyRetrieveFromCache(true)
                         //.diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -220,7 +225,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             else {
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
-                        .sizeMultiplier(2.7f / spanCount)
+                        .sizeMultiplier(mul)
                         .onlyRetrieveFromCache(true)
                         .apply(requestOptions)
                         //.diskCacheStrategy(DiskCacheStrategy.RESOURCE)
@@ -248,7 +253,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         } else {
             //Log.d("draw", "nulll");
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
-                Glide.with(context).asGif().sizeMultiplier(2.7f / spanCount).load("file://" + media.getThumbnail())
+                Glide.with(context).asGif().sizeMultiplier(mul).load("file://" + media.getThumbnail())
                         .apply(requestOptions)
                         .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .apply(requestOptions)
@@ -271,7 +276,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             else {
                 Glide.with(context).load("file://" + media.getThumbnail())
                         .dontAnimate()
-                        .sizeMultiplier(2.7f / spanCount)
+                        .sizeMultiplier(mul)
                         .apply(requestOptions)
                         .diskCacheStrategy(DiskCacheStrategy.RESOURCE)
                         .listener(new RequestListener<>() {
@@ -355,6 +360,48 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             }
         });
 
+        if(uiMode == UI_MODE_LIST) {
+            holder.linearLayout.setOnClickListener((view -> {
+                if (isMultipleEnabled) {
+                    holder.blur.setVisibility(View.VISIBLE);
+                    if (holder.select.isChecked()) {
+                        holder.select.setChecked(false);
+                        selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+                    } else {
+                        holder.select.setChecked(true);
+                        selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+                    }
+                } else {
+                    holder.blur.setVisibility(View.GONE);
+                    intent = new Intent(context, ViewMedia.class);
+                    navAsyncTask navAsyncTask = new navAsyncTask();
+                    navAsyncTask.setPos(holder.getBindingAdapterPosition());
+                    navAsyncTask.execute();
+                }
+            }));
+
+            holder.linearLayout.setOnLongClickListener((view -> {
+//            if(holder.select.isChecked()){
+//                Log.d("checkbox", "is checked");
+//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                holder.select.setChecked(false);
+//            }else{
+//                Log.d("checkbox", "is not checked");
+//                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                holder.select.setChecked(true);
+//            }
+                if (!isMultipleEnabled) {
+                    selecteMediaInterface.showAllSelect();
+                } else {
+                    Intent intent = new Intent(context, ViewMediaStandalone.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setDataAndType(Uri.fromFile(new File(media.getPath())), media.getMimeType());
+                    context.startActivity(intent);
+                }
+                return true;
+            }));
+        }
+
     }
     public void setSelectedList(@NonNull ArrayList<Media> list) {
         selectedMedia = list;
@@ -371,7 +418,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         ImageView play_icon;
         View blur;
 
-        TextView media_name, created_time;
+        TextView media_name, created_time, media_size;
+        LinearLayout linearLayout;
 
         MaterialCardView select;
         MediaViewHolder(View itemView, int uiMode) {
@@ -383,8 +431,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             blur = itemView.findViewById(R.id.blur_view);
 
             if(uiMode == 2){
+                linearLayout = itemView.findViewById(R.id.list_layout);
                 media_name = itemView.findViewById(R.id.media_name);
                 created_time = itemView.findViewById(R.id.media_taken_time);
+                media_size = itemView.findViewById(R.id.media_size);
             }
         }
     }

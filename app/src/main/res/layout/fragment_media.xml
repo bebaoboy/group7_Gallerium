@@ -25,6 +25,7 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="80dp"
+            android:layout_marginBottom="55dp"
             >
             <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
                 style="@style/Fastscrollbar"
@@ -33,12 +34,23 @@
                 android:layout_height="match_parent"
                 android:layout_marginStart="5dp"
                 android:layout_marginEnd="5dp"
-                android:layout_marginBottom="55dp"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
                 android:nestedScrollingEnabled="false"
                 android:overScrollMode="ifContentScrolls"
                 />
         </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
+
+        <TextView
+            android:id="@+id/txtSizePopUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="20dp"
+            android:layout_marginTop="80dp"
+            android:textSize="40sp"
+            android:textStyle="bold"
+            android:text="200MB" />
 
 
         <!--        <com.wynneplaga.materialScrollBar2.MaterialScrollBar-->

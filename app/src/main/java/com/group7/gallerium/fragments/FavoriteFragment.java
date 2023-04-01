@@ -2,19 +2,23 @@ package com.group7.gallerium.fragments;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -31,6 +35,7 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -38,6 +43,7 @@ import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
@@ -62,6 +68,8 @@ import java.util.stream.Collectors;
 
 @SuppressWarnings("rawtypes")
 public class FavoriteFragment extends Fragment  implements SelectMediaInterface {
+
+    private MenuItem settingButton;
 
     public FavoriteFragment() {}
 
@@ -361,32 +369,67 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
 
     private void deleteMedia() {
         saveScroll();
-        new AsyncTask<Void, Integer, Void>() {
-            @Override
-            protected void onPostExecute(Void unused) {
-                super.onPostExecute(unused);
-                callback.onDestroyActionMode(mode);
-                isPendingForIntent = false;
-                refresh();
-            }
+        var trashEnabled = true;
+        if (!trashEnabled) {
+            new AsyncTask<Void, Integer, Void>() {
+                @Override
+                protected void onPostExecute(Void unused) {
+                    super.onPostExecute(unused);
+                    callback.onDestroyActionMode(mode);
+                    isPendingForIntent = false;
+                    refresh();
+                }
 
-            @Override
-            protected Void doInBackground(Void... voids) {
-                if (fileUtils.deleteMultiple(launcher, selectedMedia, context) > 0) {
-                    for(var m : selectedMedia) {
-                        AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    if (fileUtils.deleteMultiple(launcher, selectedMedia, context) > 0) {
+                        for(var m : selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                        }
                     }
+                    else {
+                        isPendingForIntent = true;
+                    }
+                    while (isPendingForIntent) {}
+                    return null;
                 }
-                else {
-                    isPendingForIntent = true;
-                }
-                while (isPendingForIntent) {}
-                return null;
-            }
 //
 //        refresh();
 //        callback.onDestroyActionMode(mode);
-        }.execute();
+            }.execute();
+            return;
+        }
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager()) {
+                var newFileName = fileUtils.trashFileMultiple(selectedMedia);
+                SharedPreferences sharedPreferences = requireActivity().getSharedPreferences("trash_media", MODE_PRIVATE);
+                SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                myEdit.clear();
+                // write all the data entered by the user in SharedPreference and apply
+                myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                myEdit.apply();
+                callback.onDestroyActionMode(mode);
+                refresh();
+            } else {
+                try {
+                    Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
+                    Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                    startActivity(intent);
+                } catch (Exception ex) {
+                    Intent intent = new Intent();
+                    intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                    startActivity(intent);
+                }
+                callback.onDestroyActionMode(mode);
+            }
+        }
+        else {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                fileUtils.trashFileMultiple(selectedMedia);
+            }
+            callback.onDestroyActionMode(mode);
+        }
     }
 
     @Override
@@ -441,6 +484,18 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
         toolbar.inflateMenu(R.menu.menu_favorite);
         toolbar.setTitle(R.string.fav);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
+
+        settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
+
+        settingButton.setOnMenuItemClickListener(menuItem -> {
+            openSetting();
+            return false;
+        });
+    }
+
+    private void openSetting(){
+        Intent intent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(intent);
     }
 
 //    ArrayList<String> getListMedia(){

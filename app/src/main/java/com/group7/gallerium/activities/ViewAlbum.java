@@ -1,17 +1,21 @@
 package com.group7.gallerium.activities;
 
+import android.Manifest;
 import android.app.Activity;
 import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
 import android.view.LayoutInflater;
@@ -30,12 +34,14 @@ import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaAdapter;
@@ -375,34 +381,67 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 callback.onDestroyActionMode(mode);
 //            }
         } else {
-            new AsyncTask<Void, Integer, Void>() {
-                @Override
-                protected void onPostExecute(Void unused) {
-                    super.onPostExecute(unused);
-                    callback.onDestroyActionMode(mode);
-                    isPendingForIntent = false;
-                    refresh();
-                }
+            var trashEnabled = true;
+            if (!trashEnabled) {
+                new AsyncTask<Void, Integer, Void>() {
+                    @Override
+                    protected void onPostExecute(Void unused) {
+                        super.onPostExecute(unused);
+                        callback.onDestroyActionMode(mode);
+                        isPendingForIntent = false;
+                        refresh();
+                    }
 
-                @Override
-                protected Void doInBackground(Void... voids) {
-                    if (fileUtils.deleteMultiple(launcher, selectedMedia, getApplicationContext()) > 0) {
-                        for (var m : selectedMedia) {
-                            AccessMediaFile.removeMediaFromAllMedia(m.getPath());
-                            listMedia.remove(m);
-                            mediaPaths.remove(m.getPath());
+                    @Override
+                    protected Void doInBackground(Void... voids) {
+                        if (fileUtils.deleteMultiple(launcher, selectedMedia, ViewAlbum.this) > 0) {
+                            for(var m : selectedMedia) {
+                                AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                            }
                         }
-                    } else {
-                        isPendingForIntent = true;
+                        else {
+                            isPendingForIntent = true;
+                        }
+                        while (isPendingForIntent) {}
+                        return null;
                     }
-                    while (isPendingForIntent) {
-                    }
-                    return null;
-                }
-
+//
 //        refresh();
 //        callback.onDestroyActionMode(mode);
-            }.execute();
+                }.execute();
+                return;
+            }
+            if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+                if (Environment.isExternalStorageManager()) {
+                    var newFileName = fileUtils.trashFileMultiple(selectedMedia);
+                    SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                    myEdit.clear();
+                    // write all the data entered by the user in SharedPreference and apply
+                    myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                    myEdit.apply();
+                    callback.onDestroyActionMode(mode);
+                    refresh();
+                } else {
+                    try {
+                        Uri uri = Uri.parse("package:" + BuildConfig.APPLICATION_ID);
+                        Intent intent = new Intent(Settings.ACTION_MANAGE_APP_ALL_FILES_ACCESS_PERMISSION, uri);
+                        startActivity(intent);
+                    } catch (Exception ex) {
+                        Intent intent = new Intent();
+                        intent.setAction(Settings.ACTION_MANAGE_ALL_FILES_ACCESS_PERMISSION);
+                        startActivity(intent);
+                    }
+                    callback.onDestroyActionMode(mode);
+                }
+            }
+            else {
+                if (ActivityCompat.checkSelfPermission(this, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                        && ActivityCompat.checkSelfPermission(this, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    fileUtils.trashFileMultiple(selectedMedia);
+                }
+                callback.onDestroyActionMode(mode);
+            }
         }
     }
 

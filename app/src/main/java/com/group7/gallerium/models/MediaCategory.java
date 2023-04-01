@@ -5,7 +5,7 @@ import java.util.ArrayList;
 public class MediaCategory {
 
     private String nameCategory;
-    private String backup;
+    private String backup = "";
     private ArrayList<Media> listMedia;
 
     public String getNameCategory() {

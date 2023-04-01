@@ -97,6 +97,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
     // App needs 200 MB within internal storage.
     private static final long NUM_BYTES_NEEDED_FOR_MY_APP = 1024 * 1024 * 200L;
+    private MenuItem settingButton;
 
     public SecureFragment() {}
 
@@ -329,9 +330,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
     private int calculateImageSize() {
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-        screenWidth -= dpToPx(10);
-        int spacing = dpToPx(5);
-        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
+        screenWidth -= dpToPx(2);
+        int spacing = dpToPx(8);
+        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(50));
         return (int)Math.floor(imageSize);
     }
     
@@ -604,7 +605,12 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
              return true;
          });
 
+        settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
 
+        settingButton.setOnMenuItemClickListener(menuItem -> {
+            openSetting();
+            return false;
+        });
 
         toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(item -> {
             if(!password.equals("")) {
@@ -635,46 +641,51 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             return false;
         });
         
-        scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(@NonNull Animator animator) {
-                    }
+//        scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
+//                .setListener(new Animator.AnimatorListener() {
+//                    @Override
+//                    public void onAnimationStart(@NonNull Animator animator) {
+//                    }
+//
+//                    @Override
+//                    public void onAnimationEnd(@NonNull Animator animator) {
+//                        toolbar.setVisibility(View.INVISIBLE);
+//                        toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+//                                .setListener(new Animator.AnimatorListener() {
+//                                    @Override
+//                                    public void onAnimationStart(@NonNull Animator animator) {
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationEnd(@NonNull Animator animator) {
+//                                        toolbar.setVisibility(View.VISIBLE);
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationCancel(@NonNull Animator animator) {
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationRepeat(@NonNull Animator animator) {
+//                                    }
+//                                })
+//                                .start();
+//                    }
+//
+//                    @Override
+//                    public void onAnimationCancel(@NonNull Animator animator) {
+//                    }
+//
+//                    @Override
+//                    public void onAnimationRepeat(@NonNull Animator animator) {
+//                    }
+//                })
+//                .start());
+    }
 
-                    @Override
-                    public void onAnimationEnd(@NonNull Animator animator) {
-                        toolbar.setVisibility(View.INVISIBLE);
-                        toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
-                                .setListener(new Animator.AnimatorListener() {
-                                    @Override
-                                    public void onAnimationStart(@NonNull Animator animator) {
-                                    }
-
-                                    @Override
-                                    public void onAnimationEnd(@NonNull Animator animator) {
-                                        toolbar.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationCancel(@NonNull Animator animator) {
-                                    }
-
-                                    @Override
-                                    public void onAnimationRepeat(@NonNull Animator animator) {
-                                    }
-                                })
-                                .start();
-                    }
-
-                    @Override
-                    public void onAnimationCancel(@NonNull Animator animator) {
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(@NonNull Animator animator) {
-                    }
-                })
-                .start());
+    private void openSetting(){
+        Intent intent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(intent);
     }
 
     @Override

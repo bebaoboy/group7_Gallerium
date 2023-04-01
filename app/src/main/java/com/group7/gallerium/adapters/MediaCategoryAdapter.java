@@ -33,6 +33,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
     private SelectMediaInterface selectMediaInterface;
     private final int lastBound = -1;
     private int lastDetach = -1;
+
+    private RecyclerView rec;
     public static final DiffUtil.ItemCallback<MediaCategory> DIFF_CALLBACK =
             new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
@@ -42,7 +44,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
 
                 @Override
                 public boolean areContentsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
-                    return oldItem.getList().size() == newItem.getList().size();
+                    return oldItem.getList().size() == newItem.getList().size()
+                            && oldItem.getList().get(0).getPath().equals(newItem.getList().get(0).getPath());
                 }
             };
     private int spanCount = 3;
@@ -153,10 +156,30 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         notifyDataSetChanged();
     }
 
+    @Override
+    public void onAttachedToRecyclerView(@NonNull RecyclerView recyclerView) {
+        super.onAttachedToRecyclerView(recyclerView);
+        rec = recyclerView;
+    }
+
     @NonNull
     @Override
     public String getSectionName(int position) {
         if (getItem(position).getNameCategory().isEmpty()) {
+            if (getItem(position).getBackup().isEmpty()) {
+                if (getItem(position).getList().size() > 0)
+                {
+                    String s = getItem(position).getList().get(0).getSize();
+                    var ext = s.substring(s.length() - 2);
+                    s = s.substring(0, s.length() - 2);
+                    double size = Double.parseDouble(s);
+                    int roundedSize = (int)Math.floor(size);
+                    return roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
+                }
+                else {
+                    return "";
+                }
+            }
             return getItem(position).getBackup();
         } else {
             return getItem(position).getNameCategory();

@@ -11,7 +11,7 @@
     app:checkedIconGravity="TOP_START"
     app:checkedIconTint="@color/white"
     android:id="@+id/media_card"
-    style="@style/PhotoCardView"
+    style="@style/PhotoCardViewList"
     android:elevation="0dp">
     <com.google.android.material.card.MaterialCardView
         android:layout_width="wrap_content"
@@ -21,8 +21,8 @@
         <ImageView
             android:id="@+id/photoItem"
             style="@style/PhotoCardImageView"
-            android:layout_width="120dp"
-            android:layout_height="match_parent"
+            android:layout_width="115dp"
+            android:layout_height="115dp"
             android:clickable="true"
             android:contentDescription="@string/photo_item"
             android:focusable="true"
@@ -57,6 +57,7 @@
     </com.google.android.material.card.MaterialCardView>
 
     <LinearLayout
+        android:id="@+id/list_layout"
         android:layout_width="match_parent"
         android:layout_height="120dp"
         android:orientation="vertical"
@@ -69,9 +70,9 @@
             android:layout_height="90dp"
             android:text="@string/photo"
             style="@style/TextDetails"
-            android:textSize="18sp"
+            android:textSize="14sp"
             android:autoSizeMinTextSize="11sp"
-            android:autoSizeMaxTextSize="22sp"
+            android:autoSizeMaxTextSize="18sp"
             android:autoSizeTextType="uniform"/>
         <TextView
             android:id="@+id/media_taken_time"
@@ -79,6 +80,17 @@
             android:layout_height="wrap_content"
             android:text="@string/taken_datetime"
             android:minLines="1"/>
+
+        <TextView
+            android:id="@+id/media_size"
+            android:layout_width="wrap_content"
+            android:layout_height="20dp"
+            android:layout_gravity="end"
+            android:layout_marginEnd="10dp"
+            android:minLines="1"
+            android:text="2.5MB"
+            android:translationY="-20dp"
+            android:visibility="visible"/>
     </LinearLayout>
 
 

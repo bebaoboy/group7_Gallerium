@@ -3,6 +3,7 @@ package com.group7.gallerium.fragments;
 import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
+import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -25,6 +26,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
+import android.view.animation.AccelerateInterpolator;
+import android.view.animation.DecelerateInterpolator;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,6 +61,7 @@ import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -70,7 +74,7 @@ import java.util.stream.Collectors;
 public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
-    private MenuItem cameraButton, settingButton, searchButton;
+    private MenuItem cameraButton, settingButton, searchButton, sortButton;
     Context context;
     ArrayList<Media> listMedia;
     ArrayList<Media> selectedMedia;
@@ -103,6 +107,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     BottomSheetDialog bottomSheetDialog;
 
     SharedPreferences sharedPreferences;
+
+    TextView txtSize;
 
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
@@ -195,6 +201,60 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setItemViewCacheSize(10000);
         recyclerView.setHasFixedSize(true);
+        txtSize = view.findViewById(R.id.txtSizePopUp);
+        txtSize.setVisibility(View.GONE);
+        recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {
+            public void onScrollStateChanged(@NonNull RecyclerView recyclerView, int newState) {
+                if (newState == RecyclerView.SCROLL_STATE_DRAGGING) {
+                    txtSize.setText(adapter.getSectionName(recyclerView.getChildAdapterPosition(recyclerView.getChildAt(0))));
+                    txtSize.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+                            .setListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(@NonNull Animator animator) {
+                                    txtSize.setVisibility(View.VISIBLE);
+                                }
+
+                                @Override
+                                public void onAnimationEnd(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationCancel(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(@NonNull Animator animator) {
+                                }
+                            })
+                            .start();
+                    super.onScrollStateChanged(recyclerView, newState);
+                } else if (newState == RecyclerView.SCROLL_STATE_IDLE) {
+                    txtSize.animate().translationY(-txtSize.getTop()).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+                            .setListener(new Animator.AnimatorListener() {
+                                @Override
+                                public void onAnimationStart(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationEnd(@NonNull Animator animator) {
+                                    //txtSize.setVisibility(View.GONE);
+                                }
+
+                                @Override
+                                public void onAnimationCancel(@NonNull Animator animator) {
+                                }
+
+                                @Override
+                                public void onAnimationRepeat(@NonNull Animator animator) {
+                                }
+                            })
+                            .start();
+                    super.onScrollStateChanged(recyclerView, newState);
+
+                }
+
+            }
+        });
 
         bottomSheetConfig();
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
@@ -424,34 +484,36 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private void deleteMedia() {
         saveScroll();
-        new AsyncTask<Void, Integer, Void>() {
-            @Override
-            protected void onPostExecute(Void unused) {
-                super.onPostExecute(unused);
-                callback.onDestroyActionMode(mode);
-                isPendingForIntent = false;
-                refresh();
-            }
+        var trashEnabled = true;
+        if (!trashEnabled) {
+            new AsyncTask<Void, Integer, Void>() {
+                @Override
+                protected void onPostExecute(Void unused) {
+                    super.onPostExecute(unused);
+                    callback.onDestroyActionMode(mode);
+                    isPendingForIntent = false;
+                    refresh();
+                }
 
-            @Override
-            protected Void doInBackground(Void... voids) {
-                if (fileUtils.deleteMultiple(launcher, selectedMedia, context) > 0) {
-                    for(var m : selectedMedia) {
-                        AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                @Override
+                protected Void doInBackground(Void... voids) {
+                    if (fileUtils.deleteMultiple(launcher, selectedMedia, context) > 0) {
+                        for(var m : selectedMedia) {
+                            AccessMediaFile.removeMediaFromAllMedia(m.getPath());
+                        }
                     }
+                    else {
+                        isPendingForIntent = true;
+                    }
+                    while (isPendingForIntent) {}
+                    return null;
                 }
-                else {
-                    isPendingForIntent = true;
-                }
-                while (isPendingForIntent) {}
-                return null;
-            }
 //
 //        refresh();
 //        callback.onDestroyActionMode(mode);
+            }.execute();
+            return;
         }
-//        .execute()
-        ;
         if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
             if (Environment.isExternalStorageManager()) {
                 var newFileName = fileUtils.trashFileMultiple(selectedMedia);
@@ -475,14 +537,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 }
                 callback.onDestroyActionMode(mode);
             }
-        } else {
+        }
+        else {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
                 && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 fileUtils.trashFileMultiple(selectedMedia);
             }
             callback.onDestroyActionMode(mode);
         }
-
     }
 
     @Override
@@ -545,7 +607,23 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
 
         settingButton.setOnMenuItemClickListener(menuItem -> {
-            openSetting̣̣̣̣̣̣̣();
+            openSetting();
+            return false;
+        });
+
+        sortButton = toolbar.getMenu().findItem(R.id.sort_menu_item);
+        sortButton.setTitle("Sắp xếp" + " (" + sortMode + ": " +
+                switch(sortMode) {
+                    case AccessMediaFile.DATE_DESC -> "Ngày giảm dần";
+                    case AccessMediaFile.SIZE_DESC -> "Size giảm dần theo ngày";
+                    case AccessMediaFile.SIZE_ASC -> "Size tăng dần theo ngày";
+                    case AccessMediaFile.SIZE_DESC_NO_GROUP -> "Size giảm dần";
+                    case AccessMediaFile.SIZE_ASC_NO_GROUP -> "Size tăng dần";
+                    default -> "Ngày tăng dần";
+                }
+                + ")");
+        sortButton.setOnMenuItemClickListener(menuItem -> {
+            switchSortMode();
             return false;
         });
 
@@ -571,9 +649,30 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         startActivity(intent);
     }
 
-    private void openSetting̣̣̣̣̣̣̣(){
+    private void openSetting(){
         Intent intent = new Intent(getActivity(), SettingsActivity.class);
         startActivity(intent);
+    }
+
+    int sortMode = AccessMediaFile.DATE_DESC;
+    private void switchSortMode() {
+        sortMode = (sortMode + 1) % AccessMediaFile.SORT_MODE_COUNT;
+        sortButton.setTitle("Sắp xếp" + " (" + sortMode + ": " +
+                switch(sortMode) {
+                    case AccessMediaFile.DATE_DESC -> "Ngày giảm dần";
+                    case AccessMediaFile.SIZE_DESC -> "Size giảm dần theo ngày";
+                    case AccessMediaFile.SIZE_ASC -> "Size tăng dần theo ngày";
+                    case AccessMediaFile.SIZE_DESC_NO_GROUP -> "Size giảm dần";
+                    case AccessMediaFile.SIZE_ASC_NO_GROUP -> "Size tăng dần";
+                    default -> "Ngày tăng dần";
+                }
+                + ")");
+
+        if (sortMode != 1) {
+            refresh(true);
+        } else {
+            refresh();
+        }
     }
 
 //    ArrayList<String> getListMedia(){
@@ -619,7 +718,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        listMedia = AccessMediaFile.getAllMedia(context);
+        listMedia = AccessMediaFile.getAllMedia(context, sortMode);
 
         try {
 //            if (listMedia.get(0).getRawDate() != 0) {
@@ -633,11 +732,25 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 if (listMedia.get(i).getRawDate() == 0) {
                     continue;
                 }
-                if (!categoryList.containsKey(listMedia.get(i).getDateTaken())) {
-                    categoryList.put(listMedia.get(i).getDateTaken(), new MediaCategory(listMedia.get(i).getDateTaken(), new ArrayList<>()));
+                var catName = listMedia.get(i).getDateTaken();
+                if (sortMode >= 4) {
+                    // catName = "";
+                    String s = listMedia.get(i).getSize();
+                    var ext = s.substring(s.length() - 2);
+                    s = s.substring(0, s.length() - 2);
+                    double size = Double.parseDouble(s);
+                    int roundedSize = (int)Math.floor(size);
+                    catName = roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
+                    if (!categoryList.containsKey(catName)) {
+                        categoryList.put(catName, new MediaCategory(catName, new ArrayList<>()));
+                    }
+                } else {
+                    if (!categoryList.containsKey(catName)) {
+                        categoryList.put(catName, new MediaCategory(catName, new ArrayList<>()));
+                    }
                 }
 
-                categoryList.get(listMedia.get(i).getDateTaken()).addMediaToList(listMedia.get(i));
+                categoryList.get(catName).addMediaToList(listMedia.get(i));
             }
 //            categoryList.forEach(x -> {
 //                Log.d("gallerium", x.getNameCategory() + ": " + x.getList().size());
@@ -645,7 +758,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = numGrid == 3 ? 30 : numGrid == 4 ? 24 : 20;
             for (var cat : categoryList.values()) {
+                if (sortMode >= 4) cat.setNameCategory("");
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
+                if (sortMode == AccessMediaFile.SIZE_DESC) {
+                    cat.getList().sort(Comparator.comparingLong(Media::getRealSize).reversed());
+                } else if (sortMode == AccessMediaFile.SIZE_ASC) {
+                    cat.getList().sort(Comparator.comparingLong(Media::getRealSize));
+                }
+                if (cat.getList().size() < partitionSize) {
+                    newCatList.add(cat);
+                    continue;
+                }
                 for (int i = 0; i < cat.getList().size(); i += partitionSize) {
                     String name = i == 0 ? cat.getNameCategory() : "";
                     var c = new MediaCategory(name, new ArrayList<>(cat.getList().subList(i,
@@ -928,21 +1051,25 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             AccessMediaFile.refreshAllMedia();
             sharedPreferences = context.getSharedPreferences("ui_list", MODE_PRIVATE);
             uiMode = sharedPreferences.getInt("ui_mode", UI_MODE_GRID);
+            swipeLayout.setRefreshing(true);
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            swipeLayout.setRefreshing(false);
             adapter.setUiMode(uiMode);
             adapter.setData(mediaCategories);
             recyclerView.setAdapter(adapter);
             Log.d("refresh", "refresh media adapter");
             if (scroll) {
+                adapter.notifyDataSetChanged();
                 ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(0);
+                firstVisiblePosition = 0;
+                offset = 0;
             } else {
                 ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
             }
+            swipeLayout.setRefreshing(false);
         }
 
         @Override
