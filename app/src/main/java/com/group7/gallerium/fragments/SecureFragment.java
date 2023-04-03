@@ -13,6 +13,7 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.preference.PreferenceManager;
+import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,6 +25,7 @@ import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -32,6 +34,7 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.exifinterface.media.ExifInterface;
@@ -98,6 +101,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     // App needs 200 MB within internal storage.
     private static final long NUM_BYTES_NEEDED_FOR_MY_APP = 1024 * 1024 * 200L;
     private MenuItem settingButton;
+
+    private ImageView lockIcon;
+    private TextView txtUnlocked;
 
     public SecureFragment() {}
 
@@ -246,12 +252,32 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         createFolder = view.findViewById(R.id.create_folder_button);
         secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
         secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
+        context = requireContext();
+
+        lockIcon = view.findViewById(R.id.lock_icon);
+        txtUnlocked = view.findViewById(R.id.txtAlreadyUnlocked);
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        lockable =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
 
         //test = view.findViewById(R.id.preview);
         for(int i = 0; i < 10; i++)
         {
             var b = (MaterialButton) numGrid.getChildAt(i);
             b.setOnClickListener((view1 -> txtPass.setText(txtPass.getText() + "" + b.getText())));
+        }
+
+        if (!lockable) {
+            txtPass.setEnabled(false);
+            txtPass.setText(password);
+            txtPass.setVisibility(View.GONE);
+            txtUnlocked.setVisibility(View.VISIBLE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure_unlocked));
+        } else {
+            txtPass.setEnabled(true);
+            txtPass.setText("");
+            txtPass.setVisibility(View.VISIBLE);
+            txtUnlocked.setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure));
         }
 
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
@@ -271,10 +297,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
                 Log.d("tag", e.getMessage());
             }
         });
-        context = requireContext();
-
-        sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
-        lockable =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
 
         showViewLogic();
         toolbarSetting();

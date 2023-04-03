@@ -51,7 +51,8 @@
             android:textSize="20sp"
             android:textStyle="bold"
             android:textColor="@color/primary_color_light"
-            android:text="200MB" />
+            android:text="200MB"
+            android:visibility="gone"/>
 
 
         <!--        <com.wynneplaga.materialScrollBar2.MaterialScrollBar-->

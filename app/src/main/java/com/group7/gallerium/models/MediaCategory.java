@@ -4,6 +4,9 @@ import java.util.ArrayList;
 
 public class MediaCategory {
 
+    public int height = 1; // 0 -> collapse, 1 -> expand
+    public boolean willCollapse = false;
+    public boolean willExpand = false;
     private String nameCategory;
     private String backup = "";
     private ArrayList<Media> listMedia;

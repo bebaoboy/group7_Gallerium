@@ -114,11 +114,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
 
         applyData();
-        if(viewType == 1){
-            bottom_nav.inflateMenu(R.menu.menu_bottom_view_media_secured);
-        }else{
-            bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
-        }
+
         viewPager = findViewById(R.id.viewPager_picture);
         videoController = new MediaController(this){
             public boolean dispatchKeyEvent(KeyEvent event)
@@ -132,6 +128,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
         toolbarSetting();
         setUpSlider();
+
+        if(viewType == 1){
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_media_secured);
+        }else{
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
+        }
         bottomNavCustom();
 
         bottomSheetConfig();
@@ -357,6 +359,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
+                    bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1);
                 }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
@@ -568,10 +571,24 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 }
 
                 case R.id.remove_from_secured_nav_item -> {
-                    String mimeType = getMimeType(mediaPath);
-                    fileUtils.moveFromInternal(mediaPath, launcher, "Pictures/Gallerium", mimeType, getType(mimeType), getApplicationContext());
-                    slideAdapter.removePath(mediaPath);
-                    finish();
+                    if (AccessMediaFile.getMediaWithPath(mediaPath).getTitle().startsWith(".gtrashed-")) {
+                        try {
+                            fileUtils.restoreFileMultiple(new ArrayList<>(List.of(AccessMediaFile.getMediaWithPath(mediaPath))));
+                            SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+                            SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                            myEdit.clear();
+                            // write all the data entered by the user in SharedPreference and apply
+                            myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                            myEdit.apply();
+                        } catch (Exception e) {
+                            Toast.makeText(this, "No permission!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        String mimeType = getMimeType(mediaPath);
+                        fileUtils.moveFromInternal(mediaPath, launcher, "Pictures/Gallerium", mimeType, getType(mimeType), getApplicationContext());
+                        slideAdapter.removePath(mediaPath);
+                        finish();
+                    }
                 }
             }
             return true;

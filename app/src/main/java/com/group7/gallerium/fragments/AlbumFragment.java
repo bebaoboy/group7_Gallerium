@@ -2,15 +2,20 @@ package com.group7.gallerium.fragments;
 
 import static android.content.Context.MODE_PRIVATE;
 
+import android.Manifest;
 import android.app.ProgressDialog;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.net.Uri;
 import android.os.AsyncTask;
+import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
+import android.preference.PreferenceManager;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.view.LayoutInflater;
@@ -18,15 +23,20 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
+import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.widget.Toolbar;
+import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
 import com.group7.gallerium.R;
+import com.group7.gallerium.activities.ChooserActivity;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.models.Album;
@@ -358,20 +368,36 @@ public class AlbumFragment extends Fragment{
         if (tList != null) {
             AccessMediaFile.setAllTrashMedia(tList);
         }
-        Album trashBin = new Album("Thùng rác");
-        var trashes = AccessMediaFile.getAllTrashMedia();
-        for(var m : trashes) {
-            var media = AccessMediaFile.getMediaWithPath(m);
+
+
+        var sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        var trashEnabled =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
+        var canTrash = false;
+        if (android.os.Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
+            if (Environment.isExternalStorageManager())  canTrash = true;
+        }
+        else {
+            if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
+                    && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                canTrash = true;
+            }
+        }
+        if (trashEnabled && canTrash) {
+            Album trashBin = new Album("Thùng rác");
+            var trashes = AccessMediaFile.getAllTrashMedia();
+            for (var m : trashes) {
+                var media = AccessMediaFile.getMediaWithPath(m);
 //            media.setPath(m);
 //            media.setTitle(m.substring(m.lastIndexOf("/") + 1));
-            trashBin.addMedia(media);
+                trashBin.addMedia(media);
+            }
+            if (trashBin.getListMedia().size() > 0) {
+                trashBin.setAvatar(trashBin.getListMedia().get(0));
+            }
+            trashBin.setPath("/internal/DCIM/Trash");
+            paths.add(trashBin.getPath());
+            albums.add(trashBin);
         }
-        if (trashBin.getListMedia().size() > 0) {
-            trashBin.setAvatar(trashBin.getListMedia().get(0));
-        }
-        trashBin.setPath("/internal/DCIM/Trash");
-        paths.add(trashBin.getPath());
-        albums.add(trashBin);
         return albums;
     }
 

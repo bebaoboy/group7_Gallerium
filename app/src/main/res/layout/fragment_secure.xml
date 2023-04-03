@@ -46,11 +46,22 @@
         android:theme="@style/SecureBackground">
 
         <ImageView
+            android:id="@+id/lock_icon"
             android:layout_width="100dp"
             android:layout_height="100dp"
             android:layout_gravity="center"
             android:layout_marginVertical="30dp"
             android:src="@drawable/ic_secure" />
+
+        <TextView
+            android:id="@+id/txtAlreadyUnlocked"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="You've already unlocked!\nTap enter."
+            style="@style/SecureButton"
+            android:textAlignment="center"
+            android:visibility="gone"/>
 
         <EditText
             android:id="@+id/txtPassword"

@@ -2,7 +2,6 @@ package com.group7.gallerium.activities;
 
 import android.Manifest;
 import android.app.Activity;
-import android.content.ClipData;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
@@ -27,6 +26,8 @@ import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
+import androidx.activity.result.ActivityResult;
+import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
@@ -48,7 +49,6 @@ import com.group7.gallerium.adapters.MediaAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
-import com.group7.gallerium.models.AlbumCustomContent;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
@@ -61,7 +61,6 @@ import org.json.JSONObject;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
-import java.io.OutputStream;
 import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Comparator;
@@ -116,6 +115,22 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
 
     FileUtils fileUtils;
     AlbumCategoryAdapter albumAdapter;
+
+    ActivityResultLauncher<Intent> addToAlbumLauncher =  registerForActivityResult(new ActivityResultContracts.StartActivityForResult(), new ActivityResultCallback<ActivityResult>() {
+        @Override
+        public void onActivityResult(ActivityResult result) {
+            var i = result.getData();
+            if (i != null) {
+                var medias = i.getStringArrayListExtra("path");
+                ArrayList<Media> mediaList = new ArrayList<>();
+                for(var m : medias) {
+                    mediaList.add(AccessMediaFile.getMediaWithPath(m));
+                }
+                fileUtils.copyFileMultiple(mediaList, albumPath, ViewAlbum.this);
+                Toast.makeText(ViewAlbum.this, "Add to album successfully", Toast.LENGTH_LONG).show();
+            }
+        }
+    });
 
 
     @Override
@@ -241,6 +256,13 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             txtDate.setText(memoryDate);
             txtTitle.setText(memoryTitle);
         }
+    }
+
+
+    private void startIntentAddToAlbum() {
+        Intent intent = new Intent(this, ChooserActivity.class);
+        intent.setAction(Intent.ACTION_ATTACH_DATA);
+        addToAlbumLauncher.launch(intent);
     }
 
     void bottomSheetConfig() {
@@ -541,7 +563,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         });
 
         toolbar.getMenu().findItem(R.id.add_media_item).setOnMenuItemClickListener(menuItem -> {
-            openSelectionView();
+            startIntentAddToAlbum();
             return false;
         });
     }

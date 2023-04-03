@@ -13,6 +13,7 @@ import android.os.Bundle;
 import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.ActionMode;
+import android.view.KeyEvent;
 import android.view.LayoutInflater;
 import android.view.Menu;
 import android.view.MenuItem;
@@ -189,7 +190,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
         behavior.setState(BottomSheetBehavior.STATE_HIDDEN);
         bottom_sheet.setVisibility(View.GONE);
         bottomSheetButtonConfig();
-        recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
+        // recyclerView.addOnScrollListener(new ToolbarScrollListener(toolbar, bottom_sheet));
 
         callback = new ActionMode.Callback() {
             @Override
@@ -245,6 +246,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                 bottom_sheet.setVisibility(View.GONE);
                 if (bottomSheetDialog != null) {
                     bottomSheetDialog.cancel();
+                    getActivity().finish();
                 }
             }
         };
@@ -296,17 +298,48 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                 // Create intent to deliver some kind of result data
                 var currentIntent = getActivity().getIntent();
                 if (currentIntent.getAction().equals(Intent.ACTION_SEND_MULTIPLE)) {
-                    Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                    ArrayList<Uri> uris = new ArrayList<>();
-                    for(var m : selectedMedia) {
-                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                    if (selectedMedia.size() == 1) {
+                        Intent result = new Intent(Intent.ACTION_SEND);
+                        var m = selectedMedia.get(0);
+                        result.putExtra(Intent.EXTRA_STREAM, new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+//                    ArrayList<Uri> uris = new ArrayList<>();
+//                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+//
+//                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                        result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                        result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                        if (m.getType() == 1) {
+                            result.setType("image/*");
+                        } else {
+                            result.setType("video/*");
+                        }
+                        getActivity().startActivity(result);
                     }
-                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                    result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-                    result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-                    result.setType("*/*");
-                    getActivity().startActivity(result);
+                    else {
+                        Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
+                        ArrayList<Uri> uris = new ArrayList<>();
+                        for (var m : selectedMedia) {
+                            uris.add(new FileUtils().getUri(m.getPath(), m.getType(), requireContext()));
+                        }
+                        result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                        result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                        result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                        result.setType("*/*");
+                        getActivity().startActivity(result);
+                    }
+                }
+                else if (currentIntent.getAction().equals(Intent.ACTION_ATTACH_DATA)) {
+                    Intent result = new Intent(currentIntent.getAction());
+                    ArrayList<String> uris = new ArrayList<>();
+                    for (var m : selectedMedia) {
+                        uris.add(m.getPath());
+                    }
+                    result.putStringArrayListExtra("path", uris);
+                    result.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
+                    getActivity().setResult(Activity.RESULT_OK, result);
+                    getActivity().finish();
                 } else {
+
                     Intent result = new Intent(currentIntent.getAction());
                     ArrayList<Uri> uris = new ArrayList<>();
                     for (var m : selectedMedia) {
@@ -323,7 +356,9 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                     result.putExtra(Intent.EXTRA_ALLOW_MULTIPLE, true);
                     getActivity().setResult(Activity.RESULT_OK, result);
                     getActivity().finish();
+
                 }
+
             }
         });
         btnCopy.setVisibility(View.GONE);
@@ -747,6 +782,8 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
                 ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
             }
             //showAllSelect();
+            showAllSelect();
+            adapter.setMultipleEnabled(true);
         }
 
         @Override

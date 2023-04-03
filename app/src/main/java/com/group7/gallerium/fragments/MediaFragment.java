@@ -506,7 +506,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     private void deleteMedia() {
         saveScroll();
-        var trashEnabled = true;
+        var sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        var trashEnabled =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
         if (!trashEnabled) {
             new AsyncTask<Void, Integer, Void>() {
                 @Override
