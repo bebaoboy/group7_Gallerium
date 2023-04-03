@@ -84,4 +84,5 @@
     <string name="shortcut_edit_shortlabel">Cài đặt</string>
     <string name="restore">Khôi phục</string>
     <string name="menu_refresh">Refresh</string>
+    <string name="search_hint">Nhập vào để tìm kiếm</string>
 </resources>

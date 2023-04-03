@@ -5,18 +5,22 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.animation.Animator;
 import android.app.Activity;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.database.MatrixCursor;
+import android.database.sqlite.SQLiteCursor;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.BaseColumns;
 import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
@@ -26,8 +30,8 @@ import android.view.Menu;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.AccelerateInterpolator;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.CursorAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -36,8 +40,11 @@ import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
+import androidx.appcompat.widget.SearchView;
+import androidx.appcompat.widget.SearchView.OnQueryTextListener;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
+import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -49,9 +56,12 @@ import com.google.android.material.bottomsheet.BottomSheetDialog;
 import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
+import com.group7.gallerium.activities.SearchResultActivity;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
+import com.group7.gallerium.adapters.SuggestionSimpleCursorAdapter;
+import com.group7.gallerium.adapters.SuggestionSimpleCursorAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
@@ -59,9 +69,9 @@ import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.SuggestionsDatabase;
 
 import java.util.ArrayList;
-import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -83,7 +93,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     ArrayList<AlbumCategory> albumCategories;
     MediaCategoryAdapter adapter;
 
+    private static final String[] SUGGESTIONS = {
+            "Bauru", "Sao Paulo", "Rio de Janeiro",
+            "Bahia", "Mato Grosso", "Minas Gerais",
+            "Tocantins", "Rio Grande do Sul"
+    };
+
     AlbumCategoryAdapter albumAdapter;
+
+    SuggestionSimpleCursorAdapter cursorAdapter;
     RecyclerView recyclerView;
 
     RecyclerView addAlbumRecyclerView;
@@ -113,7 +131,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
     boolean isPendingForIntent = false;
-    private SwipeRefreshLayout swipeLayout;
+    SwipeRefreshLayout swipeLayout;
+
+    private SuggestionsDatabase database;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -349,7 +369,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             }
         });
 
-        Log.d("modeUI","" + uiMode);
+        database = new SuggestionsDatabase(this.getContext());
+
+        // Log.d("modeUI","" + uiMode);
         return view;
     }
 
@@ -642,6 +664,99 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
             return false;
         });
+
+        searchButton = toolbar.getMenu().findItem(R.id.search_tb_item);
+
+        searchButton.setOnMenuItemClickListener(menuItem -> {
+
+
+           return false;
+        });
+
+        SearchManager searchManager =
+                (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
+
+        SearchView searchView =
+                (SearchView) searchButton.getActionView();
+
+        searchView.setSuggestionsAdapter(cursorAdapter);
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                SQLiteCursor cursor = (SQLiteCursor) searchView.getSuggestionsAdapter().getItem(position);
+                int indexColumnSuggestion = cursor.getColumnIndex( SuggestionsDatabase.FIELD_SUGGESTION);
+
+                searchView.setQuery(cursor.getString(indexColumnSuggestion), false);
+                return false;
+            }
+        });
+
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(requireActivity().getComponentName()));
+
+        searchView.setIconifiedByDefault(false);
+
+        searchView.setSubmitButtonEnabled(true);
+
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //getSearchResults(query); Also tried
+
+                long result = database.insertSuggestion(query);
+                getSearchResults(searchView.getQuery().toString());
+                if( ! searchView.isIconified()) {
+                    searchView.setIconified(true);
+                }
+                searchButton.collapseActionView();
+                return result != -1;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                Cursor cursor = database.getSuggestions(newText);
+                if(cursor.getCount() != 0)
+                {
+                    String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
+                    int[] columnTextId = new int[] { android.R.id.text1};
+
+                    SuggestionSimpleCursorAdapter simple = new SuggestionSimpleCursorAdapter(context.getApplicationContext(),
+                            R.layout.search_suggestion_item, cursor,
+                            columns , columnTextId
+                            , 0);
+
+                    searchView.setSuggestionsAdapter(simple);
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        });
+    }
+
+    private void populateAdapter(String query) {
+        final MatrixCursor c = new MatrixCursor(new String[]{ BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1 });
+        for (int i=0; i< SUGGESTIONS.length; i++) {
+            if (SUGGESTIONS[i].toLowerCase().startsWith(query.toLowerCase()))
+                c.addRow(new Object[] {i, SUGGESTIONS[i]});
+        }
+        cursorAdapter.changeCursor(c);
+    }
+
+
+    private void getSearchResults(String toString) {
+        Intent intent = new Intent(this.getContext(), SearchResultActivity.class);
+        intent.setAction(Intent.ACTION_SEARCH);
+        intent.putExtra(SearchManager.QUERY, toString);
+        context.startActivity(intent);
     }
 
     private void enableCamera() {
@@ -961,7 +1076,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         return albums;
     }
 
-
     public void categorizeAlbum() {
         HashMap<String, AlbumCategory> categoryList = new LinkedHashMap<>();
         String[] subDir;
@@ -1038,6 +1152,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             albumList.addAll(entry.getValue().getList());
         }
     }
+
     public class MediaListTask extends AsyncTask<Void, Integer, Void> {
         boolean scroll = false;
         public MediaListTask(boolean scroll) {

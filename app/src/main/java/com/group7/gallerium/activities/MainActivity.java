@@ -160,7 +160,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void setUiMode(){
-        Toast.makeText(this, "in mode " + uiVal, Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "in mode " + uiVal, Toast.LENGTH_SHORT).show();
         if(Build.VERSION.SDK_INT >= 31){
             UiModeManager uiManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
             if(uiVal == 0){
@@ -232,7 +232,7 @@ public class MainActivity extends AppCompatActivity {
         getAllSettingValues();
         setUiMode();
         if(orientation == Configuration.ORIENTATION_LANDSCAPE){
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "landscape");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -267,7 +267,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         else {
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "portrait");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());

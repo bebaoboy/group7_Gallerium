@@ -173,7 +173,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     }
     @Override
     public void onBindViewHolder(@NonNull MediaViewHolder holder, int position) {
-        Media media = getItem(holder.getLayoutPosition());
+        Media media = getItem(position);
 
         if(context == null) return;
         if (media == null || media.getPath() == null) {
@@ -199,7 +199,7 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 //        }
 
         // Log.d("gallerium", media.getMimeType());
-        if (!med[holder.getLayoutPosition()]) {
+        if (!med[position]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().sizeMultiplier(mul)
                         .load("file://" + media.getThumbnail())
@@ -260,14 +260,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[holder.getLayoutPosition()] = false;
+                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
               //                  Log.d("def", "");
-                                med[holder.getLayoutPosition()] = true;
+                                med[position] = true;
                                 return false;
                             }
                         })
@@ -317,10 +317,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                 holder.blur.setVisibility(View.VISIBLE);
                 if(holder.select.isChecked()){
                     holder.select.setChecked(false);
-                    selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+                    selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
                 }else{
                     holder.select.setChecked(true);
-                    selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+                    selecteMediaInterface.addToSelectedList(listMedia.get(position));
                 }
             }else {
                 holder.blur.setVisibility(View.GONE);
@@ -331,34 +331,36 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             }
         }));
 
-        holder.image.setOnLongClickListener((view -> {
+        if(selecteMediaInterface != null) {
+            holder.image.setOnLongClickListener((view -> {
 //            if(holder.select.isChecked()){
 //                Log.d("checkbox", "is checked");
-//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
 //                holder.select.setChecked(false);
 //            }else{
 //                Log.d("checkbox", "is not checked");
-//                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                selecteMediaInterface.addToSelectedList(listMedia.get(position));
 //                holder.select.setChecked(true);
 //            }
-            if(!isMultipleEnabled) {
-                selecteMediaInterface.showAllSelect();
-            } else {
-                Intent intent = new Intent(context, ViewMediaStandalone.class);
-                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                intent.setDataAndType(Uri.fromFile(new File(media.getPath())), media.getMimeType());
-                context.startActivity(intent);
-            }
-            return true;
-        }));
+                if (!isMultipleEnabled) {
+                    selecteMediaInterface.showAllSelect();
+                } else {
+                    Intent intent = new Intent(context, ViewMediaStandalone.class);
+                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                    intent.setDataAndType(Uri.fromFile(new File(media.getPath())), media.getMimeType());
+                    context.startActivity(intent);
+                }
+                return true;
+            }));
 
-        holder.select.setOnClickListener((view)->{
-            if(((MaterialCardView) view).isChecked()){
-                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
-            }else{
-                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
-            }
-        });
+            holder.select.setOnClickListener((view) -> {
+                if (((MaterialCardView) view).isChecked()) {
+                    selecteMediaInterface.addToSelectedList(listMedia.get(position));
+                } else {
+                    selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
+                }
+            });
+        }
 
         if(uiMode == UI_MODE_LIST) {
             holder.linearLayout.setOnClickListener((view -> {
@@ -366,10 +368,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                     holder.blur.setVisibility(View.VISIBLE);
                     if (holder.select.isChecked()) {
                         holder.select.setChecked(false);
-                        selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+                        selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
                     } else {
                         holder.select.setChecked(true);
-                        selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+                        selecteMediaInterface.addToSelectedList(listMedia.get(position));
                     }
                 } else {
                     holder.blur.setVisibility(View.GONE);
@@ -383,11 +385,11 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             holder.linearLayout.setOnLongClickListener((view -> {
 //            if(holder.select.isChecked()){
 //                Log.d("checkbox", "is checked");
-//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
 //                holder.select.setChecked(false);
 //            }else{
 //                Log.d("checkbox", "is not checked");
-//                selecteMediaInterface.addToSelectedList(listMedia.get(holder.getLayoutPosition()));
+//                selecteMediaInterface.addToSelectedList(listMedia.get(position));
 //                holder.select.setChecked(true);
 //            }
                 if (!isMultipleEnabled) {
@@ -477,5 +479,10 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);
         }
+    }
+
+    public int dpToPx(int dp) {
+        float density = context.getResources().getDisplayMetrics().density;
+        return Math.round((float) dp * density);
     }
 }

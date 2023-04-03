@@ -12,10 +12,11 @@
 
         <TextView
             android:id="@+id/txtDate"
-            android:layout_width="178dp"
+            android:layout_width="wrap_content"
             android:layout_height="25dp"
             android:layout_marginTop="10dp"
-            android:layout_marginBottom="5dp"
+            android:layout_marginBottom="10dp"
+            android:layout_marginEnd="5dp"
             android:text="Thứ 4, 21-03-2023"
             android:textSize="17sp"
             android:textStyle="bold" />

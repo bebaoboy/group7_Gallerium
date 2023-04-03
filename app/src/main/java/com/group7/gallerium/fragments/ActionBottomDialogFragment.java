@@ -72,6 +72,8 @@ public class ActionBottomDialogFragment extends BottomSheetDialogFragment {
         verifiedButton.setOnClickListener((v)->{
             performAction();
         });
+
+        view.requestFocus();
         return view;
     }
 
