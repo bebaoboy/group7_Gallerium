@@ -2,7 +2,6 @@ package com.group7.gallerium.fragments;
 
 import static android.os.storage.StorageManager.ACTION_MANAGE_STORAGE;
 
-import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
 import android.content.Intent;
@@ -13,13 +12,11 @@ import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.storage.StorageManager;
 import android.preference.PreferenceManager;
-import android.text.InputType;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
@@ -642,7 +639,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
                 builder.setPositiveButton("YES", (dialog, which) -> {
                     File secureDir = new File(context.getFilesDir()+"/secure-subfolder");
                     if(secureDir.exists()) {
-                        fileUtils.deleteRecursive(secureDir);
+                        fileUtils.deleteRecursiveInternal(secureDir);
                         resetEverything();
 
                         refresh();

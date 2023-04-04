@@ -12,7 +12,6 @@ import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
-import android.database.MatrixCursor;
 import android.database.sqlite.SQLiteCursor;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -20,8 +19,6 @@ import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
-import android.provider.BaseColumns;
-import android.provider.MediaStore;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
@@ -31,7 +28,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.CursorAdapter;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -41,10 +37,8 @@ import androidx.activity.result.IntentSenderRequest;
 import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.appcompat.widget.SearchView;
-import androidx.appcompat.widget.SearchView.OnQueryTextListener;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
-import androidx.core.view.MenuItemCompat;
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
@@ -60,7 +54,6 @@ import com.group7.gallerium.activities.SearchResultActivity;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
 import com.group7.gallerium.adapters.MediaCategoryAdapter;
-import com.group7.gallerium.adapters.SuggestionSimpleCursorAdapter;
 import com.group7.gallerium.adapters.SuggestionSimpleCursorAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
@@ -84,7 +77,7 @@ import java.util.stream.Collectors;
 public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private View view;
     private Toolbar toolbar;
-    private MenuItem cameraButton, settingButton, searchButton, sortButton;
+    MenuItem cameraButton, settingButton, searchButton, sortButton;
     Context context;
     ArrayList<Media> listMedia;
     ArrayList<Media> selectedMedia;
@@ -92,13 +85,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     ArrayList<Album> albumList;
     ArrayList<AlbumCategory> albumCategories;
     MediaCategoryAdapter adapter;
-
-    private static final String[] SUGGESTIONS = {
-            "Bauru", "Sao Paulo", "Rio de Janeiro",
-            "Bahia", "Mato Grosso", "Minas Gerais",
-            "Tocantins", "Rio Grande do Sul"
-    };
-
     AlbumCategoryAdapter albumAdapter;
 
     SuggestionSimpleCursorAdapter cursorAdapter;
@@ -128,12 +114,12 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     TextView txtSize;
 
-    private TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
+    TextView btnShare, btnMove, btnDelete, btnCreative, btnCopy, btnFav, btnHide;
     private MediaFragment.MediaListTask mediaListTask;
     boolean isPendingForIntent = false;
     SwipeRefreshLayout swipeLayout;
 
-    private SuggestionsDatabase database;
+    SuggestionsDatabase database;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -164,7 +150,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
-        numGrid = 3;
         if(numGridPref.equals("5")){
             numGrid = 5;
         }else if(numGridPref.equals("4")){
@@ -361,13 +346,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
          * Showing Swipe Refresh animation on activity create
          * As animation won't start on onCreate, post runnable is used
          */
-        swipeLayout.post(new Runnable() {
-
-            @Override
-            public void run() {
-                swipeLayout.setRefreshing(true);
-            }
-        });
+        swipeLayout.post(() -> swipeLayout.setRefreshing(true));
 
         database = new SuggestionsDatabase(this.getContext());
 
@@ -457,27 +436,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnCreative.setOnClickListener((v) -> {
 
         });
-        btnFav.setOnClickListener((v) -> {
-            addToFavorite();
+        btnFav.setOnClickListener((v) -> addToFavorite());
+        btnFav.setOnLongClickListener(view -> {
+            btnHide.setVisibility(View.VISIBLE);
+            btnFav.setVisibility(View.GONE);
+            return true;
         });
-        btnFav.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                btnHide.setVisibility(View.VISIBLE);
-                btnFav.setVisibility(View.GONE);
-                return true;
-            }
-        });
-        btnHide.setOnClickListener((v) -> {
-            hideMedia();
-        });
-        btnHide.setOnLongClickListener(new View.OnLongClickListener() {
-            @Override
-            public boolean onLongClick(View view) {
-                btnHide.setVisibility(View.GONE);
-                btnFav.setVisibility(View.VISIBLE);
-                return true;
-            }
+        btnHide.setOnClickListener((v) -> hideMedia());
+        btnHide.setOnLongClickListener(view -> {
+            btnHide.setVisibility(View.GONE);
+            btnFav.setVisibility(View.VISIBLE);
+            return true;
         });
     }
 
@@ -673,12 +642,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         searchButton = toolbar.getMenu().findItem(R.id.search_tb_item);
 
-        searchButton.setOnMenuItemClickListener(menuItem -> {
-
-
-           return false;
-        });
-
         SearchManager searchManager =
                 (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
 
@@ -748,17 +711,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
     }
 
-    private void populateAdapter(String query) {
-        final MatrixCursor c = new MatrixCursor(new String[]{ BaseColumns._ID, SearchManager.SUGGEST_COLUMN_TEXT_1 });
-        for (int i=0; i< SUGGESTIONS.length; i++) {
-            if (SUGGESTIONS[i].toLowerCase().startsWith(query.toLowerCase()))
-                c.addRow(new Object[] {i, SUGGESTIONS[i]});
-        }
-        cursorAdapter.changeCursor(c);
-    }
 
-
-    private void getSearchResults(String toString) {
+    void getSearchResults(String toString) {
         Intent intent = new Intent(this.getContext(), SearchResultActivity.class);
         intent.setAction(Intent.ACTION_SEARCH);
         intent.putExtra(SearchManager.QUERY, toString);
@@ -906,7 +860,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
             return newCatList;
         } catch (Exception e) {
-            return null;
+            return new ArrayList<>();
         }
 
     }
@@ -1005,46 +959,46 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
     }
 
-    public void rescanForUnAddedAlbum(){
-        Cursor cursor =  context.getContentResolver().query(
-                MediaStore.Files.getContentUri("external")
-                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
-                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
-                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
-
-        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
-        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
-        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-        String name;
-        try {
-            if (cursor != null) {
-                Log.d("size", "" + cursor.getCount());
-
-                ArrayList<Album> temp = new ArrayList<>();
-                while (cursor.moveToNext()) {
-                    String path = cursor.getString(pathColumn);
-                    Log.d("path", path);
-                    name = cursor.getString(nameColumn);
-                    Log.d("name", name);
-                    String[] subDirs = path.split("/");
-                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
-                    Album album = new Album(null, name);
-                    album.setPath(path);
-                    temp.add(album);
-                }
-                for(Album album: albumList){
-                    for(int i=0;i<temp.size();i++){
-                        if(temp.get(i).getPath().equals(album.getPath())){
-                            temp.remove(i);
-                        }
-                    }
-                }
-                if(temp.size() >0)albumList.addAll(temp);
-            }
-        }catch (Exception e){
-            Log.d("tag", e.getMessage());
-        }
-    }
+//    public void rescanForUnAddedAlbum(){
+//        Cursor cursor =  context.getContentResolver().query(
+//                MediaStore.Files.getContentUri("external")
+//                , new String[]{MediaStore.Files.FileColumns.DISPLAY_NAME, MediaStore.Files.FileColumns.PARENT, MediaStore.Files.FileColumns.DATA}
+//                , MediaStore.Files.FileColumns.DATA + " LIKE ?"
+//                , new String[]{Environment.getExternalStorageDirectory() + "/Pictures/owner/%"}, null);
+//
+//        int nameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DISPLAY_NAME);
+//        // int bucketNameColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.PARENT);
+//        int pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+//        String name;
+//        try {
+//            if (cursor != null) {
+//                Log.d("size", "" + cursor.getCount());
+//
+//                ArrayList<Album> temp = new ArrayList<>();
+//                while (cursor.moveToNext()) {
+//                    String path = cursor.getString(pathColumn);
+//                    Log.d("path", path);
+//                    name = cursor.getString(nameColumn);
+//                    Log.d("name", name);
+//                    String[] subDirs = path.split("/");
+//                    if(!subDirs[subDirs.length-2].equals("owner")) continue;
+//                    Album album = new Album(null, name);
+//                    album.setPath(path);
+//                    temp.add(album);
+//                }
+//                for(Album album: albumList){
+//                    for(int i=0;i<temp.size();i++){
+//                        if(temp.get(i).getPath().equals(album.getPath())){
+//                            temp.remove(i);
+//                        }
+//                    }
+//                }
+//                if(temp.size() >0)albumList.addAll(temp);
+//            }
+//        }catch (Exception e){
+//            Log.d("tag", e.getMessage());
+//        }
+//    }
 
     public ArrayList<Album> getAllAlbum(ArrayList<Media> listMedia){
         List<String> paths = new ArrayList<>();
@@ -1092,7 +1046,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         categoryList.put("Của tôi", new AlbumCategory("Của tôi", new ArrayList<>()));
         categoryList.put("Thêm album", new AlbumCategory("Thêm album", new ArrayList<>()));
 
-        rescanForUnAddedAlbum();
+        // rescanForUnAddedAlbum();
         for (Album album : albumList) {
             String path = album.getPath();
             subDir = path.split("/");

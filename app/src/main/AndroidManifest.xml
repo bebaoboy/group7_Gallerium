@@ -94,9 +94,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.WallpaperPreview"
-            android:exported="false" />
-        <activity
             android:name=".activities.MediaDetails"
             android:exported="false" />
         <activity

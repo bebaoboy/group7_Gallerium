@@ -78,6 +78,7 @@ public class AlbumAdapter extends ListAdapter<Album, AlbumAdapter.AlbumViewHolde
             intent.putExtra("content", album.getMemoryContent());
             intent.putExtra("date", album.getMemoryDate());
             intent.putExtra("name", album.getName());
+            intent.putExtra("type", album.getType());
             intent.putExtra("ok", 1);
             intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
             context.startActivity(intent);

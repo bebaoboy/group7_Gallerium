@@ -85,4 +85,6 @@
     <string name="restore">Khôi phục</string>
     <string name="menu_refresh">Refresh</string>
     <string name="search_hint">Nhập vào để tìm kiếm</string>
+    <string name="delete_album">Xóa album</string>
+    <string name="change_avatar_album">Đổi ảnh bìa album</string>
 </resources>

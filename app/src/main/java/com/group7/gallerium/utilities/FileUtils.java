@@ -1,21 +1,16 @@
 package com.group7.gallerium.utilities;
 
-import android.Manifest;
 import android.app.PendingIntent;
 import android.app.RecoverableSecurityException;
 import android.content.ContentResolver;
 import android.content.ContentUris;
 import android.content.ContentValues;
 import android.content.Context;
-import android.content.Intent;
 import android.content.IntentSender;
-import android.content.pm.PackageManager;
 import android.database.Cursor;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
-import android.os.storage.StorageManager;
-import android.provider.DocumentsContract;
 import android.provider.MediaStore;
 import android.util.Log;
 import android.widget.Toast;
@@ -23,7 +18,6 @@ import android.widget.Toast;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.IntentSenderRequest;
 import androidx.annotation.NonNull;
-import androidx.core.app.ActivityCompat;
 
 import com.group7.gallerium.models.Media;
 
@@ -37,7 +31,6 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.OutputStream;
 import java.io.OutputStreamWriter;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Objects;
@@ -45,15 +38,36 @@ import java.util.stream.Collectors;
 
 public class FileUtils {
 
-    public void deleteRecursive(File fileOrDirectory) {
+    public void deleteRecursiveInternal(File fileOrDirectory) {
 
         if (fileOrDirectory.isDirectory()) {
             for (File child : fileOrDirectory.listFiles()) {
-                deleteRecursive(child);
+                deleteRecursiveInternal(child);
             }
         }
 
         fileOrDirectory.delete();
+    }
+
+    public void deleteRecursive(@NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull ArrayList<Media> medias, @NonNull Context context, String albumPath){
+
+        Media media = new Media();
+        media.setPath(albumPath + "/" + " " + ".jpeg");
+        medias.add(media);
+
+        deleteMultiple(launcher, medias, context);
+        try{
+            File albumFolder = new File(albumPath);
+            if(albumFolder.exists() && albumFolder.isDirectory()){
+                if(albumFolder.delete()){
+                    Toast.makeText(context, "Xóa thành công", Toast.LENGTH_SHORT).show();
+                }else{
+                    Toast.makeText(context, "Xóa không thành công", Toast.LENGTH_SHORT).show();
+                }
+            }
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
     }
 
     public void moveFile(@NonNull String inputPath, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher, @NonNull String outputPath, @NonNull Context context) {
@@ -643,64 +657,6 @@ public class FileUtils {
         }
         return 0;
     }
-
-
-//    public void delete1(ActivityResultLauncher<IntentSenderRequest> launcher, String path, @NonNull Context context) {
-//
-//        String[] parse = path.substring(0, path.lastIndexOf("/")).split("/");
-//        var dirList = Arrays.stream(parse).skip(4).collect(Collectors.toList());
-//
-//        Media media = AccessMediaFile.getMediaWithPath(path);
-//        StringBuilder relativePath = new StringBuilder();
-//        for (var item : dirList) {
-//            relativePath.append(item).append("/");
-//            Log.d("Item", item);
-//        }
-//
-//        Uri uri = insertMediaToMediaStore(context, path, relativePath.toString());
-//        ContentResolver contentResolver = context.getContentResolver();
-//        PendingIntent pendingIntent = null;
-//
-//
-//        try {
-//            //delete object using resolver
-//
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.R) {
-//
-//                ArrayList<Uri> collection = new ArrayList<>();
-//                collection.add(uri);
-//                pendingIntent = MediaStore.createDeleteRequest(contentResolver, collection);
-//
-//            } else
-//                try {
-//                    MediaScannerConnection.scanFile(context, new String[] { path },
-//                            new String[]{media.getMimeType()}, (path1, uri1) -> context.getContentResolver()
-//                                    .delete(uri1, null, null));
-//                } catch (Exception e) {
-//                    e.printStackTrace();
-//                }
-//
-//        } catch (Exception e) {
-//
-//            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-//
-//                //if exception is recoverable then again send delete request using intent
-//                if (e instanceof RecoverableSecurityException) {
-//                    RecoverableSecurityException exception = (RecoverableSecurityException) e;
-//                    pendingIntent = exception.getUserAction().getActionIntent();
-//                }
-//            }
-//
-//
-//        } finally {
-//            if (pendingIntent != null) {
-//                IntentSender sender = pendingIntent.getIntentSender();
-//                IntentSenderRequest request = new IntentSenderRequest.Builder(sender).build();
-//                launcher.launch(request);
-//            }
-//        }
-//        // AccessMediaFile.removeMediaFromAllMedia(path);
-//    }
 
     public void renameFile(@NonNull String name, int type, @NonNull String path, @NonNull Context context, @NonNull ActivityResultLauncher<IntentSenderRequest> launcher) {
         if (name.strip().length() == 0) return ;
