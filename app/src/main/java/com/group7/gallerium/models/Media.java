@@ -14,9 +14,9 @@ public class Media {
     private long duration;
     private long size;
     static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
-    static final SimpleDateFormat timeFormat = new SimpleDateFormat("hh:mm");
+    static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
-    static final SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy hh:mm");
+    static final SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy HH:mm");
 
     private String title;
     private int width;

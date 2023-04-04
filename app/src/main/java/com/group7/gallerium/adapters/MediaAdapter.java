@@ -76,6 +76,8 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
     private ArrayList<Media> selectedMedia;
     private boolean isMultipleEnabled = false;
     private int imageSize = 0, uiMode; // uiMode = 1 -> grid, uiMode = 2 -> list
+    public boolean selectAll = false;
+    private boolean selectAllChecked = false;
 
     public void setMultipleEnabled(boolean value){
         isMultipleEnabled = value;
@@ -199,7 +201,6 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 //        }
 
         // Log.d("gallerium", media.getMimeType());
-        if (!med[position]) {
             if (media.getMimeType() != null && media.getMimeType().startsWith("image/gif")) {
                 Glide.with(context).asGif().sizeMultiplier(mul)
                         .load("file://" + media.getThumbnail())
@@ -209,14 +210,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
                                 // Log.d("def", "");
-                                med[position] = true;
                                 return false;
                             }
                         })
@@ -232,21 +231,19 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                                 // Log.d("def", "");
-                                med[position] = true;
                                 return false;
                             }
                         })
                         .into(holder.image);
                // Log.d("abc", "");
             }
-        }
+
 
         if (holder.image.getDrawable() != null) {
             //Log.d("draw", holder.image.getDrawable().toString());
@@ -260,14 +257,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<GifDrawable> target, boolean isFirstResource) {
-                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(GifDrawable resource, Object model, Target<GifDrawable> target, DataSource dataSource, boolean isFirstResource) {
               //                  Log.d("def", "");
-                                med[position] = true;
                                 return false;
                             }
                         })
@@ -282,14 +277,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
                         .listener(new RequestListener<>() {
                             @Override
                             public boolean onLoadFailed(@Nullable GlideException e, Object model, Target<Drawable> target, boolean isFirstResource) {
-                                med[position] = false;
                                 return false;
                             }
 
                             @Override
                             public boolean onResourceReady(Drawable resource, Object model, Target<Drawable> target, DataSource dataSource, boolean isFirstResource) {
                 //                Log.d("def", "");
-                                med[position] = true;
                                 return false;
                             }
                         })
@@ -404,6 +397,18 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             }));
         }
 
+
+        if (selectAll)
+        {
+            if(!selectAllChecked){
+                holder.select.setChecked(false);
+                selecteMediaInterface.deleteFromSelectedList(listMedia.get(position));
+            }else{
+                holder.select.setChecked(true);
+                selecteMediaInterface.addToSelectedList(listMedia.get(position));
+            }
+        }
+
     }
     public void setSelectedList(@NonNull ArrayList<Media> list) {
         selectedMedia = list;
@@ -411,6 +416,12 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
 
     public void setAllChecked(boolean b) {
         isAllChecked = b;
+        notifyItemRangeChanged(0, this.getCurrentList().size());
+    }
+
+    public void setAllSelect(boolean b) {
+        selectAll = b;
+        selectAllChecked = !selectAllChecked;
         notifyItemRangeChanged(0, this.getCurrentList().size());
     }
 

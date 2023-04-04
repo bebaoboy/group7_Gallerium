@@ -19,10 +19,10 @@ import com.group7.gallerium.activities.ViewAlbum;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.ViewAnimationUtils;
 import com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView;
 
 import java.util.ArrayList;
-import java.util.Date;
 import java.util.List;
 import java.util.Objects;
 
@@ -39,13 +39,15 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
             new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
-                    return Objects.equals(oldItem.getNameCategory(), newItem.getNameCategory());
+                    return Objects.equals(oldItem.getNameCategory(), newItem.getNameCategory())
+                            && oldItem.willCollapse == newItem.willCollapse && oldItem.willExpand == newItem.willExpand;
                 }
 
                 @Override
                 public boolean areContentsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
                     return oldItem.getList().size() == newItem.getList().size()
-                            && oldItem.getList().get(0).getPath().equals(newItem.getList().get(0).getPath());
+                            && oldItem.getList().get(0).getPath().equals(newItem.getList().get(0).getPath())
+                            && oldItem.willCollapse == newItem.willCollapse && oldItem.willExpand == newItem.willExpand;
                 }
             };
     private int spanCount = 3;
@@ -129,8 +131,40 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         }
 
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(24);
+        holder.rcvPictures.setItemViewCacheSize(50);
         holder.rcvPictures.setRecycledViewPool(viewPool);
+
+        if (!mediaCategory.getNameCategory().isEmpty()) {
+            holder.tvNameCategory.setOnClickListener(new View.OnClickListener() {
+                @Override
+                public void onClick(View view) {
+                    if (mediaCategory.height == 1) {
+                        boolean animNow = uiMode == UI_MODE_LIST;
+                        ViewAnimationUtils.collapse(holder.rcvPictures, true);
+                        mediaCategory.height = 0;
+                    } else {
+                        ViewAnimationUtils.expand(holder.rcvPictures);
+                        mediaCategory.height = 1;
+                    }
+                }
+            });
+
+            holder.tvNameCategory.setOnLongClickListener(new View.OnLongClickListener() {
+                final MediaAdapter med = mediaAdapter;
+                @Override
+                public boolean onLongClick(View view) {
+                    if(isMultipleEnabled) {
+                        if (med != null) {
+//                            ArrayList<Media> selectedMedia = selectMediaInterface.getSelectedList();
+//                            Log.d("parent size", " " + selectedMedia.size());
+//                            med.setSelectedList(selectedMedia);
+                            med.setAllSelect(true);
+                        }
+                    }
+                    return true;
+                }
+            });
+        }
     }
 
     @Override
@@ -182,7 +216,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
             }
             return getItem(position).getBackup();
         } else {
-            return getItem(position).getNameCategory();
+            return getItem(position).getBackup() + getItem(position).getNameCategory();
         }
     }
 
@@ -211,6 +245,13 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         int spacing = dpToPx(5);
         var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
         return (int)Math.floor(imageSize);
+    }
+
+    private int calculateImageAmount() {
+        int screenHeight = context.getResources().getDisplayMetrics().heightPixels;
+        int spacing = dpToPx(5);
+        var imageSize = calculateImageSize();
+        return (int)Math.floor((screenHeight - spacing) / (double)imageSize) * 3;
     }
 }
 

@@ -604,9 +604,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     public void refresh(boolean scroll) {
-        Log.d("refresh with result", "");
-        mediaListTask = new MediaListTask(scroll);
-        mediaListTask.execute();
+        if (mode == null) {
+            Log.d("refresh with result", "");
+            mediaListTask = new MediaListTask(scroll);
+            mediaListTask.execute();
+        }
+        else {
+            swipeLayout.setRefreshing(false);
+        }
     }
 
 //    void recyclerViewSetting() {
@@ -889,7 +894,10 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     String name = i == 0 ? cat.getNameCategory() : "";
                     var c = new MediaCategory(name, new ArrayList<>(cat.getList().subList(i,
                             Math.min(i + partitionSize, cat.getList().size()))));
-                    c.setBackup(cat.getNameCategory());
+                    if (c.getNameCategory().isEmpty() && sortMode < 4) {
+                        c.setNameCategory("   " + c.getList().get(0).getTimeTaken());
+                        c.setBackup(cat.getNameCategory());
+                    }
                     newCatList.add(c);
 
                 }
