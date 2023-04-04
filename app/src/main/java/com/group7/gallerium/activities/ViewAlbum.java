@@ -75,6 +75,8 @@ import java.util.stream.Collectors;
 public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface {
 
     private String albumName, albumPath, memoryDate, memoryTitle, memoryContent;
+
+    private int albumType;
     private ArrayList<String> mediaPaths;
     ArrayList<Album> albumList;
     ArrayList<Media> selectedMedia;
@@ -141,6 +143,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         mediaPaths = intent.getStringArrayListExtra("media_paths");
         albumName = intent.getStringExtra("name");
         albumPath = intent.getStringExtra("folder_path");
+        albumType = intent.getIntExtra("type", 1);
 
         memoryContent = intent.getStringExtra("content");
         memoryTitle = intent.getStringExtra("title");
@@ -545,7 +548,8 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             this.spanCount = spanCount;
             adapter = new MediaCategoryAdapter(this, spanCount, this);
 
-        }refresh();
+        }
+        refresh();
     }
 
     void toolbarSetting(){
@@ -566,6 +570,47 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             startIntentAddToAlbum();
             return false;
         });
+
+        if(albumType == 2) {
+            toolbar.getMenu().findItem(R.id.delete_album_item).setOnMenuItemClickListener(menuItem -> {
+                showAlertDialog();
+                return false;
+            });
+        }else{
+            toolbar.getMenu().findItem(R.id.delete_album_item).setEnabled(false).setVisible(false);
+        }
+    }
+
+    private void showAlertDialog() {
+        AlertDialog.Builder builder = new AlertDialog.Builder(this);
+        builder.setTitle("Xác nhận xóa");
+        builder.setMessage("Chắc chắn xóa album + " + albumName + "?");
+        builder.setPositiveButton("YES", (dialog, which) -> {
+//            File albumFolder = new File(albumPath);
+//            if(albumFolder.exists()) {
+                fileUtils.deleteRecursive(launcher, listMedia, this.getApplicationContext(), albumPath);
+                AccessMediaFile.removeFromYourAlbum(albumPath);
+                var albList = AccessMediaFile.getAllYourAlbum();
+                //Log.d("fav", "fav amount pause = " + favList.size());
+                albList.forEach(x -> Log.d("alb", x));
+                SharedPreferences sharedPreferences = getSharedPreferences("your_album", MODE_PRIVATE);
+                SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                myEdit.clear();
+
+                // write all the data entered by the user in SharedPreference and apply
+                myEdit.putStringSet("path", albList);
+                myEdit.apply();
+                ViewAlbum.this.finish();
+//            }else{
+//                Toast.makeText(this, "Không xóa được album " + albumName, Toast.LENGTH_SHORT).show();
+//            }
+            dialog.dismiss();
+        });
+
+        builder.setNegativeButton("NO", (dialog, which) -> {
+            dialog.dismiss();
+        });
+        builder.show();
     }
 
     void showForm(){

@@ -1,10 +1,9 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
+import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.media.MediaScannerConnection;
@@ -38,6 +37,11 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
+import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
+import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
+import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -70,7 +74,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private Toolbar toolbar;
     MenuItem favBtn;
     MediaController videoController;
-    private int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg;
+    int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg, 3 là view trong album :))
     String mediaPath;
     private Intent intent;
 
@@ -102,6 +106,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
     SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
+
+    FFmpeg ffmpeg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -165,6 +171,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         renameBottomDialogFragment.renameAgain();
                     }
                 });
+
+        loadFFMpegBinary();
 
     }
 
@@ -244,6 +252,30 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         bottomSheetDialog.setContentView(viewDialog);
         AlbumListTask albumAsyncTask = new AlbumListTask();
         albumAsyncTask.execute();
+    }
+
+    private void loadFFMpegBinary() {
+        try {
+            if (ffmpeg == null) {
+                Log.d("tag", "ffmpeg : null");
+                ffmpeg = FFmpeg.getInstance(this);
+            }
+            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+                @Override
+                public void onFailure() {
+                    Log.d("tag", "not supported");
+                }
+
+                @Override
+                public void onSuccess() {
+                    Log.d("tag", "ffmpeg : correct Loaded");
+                }
+            });
+        } catch (FFmpegNotSupportedException e) {
+            Log.d("tag", "not supported");
+        } catch (Exception e) {
+            Log.d("tag", "Esception not supported : " + e.getMessage());
+        }
     }
 
     void rename(){
@@ -359,7 +391,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
-                    bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1);
+                    if(viewType == 2)
+                        bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1);
                 }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
@@ -439,26 +472,79 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         myEdit.apply();
     }
 
+
+    private void execFFmpegBinary(final String[] command) {
+        try {
+            if (ffmpeg == null) {
+                Log.d("tag", "ffmpeg : null");
+                ffmpeg = FFmpeg.getInstance(this);
+            }
+            ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+                @Override
+                public void onFailure(String s) {
+                    Log.d("tag", "FAILED with output : " + s);
+                }
+
+                @Override
+                public void onSuccess(String s) {
+                    Log.d("tag", "SUCCESS with output : " + s);
+//Perform action on success
+                }
+
+
+            @Override
+            public void onProgress(String s) {
+                Log.d("tag", "progress : " + s);
+            }
+
+            @Override
+            public void onStart() {
+                Log.d("tag", "Started command : ffmpeg " + command);
+            }
+
+            @Override
+            public void onFinish() {
+                Log.d("tag", "Finished command : ffmpeg " + command);
+
+            }
+        });
+    } catch (FFmpegCommandAlreadyRunningException e) {
+        Log.d("tag", e.getMessage());
+    }
+}
+
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
 
             switch (item.getItemId()) {
                 case R.id.edit_nav_item -> {
-                    Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
+                    if(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1) {
+                        Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
 
-                    if (mediaPath.contains("gif")) {
-                        Toast.makeText(this, "Cannot edit GIF images", Toast.LENGTH_SHORT).show();
-                    } else {
-                        // Set data
-                        editIntent.setData(Uri.fromFile(new File(mediaPath)));
-                        // Set output directory
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "Gallerium");
-                        // Set toolbar color
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-                        // Set background color
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-                        // Start activity
-                        startActivity(editIntent);
+                        if (mediaPath.contains("gif")) {
+                            Toast.makeText(this, "Cannot edit GIF images", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Set data
+                            editIntent.setData(Uri.fromFile(new File(mediaPath)));
+                            // Set output directory
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "Gallerium");
+                            // Set toolbar color
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+                            // Set background color
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+                            // Start activity
+                            startActivity(editIntent);
+                        }
+                    }else{
+                        String inputFileAbsolutePath = mediaPath;
+                        String outputFileAbsolutePath = mediaPath;
+                        String[] command =
+                                {"-y", "-i", inputFileAbsolutePath, "-s",
+                                        "160x120", "-r", "25", "-vcodec", "mpeg4",
+                                        "-b:v", "150k", "-b:a", "48000", "-ac", "2",
+                                        "-ar", "22050", outputFileAbsolutePath};
+
+                        execFFmpegBinary(command);
                     }
                 }
 
