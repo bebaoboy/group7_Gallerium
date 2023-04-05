@@ -41,6 +41,7 @@ import androidx.camera.video.FallbackStrategy;
 import androidx.camera.video.FileDescriptorOutputOptions;
 import androidx.camera.video.FileOutputOptions;
 import androidx.camera.video.MediaStoreOutputOptions;
+import androidx.camera.video.OutputOptions;
 import androidx.camera.video.Quality;
 import androidx.camera.video.QualitySelector;
 import androidx.camera.video.Recorder;
@@ -326,7 +327,8 @@ public class CameraActivity extends AppCompatActivity {
         var mediaStoreOutput = new MediaStoreOutputOptions.Builder(
                 getContentResolver(),
                 MediaStore.Video.Media.EXTERNAL_CONTENT_URI)
-                .setContentValues(contentValues)
+                .setContentValues(contentValues).setFileSizeLimit(524288000)
+                .setLocation(currentLocation)
                 .build();
         if (ActivityCompat.checkSelfPermission(this, Manifest.permission.RECORD_AUDIO) != PackageManager.PERMISSION_GRANTED) {
             // here to request the missing permissions, and then overriding

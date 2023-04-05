@@ -28,10 +28,12 @@
             android:layout_margin="10dp"/>
         <TextView
             android:id="@+id/media_taken_time"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="02 tháng 6, 2023 21:12"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
 
 
@@ -53,10 +55,12 @@
             android:layout_margin="10dp"/>
         <TextView
             android:id="@+id/media_name"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sample_file_name"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
 
     <View
@@ -74,16 +78,14 @@
             android:layout_height="wrap_content"
             android:text="@string/file_size"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_size"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sample_file_size"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -100,16 +102,14 @@
             android:layout_height="wrap_content"
             android:text="@string/resolution"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             android:id="@+id/media_resolution"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sample_resolution"
-            android:layout_margin="10dp"/>
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -128,11 +128,12 @@
             android:layout_margin="10dp"/>
         <TextView
             android:id="@+id/media_path"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/sample_file_path"
             android:layout_margin="10dp"
-            android:textAlignment="textEnd"/>
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -150,17 +151,14 @@
             android:layout_height="wrap_content"
             android:text="@string/exif_value"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             android:id="@+id/exif_value"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:text="@string/exif_value_sample"
             android:layout_margin="10dp"
-            android:textAlignment="textEnd"/>
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
     <View
         android:layout_width="match_parent"
@@ -177,18 +175,22 @@
             android:layout_height="wrap_content"
             android:text="@string/location"
             android:layout_margin="10dp"/>
-        <View
-            android:layout_width="0dp"
-            android:layout_height="0dp"
-            android:layout_weight="1" />
         <TextView
             style="@style/TextDetails"
             android:id="@+id/location_value"
-            android:layout_width="wrap_content"
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:text="@string/location"
-            android:layout_margin="10dp"/>
+            android:text=""
+            android:layout_margin="10dp"
+            android:textAlignment="textEnd"
+            android:layout_weight="1"/>
     </LinearLayout>
+
+    <org.osmdroid.views.MapView
+        android:id="@+id/mapview"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:layout_margin="10dp"/>
 
 
 </LinearLayout>

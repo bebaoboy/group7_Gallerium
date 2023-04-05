@@ -295,6 +295,10 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
             @Override
             public void onClick(View view) {
                 if (selectedMedia.size() <= 0) return;
+                if (selectedMedia.size() > 500) {
+                    Toast.makeText(context, "Can only share under 500 files!", Toast.LENGTH_LONG).show();
+                    return;
+                }
                 // Create intent to deliver some kind of result data
                 var currentIntent = getActivity().getIntent();
                 if (currentIntent.getAction().equals(Intent.ACTION_SEND_MULTIPLE)) {

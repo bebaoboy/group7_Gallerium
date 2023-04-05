@@ -6,4 +6,5 @@
     android:searchSuggestAuthority="com.group7.MySuggestionProvider"
     android:searchSuggestSelection=" ?"
     android:queryAfterZeroResults = "true"
+    android:searchSuggestThreshold="0"
     />

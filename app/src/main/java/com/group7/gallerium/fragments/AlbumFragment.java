@@ -4,18 +4,21 @@ import static android.content.Context.MODE_PRIVATE;
 
 import android.Manifest;
 import android.app.ProgressDialog;
+import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
+import android.database.sqlite.SQLiteCursor;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.MediaStore;
+import android.provider.SearchRecentSuggestions;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
@@ -24,6 +27,7 @@ import android.view.ViewGroup;
 
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
+import androidx.appcompat.widget.SearchView;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.app.ActivityCompat;
 import androidx.fragment.app.Fragment;
@@ -34,11 +38,14 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.AlbumCategoryAdapter;
+import com.group7.gallerium.adapters.SuggestionSimpleCursorAdapter;
 import com.group7.gallerium.models.Album;
 import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.AlbumCustomContent;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.MySuggestionProvider;
+import com.group7.gallerium.utilities.SuggestionsDatabase;
 
 import org.json.JSONArray;
 import org.json.JSONObject;
@@ -81,6 +88,11 @@ public class AlbumFragment extends Fragment{
     private ActionBottomDialogFragment createAlbumBottomDialogFragment;
     private MenuItem settingButton;
 
+    private boolean isSearching = false;
+    private SearchView searchView;
+    SuggestionSimpleCursorAdapter cursorAdapter;
+    private MenuItem searchButton;
+
     public AlbumFragment() {}
 
     @Override
@@ -102,6 +114,10 @@ public class AlbumFragment extends Fragment{
       }
 
     public void onPause() {
+        if( ! searchView.isIconified()) {
+            searchView.setIconified(true);
+        }
+        searchButton.collapseActionView();
         super.onPause();
         var albList = AccessMediaFile.getAllYourAlbum();
         //Log.d("fav", "fav amount pause = " + favList.size());
@@ -230,6 +246,85 @@ public class AlbumFragment extends Fragment{
         settingButton.setOnMenuItemClickListener(menuItem -> {
             openSetting();
             return false;
+        });
+
+        searchButton = toolbar.getMenu().findItem(R.id.search_tb_item);
+
+        SearchManager searchManager =
+                (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
+
+        searchView =
+                (SearchView) searchButton.getActionView();
+
+        searchView.setSuggestionsAdapter(cursorAdapter);
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                SQLiteCursor cursor = (SQLiteCursor) searchView.getSuggestionsAdapter().getItem(position);
+                int indexColumnSuggestion = cursor.getColumnIndex( SuggestionsDatabase.FIELD_SUGGESTION);
+
+                searchView.setQuery(cursor.getString(indexColumnSuggestion), false);
+                return true;
+            }
+        });
+
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(requireActivity().getComponentName()));
+
+        searchView.setIconifiedByDefault(false);
+
+        searchView.setSubmitButtonEnabled(true);
+        SearchView.SearchAutoComplete searchAutoComplete = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchAutoComplete.setThreshold(0);
+        var database = new SuggestionsDatabase(this.getContext());
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //getSearchResults(query); Also tried
+                isSearching = false;
+                long result = database.insertSuggestion(query);
+                if( ! searchView.isIconified()) {
+                    searchView.setIconified(true);
+                }
+                searchButton.collapseActionView();
+                SearchRecentSuggestions suggestions = new SearchRecentSuggestions(context,
+                        MySuggestionProvider.AUTHORITY, MySuggestionProvider.MODE);
+                suggestions.saveRecentQuery(query, null);
+                return result != -1;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isBlank()) {
+                    isSearching = false;
+                } else {
+                    isSearching = true;
+                }
+                Cursor cursor = database.getSuggestions(newText);
+                String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
+                int[] columnTextId = new int[] { android.R.id.text1};
+                SuggestionSimpleCursorAdapter simple = new SuggestionSimpleCursorAdapter(context.getApplicationContext(),
+                        R.layout.search_suggestion_item, cursor,
+                        columns , columnTextId
+                        , 0);
+
+                searchView.setSuggestionsAdapter(simple);
+                refresh();
+                if(cursor.getCount() != 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
         });
     }
 
@@ -396,6 +491,16 @@ public class AlbumFragment extends Fragment{
             trashBin.setType(1);
             paths.add(trashBin.getPath());
             albums.add(trashBin);
+        }
+        if (isSearching) {
+            var query = searchView.getQuery().toString().toLowerCase();
+            var s = new ArrayList<Album>();
+            for(var a : albums) {
+                if (a.getName().toLowerCase().contains(query) || (a.getDateCreated() != null && a.getDateCreated().toLowerCase().contains(query))) {
+                    s.add(a);
+                }
+            }
+            albums = s;
         }
         return albums;
     }

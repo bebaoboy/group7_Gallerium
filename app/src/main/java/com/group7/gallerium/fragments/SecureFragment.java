@@ -161,6 +161,21 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         if(countDownTimer != null)
             countDownTimer.cancel();
         view.invalidate();
+        if (txtPass.getText().toString().equals(password)) {
+            txtPass.setEnabled(false);
+            txtPass.setText(password);
+            txtPass.setVisibility(View.GONE);
+            txtUnlocked.setVisibility(View.VISIBLE);
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure_unlocked));
+        } else {
+            txtPass.setEnabled(true);
+            txtPass.setText("");
+            txtPass.setVisibility(View.VISIBLE);
+            txtUnlocked.setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure));
+        }
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
@@ -182,7 +197,10 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         refresh();
 
         lockable = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
-        showViewLogic();
+        if (!txtPass.getText().toString().equals(password))
+        {
+            showViewLogic();
+        }
     }
 
     public void changeOrientation(int spanCount) {

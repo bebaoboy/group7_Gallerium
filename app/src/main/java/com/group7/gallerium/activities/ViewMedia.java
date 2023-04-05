@@ -37,11 +37,6 @@ import androidx.viewpager.widget.ViewPager;
 
 import com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity;
 import com.dsphotoeditor.sdk.utils.DsPhotoEditorConstants;
-import com.github.hiteshsondhi88.libffmpeg.ExecuteBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegCommandAlreadyRunningException;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
@@ -56,6 +51,7 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.ViewMediaDataHolder;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -107,7 +103,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     ActionBottomDialogFragment renameBottomDialogFragment;
     SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
 
-    FFmpeg ffmpeg;
+    //FFmpeg ffmpeg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -172,7 +168,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     }
                 });
 
-        loadFFMpegBinary();
+        //loadFFMpegBinary();
 
     }
 
@@ -254,29 +250,29 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         albumAsyncTask.execute();
     }
 
-    private void loadFFMpegBinary() {
-        try {
-            if (ffmpeg == null) {
-                Log.d("tag", "ffmpeg : null");
-                ffmpeg = FFmpeg.getInstance(this);
-            }
-            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
-                @Override
-                public void onFailure() {
-                    Log.d("tag", "not supported");
-                }
-
-                @Override
-                public void onSuccess() {
-                    Log.d("tag", "ffmpeg : correct Loaded");
-                }
-            });
-        } catch (FFmpegNotSupportedException e) {
-            Log.d("tag", "not supported");
-        } catch (Exception e) {
-            Log.d("tag", "Esception not supported : " + e.getMessage());
-        }
-    }
+//    private void loadFFMpegBinary() {
+//        try {
+//            if (ffmpeg == null) {
+//                Log.d("tag", "ffmpeg : null");
+//                ffmpeg = FFmpeg.getInstance(this);
+//            }
+//            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+//                @Override
+//                public void onFailure() {
+//                    Log.d("tag", "not supported");
+//                }
+//
+//                @Override
+//                public void onSuccess() {
+//                    Log.d("tag", "ffmpeg : correct Loaded");
+//                }
+//            });
+//        } catch (FFmpegNotSupportedException e) {
+//            Log.d("tag", "not supported");
+//        } catch (Exception e) {
+//            Log.d("tag", "Esception not supported : " + e.getMessage());
+//        }
+//    }
 
     void rename(){
         renameBottomDialogFragment =
@@ -323,6 +319,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     void applyData() {
         intent = getIntent();
         listPath = intent.getStringArrayListExtra("data_list_path");
+        if (listPath == null) {
+            listPath = ViewMediaDataHolder.getList();
+        }
         mediaPos = intent.getIntExtra("pos", 0);
         viewType = intent.getIntExtra("view-type", 2);
         mediaItemInterface = this;
@@ -392,7 +391,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     //assert m != null;
                     setTitleToolbar(m);
                     if(viewType == 2)
-                        bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1);
+                        bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(true);
                 }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
@@ -473,45 +472,45 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     }
 
 
-    private void execFFmpegBinary(final String[] command) {
-        try {
-            if (ffmpeg == null) {
-                Log.d("tag", "ffmpeg : null");
-                ffmpeg = FFmpeg.getInstance(this);
-            }
-            ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
-                @Override
-                public void onFailure(String s) {
-                    Log.d("tag", "FAILED with output : " + s);
-                }
-
-                @Override
-                public void onSuccess(String s) {
-                    Log.d("tag", "SUCCESS with output : " + s);
-//Perform action on success
-                }
-
-
-            @Override
-            public void onProgress(String s) {
-                Log.d("tag", "progress : " + s);
-            }
-
-            @Override
-            public void onStart() {
-                Log.d("tag", "Started command : ffmpeg " + command);
-            }
-
-            @Override
-            public void onFinish() {
-                Log.d("tag", "Finished command : ffmpeg " + command);
-
-            }
-        });
-    } catch (FFmpegCommandAlreadyRunningException e) {
-        Log.d("tag", e.getMessage());
-    }
-}
+//    private void execFFmpegBinary(final String[] command) {
+//        try {
+//            if (ffmpeg == null) {
+//                Log.d("tag", "ffmpeg : null");
+//                ffmpeg = FFmpeg.getInstance(this);
+//            }
+//            ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+//                @Override
+//                public void onFailure(String s) {
+//                    Log.d("tag", "FAILED with output : " + s);
+//                }
+//
+//                @Override
+//                public void onSuccess(String s) {
+//                    Log.d("tag", "SUCCESS with output : " + s);
+////Perform action on success
+//                }
+//
+//
+//            @Override
+//            public void onProgress(String s) {
+//                Log.d("tag", "progress : " + s);
+//            }
+//
+//            @Override
+//            public void onStart() {
+//                Log.d("tag", "Started command : ffmpeg " + command);
+//            }
+//
+//            @Override
+//            public void onFinish() {
+//                Log.d("tag", "Finished command : ffmpeg " + command);
+//
+//            }
+//        });
+//    } catch (FFmpegCommandAlreadyRunningException e) {
+//        Log.d("tag", e.getMessage());
+//    }
+//}
 
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
@@ -536,15 +535,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                             startActivity(editIntent);
                         }
                     }else{
-                        String inputFileAbsolutePath = mediaPath;
-                        String outputFileAbsolutePath = mediaPath;
-                        String[] command =
-                                {"-y", "-i", inputFileAbsolutePath, "-s",
-                                        "160x120", "-r", "25", "-vcodec", "mpeg4",
-                                        "-b:v", "150k", "-b:a", "48000", "-ac", "2",
-                                        "-ar", "22050", outputFileAbsolutePath};
+                        if (AccessMediaFile.getMediaWithPath(mediaPath).getMimeType().endsWith("mp4")) {
+                            String inputFileAbsolutePath = mediaPath;
+                            String outputFileAbsolutePath = mediaPath;
+                            String[] command =
+                                    {"-y", "-i", inputFileAbsolutePath, "-s",
+                                            "160x120", "-r", "25", "-vcodec", "mpeg4",
+                                            "-b:v", "150k", "-b:a", "48000", "-ac", "2",
+                                            "-ar", "22050", outputFileAbsolutePath};
 
-                        execFFmpegBinary(command);
+                            //execFFmpegBinary(command);
+                        }
                     }
                 }
 

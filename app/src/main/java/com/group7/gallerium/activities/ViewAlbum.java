@@ -324,6 +324,10 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         });
         btnShare.setOnClickListener((v) -> {
             if (selectedMedia.size() <= 0) return;
+            if (selectedMedia.size() > 500) {
+                Toast.makeText(this, "Can only share under 500 files!", Toast.LENGTH_LONG).show();
+                return;
+            }
             // Create intent to deliver some kind of result data
             if (selectedMedia.size() == 1) {
                 Intent result = new Intent(Intent.ACTION_SEND);

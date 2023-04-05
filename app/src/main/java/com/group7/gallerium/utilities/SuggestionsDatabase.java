@@ -33,7 +33,7 @@ public class SuggestionsDatabase {
     public Cursor getSuggestions(String text)
     {
         return db.query(TABLE_SUGGESTION, new String[] {FIELD_ID, FIELD_SUGGESTION},
-                FIELD_SUGGESTION+" LIKE '"+ text +"%'", null, null, null, null);
+                FIELD_SUGGESTION+" LIKE '%"+ text +"%'", null, null, null, FIELD_ID + " desc", "5");
     }
 
 

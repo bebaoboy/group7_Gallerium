@@ -39,7 +39,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
             new DiffUtil.ItemCallback<MediaCategory>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
-                    return Objects.equals(oldItem.getNameCategory(), newItem.getNameCategory())
+                    return oldItem.getNameCategory().equals(newItem.getNameCategory())
+                            && oldItem.getBackup().equals(newItem.getBackup())
                             && oldItem.willCollapse == newItem.willCollapse && oldItem.willExpand == newItem.willExpand;
                 }
 
@@ -47,6 +48,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
                 public boolean areContentsTheSame(@NonNull MediaCategory oldItem, @NonNull MediaCategory newItem) {
                     return oldItem.getList().size() == newItem.getList().size()
                             && oldItem.getList().get(0).getPath().equals(newItem.getList().get(0).getPath())
+                            && oldItem.getList().get(oldItem.getList().size() - 1).getPath().equals(newItem.getList().get(newItem.getList().size() - 1).getPath())
                             && oldItem.willCollapse == newItem.willCollapse && oldItem.willExpand == newItem.willExpand;
                 }
             };
@@ -131,7 +133,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, MediaCatego
         }
 
         holder.rcvPictures.setAdapter(mediaAdapter);
-        holder.rcvPictures.setItemViewCacheSize(50);
+        holder.rcvPictures.setItemViewCacheSize(24);
         holder.rcvPictures.setRecycledViewPool(viewPool);
 
         if (!mediaCategory.getNameCategory().isEmpty()) {

@@ -26,9 +26,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
-import com.github.hiteshsondhi88.libffmpeg.FFmpeg;
-import com.github.hiteshsondhi88.libffmpeg.LoadBinaryResponseHandler;
-import com.github.hiteshsondhi88.libffmpeg.exceptions.FFmpegNotSupportedException;
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;

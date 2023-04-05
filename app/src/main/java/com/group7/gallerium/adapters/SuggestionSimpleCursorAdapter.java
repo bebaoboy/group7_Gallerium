@@ -42,10 +42,10 @@ public class SuggestionSimpleCursorAdapter
         int indexColumnSuggestion = cursor.getColumnIndex(SuggestionsDatabase.FIELD_SUGGESTION);
         String suggestion = cursor.getString(indexColumnSuggestion);
         txtTitle.setText(suggestion);
-
-        view.setOnClickListener((v)->{
-            getSearchResults(suggestion);
-        });
+//
+//        view.setOnClickListener((v)->{
+//            getSearchResults(suggestion);
+//        });
     }
 
     @Override

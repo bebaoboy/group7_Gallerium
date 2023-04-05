@@ -36,6 +36,7 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.ViewMediaDataHolder;
 
 import java.io.File;
 import java.util.ArrayList;
@@ -48,14 +49,14 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
             new DiffUtil.ItemCallback<>() {
                 @Override
                 public boolean areItemsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
-                    return Objects.equals(oldItem.getPath(), newItem.getPath()) &&
+                    return oldItem.getPath().equals(newItem.getPath()) &&
                             AccessMediaFile.isExistedAnywhere(oldItem.getPath())
                                     == AccessMediaFile.isExistedAnywhere(newItem.getPath());
                 }
 
                 @Override
                 public boolean areContentsTheSame(@NonNull Media oldItem, @NonNull Media newItem) {
-                    return Objects.equals(oldItem.getTitle(), newItem.getTitle());
+                    return oldItem.getTitle().equals(newItem.getTitle());
                 }
             };
     private int spanCount = 3;
@@ -481,7 +482,11 @@ public class MediaAdapter extends ListAdapter<Media, MediaAdapter.MediaViewHolde
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
-            intent.putStringArrayListExtra("data_list_path", listPath);
+            if (listPath.size() > 1000) {
+                ViewMediaDataHolder.setList(listPath);
+            } else {
+                intent.putStringArrayListExtra("data_list_path", listPath);
+            }
             intent.putExtra("pos", listPath.indexOf(listMedia.get(pos).getPath()));
             if(listMediaCategory == null)
                 intent.putExtra("view-type", 1);

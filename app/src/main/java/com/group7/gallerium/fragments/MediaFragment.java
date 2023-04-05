@@ -13,12 +13,14 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursor;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
 import android.os.Environment;
 import android.preference.PreferenceManager;
+import android.provider.SearchRecentSuggestions;
 import android.provider.Settings;
 import android.util.Log;
 import android.view.ActionMode;
@@ -28,6 +30,7 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
+import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -61,9 +64,11 @@ import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
+import com.group7.gallerium.utilities.MySuggestionProvider;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.SuggestionsDatabase;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.HashMap;
@@ -120,6 +125,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     SwipeRefreshLayout swipeLayout;
 
     SuggestionsDatabase database;
+    private boolean isSearching = false;
+    SearchView searchView;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -172,6 +179,10 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     @Override
     public void onPause() {
+        if( ! searchView.isIconified()) {
+            searchView.setIconified(true);
+        }
+        searchButton.collapseActionView();
         super.onPause();
         saveScroll();
     }
@@ -402,6 +413,10 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
         btnShare.setOnClickListener((v) -> {
             if (selectedMedia.size() <= 0) return;
+            if (selectedMedia.size() > 500) {
+                Toast.makeText(context, "Can only share under 500 files!", Toast.LENGTH_LONG).show();
+                return;
+            }
             if (selectedMedia.size() == 1) {
                 Intent result = new Intent(Intent.ACTION_SEND);
                 var m = selectedMedia.get(0);
@@ -451,7 +466,36 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     }
 
     private void hideMedia() {
-
+        String scrPath = context.getFilesDir().getAbsolutePath() + File.separator + "secure-subfolder";
+        File scrDir = new File(scrPath);
+        if (!scrDir.exists()) {
+            Toast.makeText(context, "You haven't created secret album", Toast.LENGTH_SHORT).show();
+        } else {
+            for(var m : selectedMedia) {
+                var mediaPath = m.getPath();
+                File mediaFile = new File(mediaPath);
+                if (!(scrPath + File.separator + mediaFile.getName()).equals(mediaPath)) {
+                    String[] subDirs = mediaPath.split("/");
+                    String name = subDirs[subDirs.length - 1];
+                    fileUtils.secureFile(context, mediaPath, name, launcher);
+                    Toast.makeText(context, "Your image is secured", Toast.LENGTH_SHORT).show();
+                } else {
+                    String outputPath = Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "Restore";
+                    File folder = new File(outputPath);
+                    File file = new File(mediaFile.getPath());
+                    File desImgFile = new File(outputPath, mediaFile.getName());
+                    if (!folder.exists()) {
+                        folder.mkdir();
+                    }
+                    mediaFile.renameTo(desImgFile);
+                    mediaFile.deleteOnExit();
+                    desImgFile.getPath();
+                    MediaScannerConnection.scanFile(context, new String[]{outputPath + File.separator + desImgFile.getName()}, null, null);
+                }
+            }
+            refresh();
+            callback.onDestroyActionMode(mode);
+        }
     }
 
     private void addToFavorite() {
@@ -645,7 +689,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         SearchManager searchManager =
                 (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
 
-        SearchView searchView =
+        searchView =
                 (SearchView) searchButton.getActionView();
 
         searchView.setSuggestionsAdapter(cursorAdapter);
@@ -661,7 +705,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 int indexColumnSuggestion = cursor.getColumnIndex( SuggestionsDatabase.FIELD_SUGGESTION);
 
                 searchView.setQuery(cursor.getString(indexColumnSuggestion), false);
-                return false;
+                return true;
             }
         });
 
@@ -671,36 +715,46 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         searchView.setIconifiedByDefault(false);
 
         searchView.setSubmitButtonEnabled(true);
+        SearchView.SearchAutoComplete searchAutoComplete = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchAutoComplete.setThreshold(0);
 
 
         searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
             @Override
             public boolean onQueryTextSubmit(String query) {
                 //getSearchResults(query); Also tried
-
+                isSearching = false;
                 long result = database.insertSuggestion(query);
                 getSearchResults(searchView.getQuery().toString());
                 if( ! searchView.isIconified()) {
                     searchView.setIconified(true);
                 }
                 searchButton.collapseActionView();
+                SearchRecentSuggestions suggestions = new SearchRecentSuggestions(context,
+                        MySuggestionProvider.AUTHORITY, MySuggestionProvider.MODE);
+                suggestions.saveRecentQuery(query, null);
                 return result != -1;
             }
 
             @Override
             public boolean onQueryTextChange(String newText) {
+                if (newText.isBlank()) {
+                    isSearching = false;
+                } else {
+                    isSearching = true;
+                }
                 Cursor cursor = database.getSuggestions(newText);
+                String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
+                int[] columnTextId = new int[] { android.R.id.text1};
+                SuggestionSimpleCursorAdapter simple = new SuggestionSimpleCursorAdapter(context.getApplicationContext(),
+                        R.layout.search_suggestion_item, cursor,
+                        columns , columnTextId
+                        , 0);
+
+                searchView.setSuggestionsAdapter(simple);
+                refresh();
                 if(cursor.getCount() != 0)
                 {
-                    String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
-                    int[] columnTextId = new int[] { android.R.id.text1};
-
-                    SuggestionSimpleCursorAdapter simple = new SuggestionSimpleCursorAdapter(context.getApplicationContext(),
-                            R.layout.search_suggestion_item, cursor,
-                            columns , columnTextId
-                            , 0);
-
-                    searchView.setSuggestionsAdapter(simple);
                     return true;
                 }
                 else
@@ -793,7 +847,31 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     ArrayList<MediaCategory> getListCategory() {
         AccessMediaFile.refreshAllMedia();
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
-        listMedia = AccessMediaFile.getAllMedia(context, sortMode);
+        ArrayList<Media> allMedias = AccessMediaFile.getAllMedia(context, sortMode);
+        if (isSearching) {
+            var query = searchView.getQuery().toString().toLowerCase();
+            listMedia.clear();
+            for (Media media : allMedias) {
+                if (media.getTitle().toLowerCase().contains(query)) {
+                    listMedia.add(media);
+                }
+            }
+
+            for (Media media : allMedias) {
+                if (media.getDateTaken().toLowerCase().contains(query)) {
+                    listMedia.add(media);
+                }
+            }
+
+            for (Media media : allMedias) {
+                if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
+                    listMedia.add(media);
+                }
+            }
+        }
+        else {
+            listMedia = allMedias;
+        }
 
         try {
 //            if (listMedia.get(0).getRawDate() != 0) {
