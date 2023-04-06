@@ -98,7 +98,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private Toolbar toolbar;
     MenuItem cameraButton, settingButton, searchButton, sortButton;
     Context context;
-    ArrayList<Media> listMedia;
+    ArrayList<Media> listMedia = new ArrayList<>();
     ArrayList<Media> selectedMedia;
     ArrayList<MediaCategory> mediaCategories;
     ArrayList<Album> albumList;
@@ -145,7 +145,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private MonthPickerDialog.Builder builder;
     String query = "", dateQuery = "";
     boolean booting = true;
-    CountDownTimer sliderCd = new CountDownTimer(0, 0) {
+    CountDownTimer sliderCd = new CountDownTimer(1000, 500) {
         @Override
         public void onTick(long l) {
 
@@ -153,7 +153,8 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         @Override
         public void onFinish() {
-
+            booting = false;
+            adapter.setSliderImageList(sliderImageList);
         }
     };
     private AsyncTask<Void, Integer, Void> locationThread;
@@ -1431,7 +1432,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             super.onPostExecute(unused);
             adapter.setUiMode(uiMode);
             if (!booting) {
-                adapter.setSliderImageList(sliderImageList);
+                sliderCd.start();
             }
             adapter.setDateBuilder(builder);
             if (mediaCategories.size() > 0 && !mediaCategories.get(0).getNameCategory().equals("null")) {
