@@ -9,7 +9,6 @@
     android:checkable="false"
     app:checkedIconGravity="TOP_START"
     app:checkedIconTint="@color/white"
-    app:cardElevation="2dp"
     android:id="@+id/media_card"
     style="@style/PhotoCardView"
     >

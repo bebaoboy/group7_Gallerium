@@ -102,7 +102,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
     SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
-
     //FFmpeg ffmpeg;
 
     @Override
@@ -511,7 +510,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //        Log.d("tag", e.getMessage());
 //    }
 //}
-
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
 
@@ -536,13 +534,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         }
                     }else{
                         if (AccessMediaFile.getMediaWithPath(mediaPath).getMimeType().endsWith("mp4")) {
-                            String inputFileAbsolutePath = mediaPath;
-                            String outputFileAbsolutePath = mediaPath;
-                            String[] command =
-                                    {"-y", "-i", inputFileAbsolutePath, "-s",
-                                            "160x120", "-r", "25", "-vcodec", "mpeg4",
-                                            "-b:v", "150k", "-b:a", "48000", "-ac", "2",
-                                            "-ar", "22050", outputFileAbsolutePath};
+//                            String inputFileAbsolutePath = mediaPath;
+//                            String outputFileAbsolutePath = mediaPath;
+//                            String[] command =
+//                                    {"-y", "-i", inputFileAbsolutePath, "-s",
+//                                            "160x120", "-r", "25", "-vcodec", "mpeg4",
+//                                            "-b:v", "150k", "-b:a", "48000", "-ac", "2",
+//                                            "-ar", "22050", outputFileAbsolutePath};
+                            var name = "G-trimmed-" + System.currentTimeMillis();
+
 
                             //execFFmpegBinary(command);
                         }

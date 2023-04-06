@@ -1,11 +1,14 @@
 package com.group7.gallerium.models;
 
+import org.osmdroid.util.GeoPoint;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Random;
 
 public class Media {
-    private String path;
-
+    private String path = "";
+    private double[] location;
     private int type;
     private String mimeType; // 1 is image 3 is video
     private String thumbnail;
@@ -157,5 +160,18 @@ public class Media {
 
     public String getTimeTaken() {
         return timeFormat.format(dateTaken);
+    }
+
+    public GeoPoint getLocation() {
+        if (location == null) return null;
+        return new GeoPoint(location[0], location[1]);
+    }
+
+    public void setLocation(double lat, double longt) {
+        if (location == null) {
+            location = new double[2];
+        }
+        this.location[0] = lat;
+        this.location[1] = longt;
     }
 }

@@ -5,6 +5,7 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.animation.Animator;
 import android.app.Activity;
+import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -13,11 +14,13 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursor;
+import android.icu.util.Calendar;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Build;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.preference.PreferenceManager;
 import android.provider.SearchRecentSuggestions;
@@ -48,8 +51,14 @@ import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
+import com.drew.imaging.ImageMetadataReader;
+import com.drew.metadata.Metadata;
+import com.drew.metadata.exif.GpsDirectory;
+import com.drew.metadata.mp4.Mp4Directory;
+import com.drew.metadata.mp4.media.Mp4MediaDirectory;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
+import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
@@ -67,9 +76,14 @@ import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MySuggestionProvider;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.SuggestionsDatabase;
+import com.whiteelephant.monthpicker.MonthPickerDialog;
+
+import org.osmdroid.util.GeoPoint;
 
 import java.io.File;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
@@ -127,6 +141,21 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     SuggestionsDatabase database;
     private boolean isSearching = false;
     SearchView searchView;
+    private ArrayList<Media> sliderImageList = new ArrayList<>();
+    private MonthPickerDialog.Builder builder;
+    String query = "";
+    boolean booting = true;
+    CountDownTimer sliderCd = new CountDownTimer(0, 0) {
+        @Override
+        public void onTick(long l) {
+
+        }
+
+        @Override
+        public void onFinish() {
+
+        }
+    };
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -153,6 +182,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onResume() {
         super.onResume();
+        sliderCd.start();
         //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
@@ -179,11 +209,21 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     @Override
     public void onPause() {
-        if( ! searchView.isIconified()) {
-            searchView.setIconified(true);
-        }
-        searchButton.collapseActionView();
         super.onPause();
+        sliderCd.cancel();
+        booting = true;
+        sliderCd = new CountDownTimer(1000, 500) {
+            @Override
+            public void onTick(long l) {
+
+            }
+
+            @Override
+            public void onFinish() {
+                booting = false;
+                adapter.setSliderImageList(sliderImageList);
+            }
+        };
         saveScroll();
     }
 
@@ -202,6 +242,41 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void onStart() {
         super.onStart();
         Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        var today = Calendar.getInstance();
+        MonthPickerDialog.Builder builder = new MonthPickerDialog.Builder(context,
+                new MonthPickerDialog.OnDateSetListener() {
+                    @Override
+                    public void onDateSet(int selectedMonth, int selectedYear) {
+                        selectedMonth ++;
+                        query = "-" + (selectedMonth < 10 ? "0" + selectedMonth : selectedMonth) + "-" + selectedYear;
+                        isSearching = true;
+                        refresh();
+                    }
+                }
+                , today.get(Calendar.YEAR), today.get(Calendar.MONTH));
+
+        this.builder = builder
+                .setMinYear(1990)
+                .setActivatedYear(today.get(Calendar.YEAR))
+                .setActivatedMonth(today.get(Calendar.MONTH))
+                .setMaxYear(2099)
+                .setTitle("Select trading month")
+                .setMonthRange(Calendar.JANUARY, Calendar.DECEMBER)
+                // .setMaxMonth(Calendar.OCTOBER)
+                // .setYearRange(1890, 1890)
+                // .setMonthAndYearRange(Calendar.FEBRUARY, Calendar.OCTOBER, 1890, 1890)
+                //.showMonthOnly()
+                // .showYearOnly()
+                .setOnMonthChangedListener(new MonthPickerDialog.OnMonthChangedListener() {
+                    @Override
+                    public void onMonthChanged(int selectedMonth) {
+                    }
+                })
+                .setOnYearChangedListener(new MonthPickerDialog.OnYearChangedListener() {
+                    @Override
+                    public void onYearChanged(int selectedYear) {
+                    }
+                });
 
     }
 
@@ -214,6 +289,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         toolbarSetting();
         //recyclerViewSetting();
         adapter = new MediaCategoryAdapter(requireContext(), spanCount, this);
+        adapter.setHomepage(true);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setItemViewCacheSize(10000);
         recyclerView.setHasFixedSize(true);
@@ -344,7 +420,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
                         // This method performs the actual data-refresh operation.
                         // The method calls setRefreshing(false) when it's finished.
-                        refresh(true);
+                        refresh(false);
                     }
                 }
         );
@@ -604,6 +680,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
             adapter = new MediaCategoryAdapter(context, spanCount, this);
+            adapter.setHomepage(true);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
             callback.onDestroyActionMode(mode);
@@ -618,9 +695,12 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     public void refresh(boolean scroll) {
         if (mode == null) {
-            Log.d("refresh with result", "");
-            mediaListTask = new MediaListTask(scroll);
-            mediaListTask.execute();
+            isSearching = false;
+            if (!swipeLayout.isRefreshing() || !scroll) {
+                Log.d("refresh with result", "");
+                mediaListTask = new MediaListTask(scroll);
+                mediaListTask.execute();
+            }
         }
         else {
             swipeLayout.setRefreshing(false);
@@ -798,6 +878,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 + ")");
 
         if (sortMode != 1) {
+            swipeLayout.setRefreshing(true);
             refresh(true);
         } else {
             refresh();
@@ -849,23 +930,31 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         HashMap<String, MediaCategory> categoryList = new LinkedHashMap<>();
         ArrayList<Media> allMedias = AccessMediaFile.getAllMedia(context, sortMode);
         if (isSearching) {
-            var query = searchView.getQuery().toString().toLowerCase();
+            if (!searchView.getQuery().toString().isEmpty())
+            {
+                query = searchView.getQuery().toString().toLowerCase();
+            }
             listMedia.clear();
             for (Media media : allMedias) {
                 if (media.getTitle().toLowerCase().contains(query)) {
                     listMedia.add(media);
                 }
-            }
-
-            for (Media media : allMedias) {
                 if (media.getDateTaken().toLowerCase().contains(query)) {
                     listMedia.add(media);
                 }
-            }
-
-            for (Media media : allMedias) {
                 if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
                     listMedia.add(media);
+                }
+                if (sortMode >= 4) {
+                    String s = media.getSize();
+                    var ext = s.substring(s.length() - 2);
+                    s = s.substring(0, s.length() - 2);
+                    double size = Double.parseDouble(s);
+                    int roundedSize = (int) Math.floor(size);
+                    var catName = roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
+                    if (catName.toLowerCase().contains(query)) {
+                        listMedia.add(media);
+                    }
                 }
             }
         }
@@ -911,7 +1000,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = numGrid == 3 ? 30 : numGrid == 4 ? 24 : 20;
             for (var cat : categoryList.values()) {
-                if (sortMode >= 4) cat.setNameCategory("");
+                if (sortMode >= 4) {
+                    if (uiMode == UI_MODE_LIST) {
+                        cat.setNameCategory("");
+                    }
+                }
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 if (sortMode == AccessMediaFile.SIZE_DESC) {
                     cat.getList().sort(Comparator.comparingLong(Media::getRealSize).reversed());
@@ -1196,24 +1289,35 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     public class MediaListTask extends AsyncTask<Void, Integer, Void> {
         boolean scroll = false;
+
         public MediaListTask(boolean scroll) {
             this.scroll = scroll;
         }
 
-        public MediaListTask() {}
+        public MediaListTask() {
+        }
+
         @Override
         protected void onPreExecute() {
             super.onPreExecute();
             AccessMediaFile.refreshAllMedia();
+            swipeLayout.setRefreshing(true);
             sharedPreferences = context.getSharedPreferences("ui_list", MODE_PRIVATE);
             uiMode = sharedPreferences.getInt("ui_mode", UI_MODE_GRID);
-            swipeLayout.setRefreshing(true);
         }
 
         @Override
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             adapter.setUiMode(uiMode);
+            if (!booting) {
+                adapter.setSliderImageList(sliderImageList);
+            }
+            adapter.setDateBuilder(builder);
+            if (mediaCategories.size() > 0 && !mediaCategories.get(0).getNameCategory().equals("null")) {
+                mediaCategories.add(0, new MediaCategory("null", new ArrayList<>()));
+                mediaCategories.get(0).addMediaToList(new Media());
+            }
             adapter.setData(mediaCategories);
             recyclerView.setAdapter(adapter);
             Log.d("refresh", "refresh media adapter");
@@ -1225,12 +1329,33 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             } else {
                 ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
             }
+
             swipeLayout.setRefreshing(false);
+
         }
 
         @Override
         protected Void doInBackground(Void... voids) {
-            mediaCategories = getListCategory();
+            var temp = getListCategory();
+            if (temp.size() > 0) {
+            }
+            else {
+                temp.add(new MediaCategory("Không có kết quả nào.", new ArrayList<>()));
+
+            }
+            mediaCategories = temp;
+            if ((scroll && !swipeLayout.isRefreshing()) || isSearching) sliderImageList.clear();
+            if (sliderImageList.size() == 0) {
+                    sliderImageList = new ArrayList<>(listMedia);
+                    Collections.shuffle(sliderImageList);
+                    if (sliderImageList.size() >= 10) {
+                        sliderImageList = sliderImageList.stream().limit(10).collect(Collectors.toCollection(ArrayList::new));
+                    }
+                    else {
+                        sliderImageList.clear();
+                    }
+            }
+
             return null;
         }
     }

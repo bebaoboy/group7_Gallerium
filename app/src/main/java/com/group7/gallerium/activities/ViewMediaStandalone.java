@@ -438,7 +438,7 @@ public class ViewMediaStandalone extends AppCompatActivity implements MediaItemI
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
-                    bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1);
+                    bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(true);
                 }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);

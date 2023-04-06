@@ -138,8 +138,6 @@
     <style name="scrollbar_shape_style">
         <item name="android:scrollbarThumbVertical">@drawable/scrollbar_thumb</item>
         <item name="android:scrollbarTrackVertical">@drawable/scrollbar_track</item>
-        <item name="msb_textColor">@color/white</item>
-        <item name="msb_handleColor">@color/title_light</item>
         <item name="android:scrollbarSize">1dp</item>
     </style>
 

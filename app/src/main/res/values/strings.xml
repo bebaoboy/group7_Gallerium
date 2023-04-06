@@ -87,4 +87,6 @@
     <string name="search_hint">Nhập vào để tìm kiếm</string>
     <string name="delete_album">Xóa album</string>
     <string name="change_avatar_album">Đổi ảnh bìa album</string>
+    <string name="choose_month">Tháng / năm</string>
+    <string name="open_map">Mở map</string>
 </resources>

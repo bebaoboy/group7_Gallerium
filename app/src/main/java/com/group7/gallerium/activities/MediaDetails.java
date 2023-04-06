@@ -1,84 +1,37 @@
 package com.group7.gallerium.activities;
 
-import androidx.annotation.NonNull;
-import androidx.annotation.Nullable;
-import androidx.appcompat.app.AppCompatActivity;
-
 import android.content.Context;
-import android.graphics.Bitmap;
-import android.graphics.BitmapFactory;
-import android.graphics.BitmapShader;
-import android.graphics.Canvas;
-import android.graphics.Color;
-import android.graphics.Paint;
-import android.graphics.Path;
-import android.graphics.RectF;
-import android.graphics.Shader;
-import android.graphics.drawable.BitmapDrawable;
-import android.graphics.drawable.Drawable;
-import android.location.Address;
-import android.location.Geocoder;
-import android.location.Location;
-import android.media.MediaExtractor;
-import android.media.MediaMetadataRetriever;
 import android.net.Uri;
 import android.os.Bundle;
 import android.os.ParcelFileDescriptor;
 import android.util.Log;
 import android.view.View;
 import android.webkit.MimeTypeMap;
-import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.appcompat.content.res.AppCompatResources;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
 import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 
-import com.bumptech.glide.Glide;
-import com.bumptech.glide.load.MultiTransformation;
-import com.bumptech.glide.load.Transformation;
-import com.bumptech.glide.load.engine.DiskCacheStrategy;
-import com.bumptech.glide.load.engine.Resource;
-import com.bumptech.glide.load.engine.bitmap_recycle.BitmapPool;
-import com.bumptech.glide.load.resource.bitmap.BitmapResource;
-import com.bumptech.glide.load.resource.bitmap.BitmapTransformation;
-import com.bumptech.glide.load.resource.bitmap.CenterCrop;
-import com.bumptech.glide.load.resource.bitmap.FitCenter;
-import com.bumptech.glide.request.target.CustomTarget;
-import com.bumptech.glide.request.target.ImageViewTarget;
-import com.bumptech.glide.request.target.Target;
-import com.bumptech.glide.request.transition.Transition;
 import com.drew.imaging.ImageMetadataReader;
-import com.drew.imaging.ImageProcessingException;
 import com.drew.metadata.Metadata;
 import com.drew.metadata.exif.GpsDirectory;
 import com.drew.metadata.mp4.Mp4Directory;
 import com.drew.metadata.mp4.media.Mp4MediaDirectory;
-import com.drew.metadata.mp4.media.Mp4MetaDirectory;
-import com.google.android.gms.maps.model.BitmapDescriptorFactory;
 import com.group7.gallerium.R;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
-import com.group7.gallerium.utilities.FileUtils;
+import com.group7.gallerium.utilities.MapUtils;
 
-import org.osmdroid.api.IMapController;
 import org.osmdroid.config.Configuration;
-import org.osmdroid.tileprovider.tilesource.TileSourceFactory;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
-import org.osmdroid.views.overlay.Marker;
 
-import java.io.File;
 import java.io.FileDescriptor;
-import java.io.FileInputStream;
 import java.io.IOException;
-import java.security.MessageDigest;
 import java.util.Arrays;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Locale;
 import java.util.Objects;
 
 public class MediaDetails extends AppCompatActivity {
@@ -123,104 +76,8 @@ public class MediaDetails extends AppCompatActivity {
             map.setVisibility(View.GONE);
         }
         else {
-            map.setTileSource(TileSourceFactory.MAPNIK);
-            map.setMultiTouchControls(false);
-            IMapController mapController = map.getController();
-            mapController.setZoom(19.0);
-            mapController.setCenter(location);
-            Marker startMarker = new Marker(map);
-            startMarker.setPosition(location);
-            startMarker.setAnchor(Marker.ANCHOR_CENTER, Marker.ANCHOR_CENTER);
-            var media = AccessMediaFile.getMediaWithPath(mediaPath);
-            startMarker.setTitle(media.getDateTimeTaken());
-
-
-            Geocoder geocoder;
-            List<Address> addresses;
-            geocoder = new Geocoder(this, Locale.getDefault());
-
-            try {
-                addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
-                String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
-                String city = addresses.get(0).getLocality();
-                String state = addresses.get(0).getAdminArea();
-                String country = addresses.get(0).getCountryName();
-                String postalCode = addresses.get(0).getPostalCode();
-                String knownName = addresses.get(0).getFeatureName(); // Only if available else return NULL
-                if (address != null) {
-                    startMarker.setTitle(address);
-                } else {
-                    startMarker.setTitle(String.join(", ", city, state, country));
-                }
-
-            } catch (IOException e) {
-
-            }
-
-            Target t = new CustomTarget() {
-                @Override
-                public void onResourceReady(@NonNull Object resource, @Nullable Transition transition) {
-                    var bm = (BitmapDrawable) resource;
-                    //image.setImageDrawable((BitmapDrawable) resource);
-                    startMarker.setIcon(bm);
-                }
-
-                @Override
-                public void onLoadCleared(@Nullable Drawable placeholder) {
-
-                }
-            };
-
-            Glide.with(this).load("file://" + media.getThumbnail())
-                    .dontAnimate()
-                    .override(Math.min(media.getWidth(), 450), Math.min(media.getHeight(), 410))
-                    .centerCrop()
-                    .transform(new BitmapTransformation() {
-                        @Override
-                        protected Bitmap transform(@NonNull BitmapPool pool, @NonNull Bitmap source, int outWidth, int outHeight) {
-                            int outerMargin = 10;
-                            int margin = 10;
-                            Bitmap output = Bitmap.createBitmap(outWidth, outHeight + 10, Bitmap.Config.ARGB_8888);
-                            Canvas canvas = new Canvas(output);
-
-                            Paint paintBorder = new Paint();
-                            paintBorder.setColor(getResources().getColor(R.color.primary_color_dark, getTheme()));
-                            paintBorder.setStrokeWidth(margin);
-                            canvas.drawRoundRect(new RectF(outerMargin, outerMargin, outWidth - outerMargin, outHeight - outerMargin), 0, 0, paintBorder);
-
-                            Paint trianglePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
-
-                            trianglePaint.setStrokeWidth(2);
-                            trianglePaint.setColor(getResources().getColor(R.color.primary_color_dark, getTheme()));
-                            trianglePaint.setStyle(Paint.Style.FILL_AND_STROKE);
-                            trianglePaint.setAntiAlias(true);
-
-                            Path triangle = new Path();
-                            triangle.setFillType(Path.FillType.EVEN_ODD);
-                            triangle.moveTo(outerMargin, outHeight / 2);
-                            triangle.lineTo(outWidth/2, outHeight +  10);
-                            triangle.lineTo(outWidth-outerMargin,outHeight / 2);
-                            triangle.close();
-
-                            canvas.drawPath(triangle, trianglePaint);
-
-                            final Paint paint = new Paint();
-                            paint.setAntiAlias(true);
-                            paint.setShader(new BitmapShader(source, Shader.TileMode.CLAMP, Shader.TileMode.CLAMP));
-                            canvas.drawRoundRect(new RectF(margin+outerMargin, margin+outerMargin, outWidth - (margin + outerMargin), outHeight - (margin + outerMargin)), 0, 0, paint);
-
-                            return output;
-                        }
-
-                        @Override
-                        public void updateDiskCacheKey(@NonNull MessageDigest messageDigest) {
-
-                        }
-                    })
-                    .diskCacheStrategy(DiskCacheStrategy.NONE)
-                    .into(t);
-
-            map.getOverlays().add(startMarker);
+            MapUtils.openMap(location, map);
+            MapUtils.addMarker(location, map, mediaPath, this, 450);
         }
     }
 
@@ -381,7 +238,10 @@ public class MediaDetails extends AppCompatActivity {
                 txtMediaTakenTime.setText(media.getDateTimeTaken());
                 txtExifData.setText("");
             }
-
+            if (media.getLocation() != null) {
+                txtLocation.setText("Lat: " + media.getLocation().getLatitude() + "\n" + "Long: " + media.getLocation().getLongitude());
+                this.location = media.getLocation();
+            } else {
             try {
                 Metadata m = ImageMetadataReader.readMetadata(getContentResolver().openInputStream(mediaUri));
                 if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg"))
@@ -406,6 +266,7 @@ public class MediaDetails extends AppCompatActivity {
             } catch (Exception e) {
                 txtLocation.setText("");
                 Log.d("tag", Arrays.toString(e.getStackTrace()) + e.getMessage());
+            }
             }
         }
     }
