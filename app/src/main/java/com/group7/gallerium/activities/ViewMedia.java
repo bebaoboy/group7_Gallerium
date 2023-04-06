@@ -3,7 +3,6 @@ package com.group7.gallerium.activities;
 import android.app.Activity;
 import android.content.Intent;
 import android.content.SharedPreferences;
-import android.content.pm.ResolveInfo;
 import android.database.Cursor;
 import android.graphics.Color;
 import android.media.MediaScannerConnection;
@@ -99,6 +98,8 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
+
+    ActivityResultLauncher<Intent> startForResult;
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
     SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
@@ -166,7 +167,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         renameBottomDialogFragment.renameAgain();
                     }
                 });
-
         //loadFFMpegBinary();
 
     }
@@ -534,17 +534,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         }
                     }else{
                         if (AccessMediaFile.getMediaWithPath(mediaPath).getMimeType().endsWith("mp4")) {
-//                            String inputFileAbsolutePath = mediaPath;
-//                            String outputFileAbsolutePath = mediaPath;
-//                            String[] command =
-//                                    {"-y", "-i", inputFileAbsolutePath, "-s",
-//                                            "160x120", "-r", "25", "-vcodec", "mpeg4",
-//                                            "-b:v", "150k", "-b:a", "48000", "-ac", "2",
-//                                            "-ar", "22050", outputFileAbsolutePath};
-                            var name = "G-trimmed-" + System.currentTimeMillis();
-
-
-                            //execFFmpegBinary(command);
+                            intent = new Intent(this, VideoTrimActivity.class);
+                            intent.putExtra("path", mediaPath);
+                            startActivity(intent);
                         }
                     }
                 }
@@ -644,7 +636,6 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         } else {
                             String outputPath = Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "Restore";
                             File folder = new File(outputPath);
-                            File file = new File(mediaFile.getPath());
                             File desImgFile = new File(outputPath, mediaFile.getName());
                             if (!folder.exists()) {
                                 folder.mkdir();
@@ -658,7 +649,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 }
 
                 case R.id.remove_from_secured_nav_item -> {
-                    if (AccessMediaFile.getMediaWithPath(mediaPath).getTitle().startsWith(".gtrashed-")) {
+                    if (AccessMediaFile.getMediaWithPath(mediaPath) != null && AccessMediaFile.getMediaWithPath(mediaPath).getTitle().startsWith(".gtrashed-")) {
                         try {
                             fileUtils.restoreFileMultiple(new ArrayList<>(List.of(AccessMediaFile.getMediaWithPath(mediaPath))));
                             SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);

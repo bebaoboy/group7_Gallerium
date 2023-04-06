@@ -1,5 +1,9 @@
 package com.group7.gallerium.models;
 
+import android.util.Log;
+
+import androidx.loader.app.LoaderManager;
+
 import org.osmdroid.util.GeoPoint;
 
 import java.text.SimpleDateFormat;
@@ -26,6 +30,8 @@ public class Media {
     private int height;
     private int bitrate;
     private String resolution;
+    private String knownLocation = "";
+    private String address;
 
     public Media() {
 
@@ -53,11 +59,21 @@ public class Media {
     }
 
     public String getDateTaken() {
-        return dateFormat.format(dateTaken);
+        try {
+            return dateFormat.format(dateTaken);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+            return "";
+        }
     }
 
     public String getDateTimeTaken(){
-        return dateFormatWithTime.format(dateTaken);
+        try {
+            return dateFormatWithTime.format(dateTaken);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+            return "";
+        }
     }
 
     public long getRawDate() {
@@ -173,5 +189,24 @@ public class Media {
         }
         this.location[0] = lat;
         this.location[1] = longt;
+    }
+
+    public void setKnownLocation(String address) {
+        if (address != null)
+        {
+            knownLocation = address;
+        }
+    }
+
+    public void setAddress(String a) {
+        address = a;
+    }
+
+    public String getKnownLocation() {
+        return knownLocation;
+    }
+
+    public String getAddress() {
+        return address;
     }
 }

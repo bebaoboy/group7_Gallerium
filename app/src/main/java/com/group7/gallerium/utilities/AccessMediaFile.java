@@ -26,8 +26,8 @@ import java.util.stream.Collectors;
 
 public class AccessMediaFile {
     public static final int DATE_DESC = 0, DATE_ASC = 1, SIZE_DESC = 2, SIZE_ASC = 3,
-            SIZE_DESC_NO_GROUP = 4,  SIZE_ASC_NO_GROUP = 5;
-    public static final int SORT_MODE_COUNT = 6;
+            SIZE_DESC_NO_GROUP = 4,  SIZE_ASC_NO_GROUP = 5, LOC_GROUP = 6;
+    public static final int SORT_MODE_COUNT = 7;
     //public static List<Media> allMedia;
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();

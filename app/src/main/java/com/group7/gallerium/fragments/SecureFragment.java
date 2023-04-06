@@ -161,7 +161,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         if(countDownTimer != null)
             countDownTimer.cancel();
         view.invalidate();
-        if (txtPass.getText().toString().equals(password)) {
+        if (txtPass.getText().toString().equals(password) && !password.isEmpty()) {
             txtPass.setEnabled(false);
             txtPass.setText(password);
             txtPass.setVisibility(View.GONE);

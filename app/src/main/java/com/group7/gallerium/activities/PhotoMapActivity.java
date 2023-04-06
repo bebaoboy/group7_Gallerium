@@ -66,39 +66,37 @@ public class PhotoMapActivity extends AppCompatActivity {
                 for (var media : AccessMediaFile.getAllMedia(context)) {
                     if (!isRunning) break;
                     try {
-                        Uri mediaUri = Uri.parse("file://" + media.getPath());
-                        var u = context.getContentResolver().openInputStream(mediaUri);
-                        Metadata m = ImageMetadataReader.readMetadata(u);
-                        if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg")) {
-                            var location = m.getFirstDirectoryOfType(GpsDirectory.class);
-                            if (location != null) {
-                                var locationData = location.getGeoLocation();
-                                if (locationData != null) {
-                                    media.setLocation(locationData.getLatitude(), locationData.getLongitude());
+                        if (media.getLocation() == null) {
+                            Uri mediaUri = Uri.parse("file://" + media.getPath());
+                            var u = context.getContentResolver().openInputStream(mediaUri);
+                            Metadata m = ImageMetadataReader.readMetadata(u);
+                            if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg")) {
+                                var location = m.getFirstDirectoryOfType(GpsDirectory.class);
+                                if (location != null) {
+                                    var locationData = location.getGeoLocation();
+                                    if (locationData != null) {
+                                        media.setLocation(locationData.getLatitude(), locationData.getLongitude());
+                                    }
                                 }
                             }
-                        }
-                        if (media.getMimeType().endsWith("mp4")) {
-                            var location = m.getFirstDirectoryOfType(Mp4Directory.class);
-                            if (location != null && location.containsTag(Mp4MediaDirectory.TAG_LATITUDE)) {
-                                media.setLocation(location.getFloat(Mp4MediaDirectory.TAG_LATITUDE), location.getFloat(Mp4MediaDirectory.TAG_LONGITUDE));
+                            if (media.getMimeType().endsWith("mp4")) {
+                                var location = m.getFirstDirectoryOfType(Mp4Directory.class);
+                                if (location != null && location.containsTag(Mp4MediaDirectory.TAG_LATITUDE)) {
+                                    media.setLocation(location.getFloat(Mp4MediaDirectory.TAG_LATITUDE), location.getFloat(Mp4MediaDirectory.TAG_LONGITUDE));
+                                }
                             }
+
+                            u.close();
                         }
                         if (media.getLocation() != null) {
                             MapUtils.addMarker(media.getLocation(), map, media.getPath(), context, 280);
                         }
-                        u.close();
                     } catch (Exception e) {
                         Log.d("load-map", Arrays.toString(e.getStackTrace()) + e.getMessage());
                     }
                 }
 
                 return null;
-            }
-
-            @Override
-            protected void onPostExecute(Void unused) {
-                super.onPostExecute(unused);
             }
         };
         a.execute();

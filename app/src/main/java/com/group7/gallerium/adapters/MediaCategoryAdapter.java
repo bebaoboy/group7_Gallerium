@@ -158,19 +158,11 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, RecyclerVie
                 holder.slider.startAutoCycle();
             }
             var today = Calendar.getInstance();
-            holder.datePicker.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    builder.build().show();
-                }
-            });
-            holder.mapPicker.setOnClickListener(new View.OnClickListener() {
-                @Override
-                public void onClick(View view) {
-                    var intent = new Intent(context, PhotoMapActivity.class);
-                    intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-                    context.startActivity(intent);
-                }
+            holder.datePicker.setOnClickListener(view -> builder.build().show());
+            holder.mapPicker.setOnClickListener(view -> {
+                var intent = new Intent(context, PhotoMapActivity.class);
+                intent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
+                context.startActivity(intent);
             });
 
         } else {
@@ -274,6 +266,7 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, RecyclerVie
     @NonNull
     @Override
     public String getSectionName(int position) {
+        if(position == -1) return "";
         if (getItemViewType(position) == 2) return "";
         if (getItem(position).getNameCategory().isEmpty()) {
             if (getItem(position).getBackup().isEmpty()) {

@@ -65,6 +65,9 @@
         android:theme="@style/Theme.Group7_PhotoViewer"
         tools:targetApi="33">
         <activity
+            android:name=".activities.VideoTrimActivity"
+            android:exported="false" />
+        <activity
             android:name=".activities.PhotoMapActivity"
             android:exported="false" />
 

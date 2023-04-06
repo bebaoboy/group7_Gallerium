@@ -8,11 +8,13 @@ import android.content.ContentValues;
 import android.content.Context;
 import android.content.IntentSender;
 import android.database.Cursor;
+import android.graphics.Bitmap;
 import android.net.Uri;
 import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.webkit.MimeTypeMap;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -67,6 +69,25 @@ public class FileUtils {
             }
         }catch (Exception e){
             Log.d("tag", e.getMessage());
+        }
+    }
+
+    public void saveImageToMediaStore(Context context, Bitmap bitmap) {
+        ContentValues values = new ContentValues();
+        values.put(MediaStore.Images.Media.DISPLAY_NAME, "image_name");
+        values.put(MediaStore.Images.Media.MIME_TYPE, "image/jpeg");
+        values.put(MediaStore.Images.Media.DATE_ADDED, System.currentTimeMillis());
+        values.put(MediaStore.Images.Media.DATE_TAKEN, System.currentTimeMillis());
+        Uri uri = context.getContentResolver().insert(MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
+        OutputStream outstream;
+        try {
+            outstream = context.getContentResolver().openOutputStream(uri);
+            bitmap.compress(Bitmap.CompressFormat.JPEG, 100, outstream);
+            outstream.close();
+            Toast.makeText(context, "Image saved successfully", Toast.LENGTH_SHORT).show();
+        } catch (Exception e) {
+            Toast.makeText(context, "Error while saving image", Toast.LENGTH_SHORT).show();
+            e.printStackTrace();
         }
     }
 
@@ -256,13 +277,39 @@ public class FileUtils {
         }
     }
 
+    String getMimeType(String path) {
+        String type = null;
+        String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension.isBlank()) {
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        }
+        if (extension != null) {
+            type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+        }
+        Log.d("mime-type", type
+        );
+        return type;
+    }
+
     public Uri insertMediaToMediaStore(@NonNull Context context, @NonNull String inputPath, @NonNull String outputPath) {
         Cursor cursor;
+        String name = "";
+        String[] parse;
+        int mediaType = 1;
         Media media = AccessMediaFile.getMediaWithPath(inputPath);
-        String[] parse = media.getPath().split("/");
-        String name = parse[parse.length - 1];
+        if(media != null){
+            parse = media.getPath().split("/");
+            name = parse[parse.length - 1];
+        }else{
+            parse = inputPath.split("/");
+            name = parse[parse.length - 1];
+        }
+
         if (name.strip().length() == 0) return null;
-        int mediaType = media.getType();
+        if(media != null) mediaType = media.getType();
+        else{
+            mediaType = 3;
+        }
         if (mediaType == 1) {
             cursor = context.getContentResolver().query(
                     MediaStore.Images.Media.EXTERNAL_CONTENT_URI
@@ -296,7 +343,10 @@ public class FileUtils {
                         picCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
                     }
                     values.put(MediaStore.Images.Media.DISPLAY_NAME, name);
-                    values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
+                    if(media != null)
+                        values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
+                    else
+                        values.put(MediaStore.Images.Media.MIME_TYPE, getMimeType(inputPath));
                     values.put(MediaStore.Images.Media.RELATIVE_PATH, outputPath);
                     values.put(MediaStore.Images.Media.IS_PENDING, 0);
 
@@ -307,7 +357,10 @@ public class FileUtils {
                         vidCollection = MediaStore.Downloads.EXTERNAL_CONTENT_URI;
                     }
                     values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
-                    values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
+                    if(media != null)
+                        values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
+                    else
+                        values.put(MediaStore.Images.Media.MIME_TYPE, getMimeType(inputPath));
                     values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
                     values.put(MediaStore.Video.Media.IS_PENDING, 0);
 
@@ -315,7 +368,11 @@ public class FileUtils {
                 }
             } else {
                 ContentValues values = new ContentValues();
-                values.put(MediaStore.Images.Media.DATA, media.getPath());
+                if(media != null)
+                    values.put(MediaStore.Images.Media.DATA, media.getPath());
+                else{
+                    values.put(MediaStore.Images.Media.DATA, inputPath);
+                }
                 return context.getContentResolver().insert(
                         MediaStore.Images.Media.EXTERNAL_CONTENT_URI, values);
             }
@@ -423,8 +480,12 @@ public class FileUtils {
                 String inputPath = m.getPath();
                 if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
                     //outputFolderUri = getUriOfFolder(context, outputPath);
-                    outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
-
+                    try {
+                        outputFile = insertMediaToMediaStore(context, inputPath, relativePath.toString());
+                    }catch(Exception e){
+                        Log.d("tag", e.getMessage());
+                        continue;
+                    }
                     try (InputStream inputStream = new FileInputStream(inputPath)) { //input stream
 
                         OutputStream out = context.getContentResolver().openOutputStream(outputFile); //output stream

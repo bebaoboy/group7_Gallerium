@@ -43,4 +43,18 @@
         <categories android:name="android.shortcut.conversation" />
         <capability-binding android:key="actions.intent.GET_THING" />
     </shortcut>
+
+    <shortcut
+        android:shortcutId="photoMap"
+        android:enabled="true"
+        android:icon="@drawable/ic_map"
+        android:shortcutShortLabel="@string/open_map"
+        android:shortcutLongLabel="@string/open_map">
+        <intent
+            android:action="android.intent.action.EDIT"
+            android:targetPackage="com.group7.gallerium"
+            android:targetClass="com.group7.gallerium.activities.PhotoMapActivity" />
+        <categories android:name="android.shortcut.conversation" />
+        <capability-binding android:key="actions.intent.GET_THING" />
+    </shortcut>
 </shortcuts>

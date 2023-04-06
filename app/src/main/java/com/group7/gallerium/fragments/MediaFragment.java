@@ -5,7 +5,6 @@ import static android.content.Context.MODE_PRIVATE;
 import android.Manifest;
 import android.animation.Animator;
 import android.app.Activity;
-import android.app.AlertDialog;
 import android.app.SearchManager;
 import android.content.Context;
 import android.content.Intent;
@@ -14,7 +13,12 @@ import android.content.pm.PackageManager;
 import android.content.res.Configuration;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteCursor;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
+import android.graphics.Canvas;
 import android.icu.util.Calendar;
+import android.location.Address;
+import android.location.Geocoder;
 import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.AsyncTask;
@@ -33,7 +37,6 @@ import android.view.MenuItem;
 import android.view.View;
 import android.view.ViewGroup;
 import android.view.animation.DecelerateInterpolator;
-import android.widget.AutoCompleteTextView;
 import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
@@ -58,7 +61,6 @@ import com.drew.metadata.mp4.Mp4Directory;
 import com.drew.metadata.mp4.media.Mp4MediaDirectory;
 import com.google.android.material.bottomsheet.BottomSheetBehavior;
 import com.google.android.material.bottomsheet.BottomSheetDialog;
-import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.CameraActivity;
@@ -78,16 +80,14 @@ import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.SuggestionsDatabase;
 import com.whiteelephant.monthpicker.MonthPickerDialog;
 
-import org.osmdroid.util.GeoPoint;
-
 import java.io.File;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
 import java.util.List;
+import java.util.Locale;
 import java.util.Map;
 import java.util.Objects;
 import java.util.stream.Collectors;
@@ -143,7 +143,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     SearchView searchView;
     private ArrayList<Media> sliderImageList = new ArrayList<>();
     private MonthPickerDialog.Builder builder;
-    String query = "";
+    String query = "", dateQuery = "";
     boolean booting = true;
     CountDownTimer sliderCd = new CountDownTimer(0, 0) {
         @Override
@@ -156,6 +156,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         }
     };
+    private AsyncTask<Void, Integer, Void> locationThread;
 
     @Override
     public void onCreate(Bundle savedInstanceState) {
@@ -236,7 +237,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
     }
 
-     ActivityResultLauncher<IntentSenderRequest> launcher;
+    ActivityResultLauncher<IntentSenderRequest> launcher;
 
     @Override
     public void onStart() {
@@ -248,7 +249,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     @Override
                     public void onDateSet(int selectedMonth, int selectedYear) {
                         selectedMonth ++;
-                        query = "-" + (selectedMonth < 10 ? "0" + selectedMonth : selectedMonth) + "-" + selectedYear;
+                        dateQuery = "-" + (selectedMonth < 10 ? "0" + selectedMonth : selectedMonth) + "-" + selectedYear;
                         isSearching = true;
                         refresh();
                     }
@@ -420,7 +421,20 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
                         // This method performs the actual data-refresh operation.
                         // The method calls setRefreshing(false) when it's finished.
+                        sliderCd  = new CountDownTimer(1000, 500) {
+                            @Override
+                            public void onTick(long l) {
+
+                            }
+
+                            @Override
+                            public void onFinish() {
+                                booting = false;
+                                adapter.setSliderImageList(sliderImageList);
+                            }
+                        };
                         refresh(false);
+                        sliderCd.start();
                     }
                 }
         );
@@ -652,7 +666,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
         else {
             if (ActivityCompat.checkSelfPermission(context, Manifest.permission.WRITE_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED
-                && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
+                    && ActivityCompat.checkSelfPermission(context, Manifest.permission.READ_EXTERNAL_STORAGE) == PackageManager.PERMISSION_GRANTED) {
                 fileUtils.trashFileMultiple(selectedMedia);
             }
             callback.onDestroyActionMode(mode);
@@ -689,17 +703,23 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
     public void refresh() {
         Log.d("refresh", "");
-        mediaListTask = new MediaListTask();
-        mediaListTask.execute();
+        if (mediaListTask == null) {
+            mediaListTask = new MediaListTask();
+            mediaListTask.execute();
+        }
     }
 
     public void refresh(boolean scroll) {
         if (mode == null) {
+            dateQuery = "";
             isSearching = false;
+            locationThread = null;
             if (!swipeLayout.isRefreshing() || !scroll) {
                 Log.d("refresh with result", "");
-                mediaListTask = new MediaListTask(scroll);
-                mediaListTask.execute();
+                if (mediaListTask == null) {
+                    mediaListTask = new MediaListTask(scroll);
+                    mediaListTask.execute();
+                }
             }
         }
         else {
@@ -740,6 +760,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     case AccessMediaFile.SIZE_ASC -> "Size tăng dần theo ngày";
                     case AccessMediaFile.SIZE_DESC_NO_GROUP -> "Size giảm dần";
                     case AccessMediaFile.SIZE_ASC_NO_GROUP -> "Size tăng dần";
+                    case AccessMediaFile.LOC_GROUP -> "Vị trí";
                     default -> "Ngày tăng dần";
                 }
                 + ")");
@@ -749,17 +770,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
 
         toolbar.getMenu().findItem(R.id.set_display_menu_item).setOnMenuItemClickListener(menuItem -> {
-           if(uiMode == UI_MODE_GRID){
-               uiMode = UI_MODE_LIST;
-           }else{
-               uiMode = UI_MODE_GRID;
-           }
+            if(uiMode == UI_MODE_GRID){
+                uiMode = UI_MODE_LIST;
+            }else{
+                uiMode = UI_MODE_GRID;
+            }
 
-           SharedPreferences.Editor editor = sharedPreferences.edit();
+            SharedPreferences.Editor editor = sharedPreferences.edit();
 
-           editor.putInt("ui_mode", uiMode);
-           editor.apply();
-           refresh();
+            editor.putInt("ui_mode", uiMode);
+            editor.apply();
+            refresh(false);
 
             return false;
         });
@@ -820,6 +841,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             public boolean onQueryTextChange(String newText) {
                 if (newText.isBlank()) {
                     isSearching = false;
+                    query = "";
                 } else {
                     isSearching = true;
                 }
@@ -843,6 +865,42 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 }
             }
         });
+    }
+
+    public Bitmap getBitmapFromAbsolutePath(String path) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        return bitmap;
+    }
+
+    public Bitmap combineImages(Bitmap[] bitmaps) {
+        Bitmap cs = null;
+
+        int width= 0, height = 0;
+
+        for (int i = 0; i < bitmaps.length; i++) {
+            if (bitmaps[i].getWidth() > bitmaps[i].getWidth()) {
+                width += bitmaps[i].getWidth();
+                height = bitmaps[i].getHeight();
+            } else {
+                width += bitmaps[i].getWidth();
+                height = bitmaps[i].getHeight();
+            }
+        }
+
+        cs = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        Canvas comboImage = new Canvas(cs);
+
+        int currentWidth = 0;
+
+        for (int i = 0; i < bitmaps.length; i++) {
+            comboImage.drawBitmap(bitmaps[i], currentWidth, 0f, null);
+            currentWidth += bitmaps[i].getWidth();
+        }
+
+        return cs;
     }
 
 
@@ -873,13 +931,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     case AccessMediaFile.SIZE_ASC -> "Size tăng dần theo ngày";
                     case AccessMediaFile.SIZE_DESC_NO_GROUP -> "Size giảm dần";
                     case AccessMediaFile.SIZE_ASC_NO_GROUP -> "Size tăng dần";
+                    case AccessMediaFile.LOC_GROUP -> "Vị trí";
                     default -> "Ngày tăng dần";
                 }
                 + ")");
 
         if (sortMode != 1) {
             swipeLayout.setRefreshing(true);
-            refresh(true);
+            refresh(false);
         } else {
             refresh();
         }
@@ -939,13 +998,13 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 if (media.getTitle().toLowerCase().contains(query)) {
                     listMedia.add(media);
                 }
-                if (media.getDateTaken().toLowerCase().contains(query)) {
+                else if (media.getDateTaken().toLowerCase().contains(query)) {
                     listMedia.add(media);
                 }
-                if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
+                else if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
                     listMedia.add(media);
                 }
-                if (sortMode >= 4) {
+                else if (sortMode >= 4) {
                     String s = media.getSize();
                     var ext = s.substring(s.length() - 2);
                     s = s.substring(0, s.length() - 2);
@@ -957,9 +1016,17 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     }
                 }
             }
+            if (!dateQuery.isEmpty()) {
+                listMedia.removeIf(media -> !media.getDateTaken().toLowerCase().contains(dateQuery));
+            }
         }
-        else {
+        else
+        {
             listMedia = allMedias;
+        }
+
+        if (sortMode == 6) {
+            listMedia.removeIf(media -> !media.getMimeType().endsWith("jpg")  && !media.getMimeType().endsWith("jpeg") && !media.getMimeType().endsWith("mp4"));
         }
 
         try {
@@ -969,13 +1036,63 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //            } else {
 //
 //            }
-
+            Geocoder geocoder;
+            List<Address> addresses = new ArrayList<>();
+            geocoder = new Geocoder(context, Locale.getDefault());
             for (int i = 0; i < listMedia.size(); i++) {
                 if (listMedia.get(i).getRawDate() == 0) {
                     continue;
                 }
                 var catName = listMedia.get(i).getDateTaken();
-                if (sortMode >= 4) {
+                if (sortMode == AccessMediaFile.LOC_GROUP) {
+                    var media = listMedia.get(i);
+                    if (media.getLocation() == null) {
+                        Uri mediaUri = Uri.parse("file://" + media.getPath());
+                        try {
+                            var u = context.getContentResolver().openInputStream(mediaUri);
+                            Metadata m = ImageMetadataReader.readMetadata(u);
+                            if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg")) {
+                                var location = m.getFirstDirectoryOfType(GpsDirectory.class);
+                                if (location != null) {
+                                    var locationData = location.getGeoLocation();
+                                    if (locationData != null) {
+                                        media.setLocation(locationData.getLatitude(), locationData.getLongitude());
+                                    }
+                                }
+                            }
+                            else if (media.getMimeType().endsWith("mp4")) {
+                                var location = m.getFirstDirectoryOfType(Mp4Directory.class);
+                                if (location != null && location.containsTag(Mp4MediaDirectory.TAG_LATITUDE)) {
+                                    media.setLocation(location.getFloat(Mp4MediaDirectory.TAG_LATITUDE), location.getFloat(Mp4MediaDirectory.TAG_LONGITUDE));
+                                }
+                            }
+
+                            u.close();
+                        } catch (Exception e) {
+                        }
+                    }
+                    if (media.getLocation() != null) {
+                        var location = media.getLocation();
+                        try {
+                            addresses = geocoder.getFromLocation(location.getLatitude(), location.getLongitude(), 1); // Here 1 represent max location result to returned, by documents it recommended 1 to 5
+                            if (addresses.size() > 0) {
+                                String address = addresses.get(0).getAddressLine(0); // If any additional address line present than only, check with max available address lines by getMaxAddressLineIndex()
+                                String city = addresses.get(0).getLocality();
+                                String state = addresses.get(0).getAdminArea();
+                                String country = addresses.get(0).getCountryName();
+                                String postalCode = addresses.get(0).getPostalCode();
+                                String substate = addresses.get(0).getSubAdminArea();
+                                media.setAddress(address.substring(0, address.indexOf(",", address.indexOf(",") + 1)));
+                                media.setKnownLocation(String.join(", ", substate, state, country));
+                            }
+                        } catch (Exception e) {
+
+                        }
+                    }
+                    catName = listMedia.get(i).getKnownLocation();
+                    if (catName.isEmpty()) continue;
+                }
+                else if (sortMode >= 4) {
                     // catName = "";
                     String s = listMedia.get(i).getSize();
                     var ext = s.substring(s.length() - 2);
@@ -983,13 +1100,10 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     double size = Double.parseDouble(s);
                     int roundedSize = (int)Math.floor(size);
                     catName = roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
-                    if (!categoryList.containsKey(catName)) {
-                        categoryList.put(catName, new MediaCategory(catName, new ArrayList<>()));
-                    }
-                } else {
-                    if (!categoryList.containsKey(catName)) {
-                        categoryList.put(catName, new MediaCategory(catName, new ArrayList<>()));
-                    }
+
+                }
+                if (!categoryList.containsKey(catName)) {
+                    categoryList.put(catName, new MediaCategory(catName, new ArrayList<>()));
                 }
 
                 categoryList.get(catName).addMediaToList(listMedia.get(i));
@@ -1000,7 +1114,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             var newCatList = new ArrayList<MediaCategory>();
             int partitionSize = numGrid == 3 ? 30 : numGrid == 4 ? 24 : 20;
             for (var cat : categoryList.values()) {
-                if (sortMode >= 4) {
+                if (sortMode >= 4 && sortMode < 6) {
                     if (uiMode == UI_MODE_LIST) {
                         cat.setNameCategory("");
                     }
@@ -1022,6 +1136,12 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     if (c.getNameCategory().isEmpty() && sortMode < 4) {
                         c.setNameCategory("   " + c.getList().get(0).getTimeTaken());
                         c.setBackup(cat.getNameCategory());
+                    }
+                    if (sortMode == 6) {
+                        c.setBackup("  " + c.getList().get(0).getAddress());
+                        if (c.getNameCategory().isEmpty()) {
+                            c.setNameCategory(c.getBackup());
+                        }
                     }
                     newCatList.add(c);
 
@@ -1331,6 +1451,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             }
 
             swipeLayout.setRefreshing(false);
+            mediaListTask = null;
 
         }
 
@@ -1346,14 +1467,14 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             mediaCategories = temp;
             if ((scroll && !swipeLayout.isRefreshing()) || isSearching) sliderImageList.clear();
             if (sliderImageList.size() == 0) {
-                    sliderImageList = new ArrayList<>(listMedia);
-                    Collections.shuffle(sliderImageList);
-                    if (sliderImageList.size() >= 10) {
-                        sliderImageList = sliderImageList.stream().limit(10).collect(Collectors.toCollection(ArrayList::new));
-                    }
-                    else {
-                        sliderImageList.clear();
-                    }
+                sliderImageList = new ArrayList<>(listMedia);
+                Collections.shuffle(sliderImageList);
+                if (sliderImageList.size() >= 10) {
+                    sliderImageList = sliderImageList.stream().limit(10).collect(Collectors.toCollection(ArrayList::new));
+                }
+                else {
+                    sliderImageList.clear();
+                }
             }
 
             return null;
