@@ -2,14 +2,21 @@ package com.group7.gallerium.utilities;
 
 import android.content.Context;
 import android.database.Cursor;
+import android.media.MediaScannerConnection;
 import android.net.Uri;
 import android.os.Build;
+import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Pair;
+import android.webkit.MimeTypeMap;
+
+import androidx.annotation.NonNull;
 
 import com.group7.gallerium.models.Media;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
@@ -22,6 +29,34 @@ import java.util.stream.Collectors;
 
 public class AccessMediaFile {
 
+    @NonNull
+    public static HashMap<Pair<Double, Double>, Integer> allLocations = new HashMap<>();
+    private static ArrayList<String> locs = new ArrayList<>();
+    private static HashMap<String, Pair<Double, Double>> pathLocs = new HashMap<>();
+
+    public static void addToLoc(double lat, double longt, String s, String path) {
+        var i = locs.indexOf(s);
+        if (i == -1) {
+            locs.add(s);
+            i = locs.size() - 1;
+        }
+        var p = new Pair<>(lat, longt);
+        allLocations.put(p, i);
+        pathLocs.put(path, p);
+    }
+
+    public static Pair<Double, Double> getLocFromPath(String path) {
+        return pathLocs.get(path);
+    }
+
+    public static String getFromLoc(double lat, double longt) {
+        var t = allLocations.get(new Pair<>(lat, longt));
+        if (t == null) return null;
+        return locs.get(t);
+    }
+    public static final int DATE_DESC = 0, DATE_ASC = 1, SIZE_DESC = 2, SIZE_ASC = 3,
+            SIZE_DESC_NO_GROUP = 4,  SIZE_ASC_NO_GROUP = 5, LOC_GROUP = 6;
+    public static final int SORT_MODE_COUNT = 7;
     //public static List<Media> allMedia;
     private static HashMap<String, Media> allMedia = new HashMap<>();
     private static HashMap<String, Boolean> allFavMedia = new HashMap<>();
@@ -48,9 +83,8 @@ public class AccessMediaFile {
             MediaStore.Files.FileColumns.HEIGHT,
             MediaStore.Files.FileColumns.DURATION,
             MediaStore.Files.FileColumns.SIZE,
-            MediaStore.Files.FileColumns.BITRATE
-
-
+            MediaStore.Files.FileColumns.BITRATE,
+            MediaStore.Files.FileColumns.IS_TRASHED
     };
     static String selection = MediaStore.Files.FileColumns.MEDIA_TYPE + "="
             + MediaStore.Files.FileColumns.MEDIA_TYPE_IMAGE
@@ -83,6 +117,12 @@ public class AccessMediaFile {
         }).collect(Collectors.toList());
     }
 
+    public static Set<String> getFavMedia() {
+        var s = allFavMedia.keySet();
+        s.removeIf(x -> !allMedia.containsKey(x));
+        return new HashSet<>(s);
+    }
+
     public static void setAllYourALbum(Set<String> paths) {
         allYourAlbum.clear();
         paths.forEach(AccessMediaFile::addToYourAlbum);
@@ -100,14 +140,8 @@ public class AccessMediaFile {
         return allYourAlbum.keySet().stream().sorted(Comparator.naturalOrder()).collect(Collectors.toCollection(LinkedHashSet::new));
     }
 
-    public static Set<String> getFavMedia() {
-        var s = allFavMedia.keySet();
-        s.removeIf(x -> !allMedia.containsKey(x));
-        return new HashSet<>(s);
-    }
-
     public static boolean isExistedAnywhere(String path) {
-        return allFavMedia.containsKey(path) || allTrashedMedia.containsKey(path);
+        return allFavMedia.containsKey(path);
     }
 
     private static HashMap<String, Media> getAllMedia() {
@@ -115,6 +149,7 @@ public class AccessMediaFile {
     }
 
     public static Media getMediaWithPath(String path){
+        if (!allMedia.containsKey(path)) return new Media();
         return allMedia.get(path);
     }
     public static void refreshAllMedia(){
@@ -134,6 +169,32 @@ public class AccessMediaFile {
     public static void removeMediaFromAllMedia(String path) {  // remove deleted media from "database"
         allMedia.remove(path);
         refreshAllMedia();
+    }
+
+    public static ArrayList<Media> getAllMedia(Context context, int mode) {
+        ArrayList<Media> tempMedias;
+        switch (mode) {
+            case DATE_ASC: { // ngày tăng dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                Collections.reverse(tempMedias);
+                break;
+            }
+            case SIZE_DESC_NO_GROUP: { // size giảm dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                tempMedias.sort(Comparator.comparingLong(Media::getRealSize).reversed());
+                break;
+            }
+            case SIZE_ASC_NO_GROUP: { // size tăng dần
+                tempMedias = new ArrayList<>(getAllMedia(context));
+                tempMedias.sort(Comparator.comparingLong(Media::getRealSize));
+                break;
+            }
+            default: { // ngày giảm dần
+                tempMedias = getAllMedia(context);
+                break;
+            }
+        }
+        return tempMedias;
     }
 
     public static ArrayList<Media> getAllMedia(Context context) {
@@ -215,14 +276,23 @@ public class AccessMediaFile {
                 title = cursor.getString(titleColumn);
 //                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
 //                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
-                if (mimeType!=null && mimeType.startsWith("video")) {
-                    videoLength = cursor.getLong(videoLengthColumn);
+                try {
+                    if (mimeType != null && mimeType.startsWith("video")) {
+                        videoLength = cursor.getLong(videoLengthColumn);
+                    }
+                } catch (Exception e) {
+                    videoLength = 0;
                 }
                 width = cursor.getInt(widthColumn);
                 height = cursor.getInt(heightColumn);
                 size = cursor.getLong(sizeColumn);
-                bitrate = cursor.getInt(bitrateColumn);
-                res = cursor.getString(resColumn);
+                try {
+                    bitrate = cursor.getInt(bitrateColumn);
+                    res = cursor.getString(resColumn);
+                }  catch (Exception e) {
+                    bitrate = 0;
+                    res = "";
+                }
 
                 Media media = new Media();
                 media.setPath(absolutePath);
@@ -282,5 +352,66 @@ public class AccessMediaFile {
             cached = false;
         }
         return getAllMedia();
+    }
+
+    public static void setAllTrashMedia(Set<String> paths) {
+        allTrashedMedia.clear();
+        for(var p : paths) {
+            if (!allMedia.containsKey(p))  {
+                addToTrashMedia(p);
+            }
+        }
+        for(var m : allTrashedMedia.keySet()) {
+            if (allMedia.containsKey(m)) continue;
+            var media = new Media();
+            media.setPath(m);
+            media.setTitle(m.substring(m.lastIndexOf("/") + 1));
+            media.setThumbnail(m);
+            var extension = m.substring(m.lastIndexOf(".") + 1);
+            var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            media.setMimeType(type);
+            if (type.startsWith("image")) {
+                media.setType(1);
+            } else {
+                media.setType(3);
+            }
+            allMedia.putIfAbsent(media.getPath(), media);
+        }
+    }
+
+    public static void addToTrashMedia(String path) {
+        allTrashedMedia.put(path, false);
+        for(var m : allTrashedMedia.keySet()) {
+            if (allMedia.containsKey(m)) continue;
+            var media = new Media();
+            media.setPath(m);
+            media.setTitle(m.substring(m.lastIndexOf("/") + 1));
+            media.setThumbnail(m);
+            var extension = path.substring(path.lastIndexOf(".") + 1);
+            var type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
+            media.setMimeType(type);
+            if (type.startsWith("image")) {
+                media.setType(1);
+            } else {
+                media.setType(3);
+            }
+            allMedia.put(media.getPath(), media);
+        }
+    }
+
+    public static void removeFromTrashMedia(String path) {
+        allTrashedMedia.remove(path);
+    }
+
+    public static Set<String> getAllTrashMedia() {
+        var s = new ArrayList<>(allTrashedMedia.keySet());
+        s.sort(new Comparator<String>() {
+            @Override
+            public int compare(String s, String t1) {
+                return s.substring(0, s.indexOf("-", s.indexOf("-") + 1))
+                        .compareTo(t1.substring(0, t1.indexOf("-", t1.indexOf("-") + 1)));
+            }
+        });
+        return new HashSet<>(s);
     }
 }

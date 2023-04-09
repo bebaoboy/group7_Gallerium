@@ -6,7 +6,10 @@
     android:layout_height="wrap_content"
     android:layout_marginBottom="5dp"
     app:cardCornerRadius="2dp"
-    app:cardElevation="2dp"
+    android:checkable="false"
+    app:checkedIconGravity="TOP_START"
+    app:checkedIconTint="@color/white"
+    android:id="@+id/media_card"
     style="@style/PhotoCardView"
     >
 
@@ -18,8 +21,9 @@
         android:clickable="true"
         android:contentDescription="@string/photo_item"
         android:focusable="true"
-        android:scaleType="centerCrop"
-        tools:srcCompat="@tools:sample/avatars" />
+        android:scaleType="centerCrop"/>
+<!--        tools:srcCompat="@tools:sample/avatars" -->
+
 
     <ImageView
             android:id="@+id/play_video_button_child"
@@ -39,13 +43,20 @@
         android:visibility="gone"
         app:tint="@color/red" />
 
-    <androidx.appcompat.widget.AppCompatCheckBox
-        android:id="@+id/selectButton"
-        android:layout_width="30dp"
-        android:layout_height="20dp"
-        style="@style/selectCheckBox"
-        android:checked="true"
-        android:visibility="gone"
-        />
+    <View
+        android:id="@+id/blur_view"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:background="@color/check_color"
+        android:visibility="gone"/>
+
+<!--    <androidx.appcompat.widget.AppCompatCheckBox-->
+<!--        android:id="@+id/selectButton"-->
+<!--        android:layout_width="30dp"-->
+<!--        android:layout_height="20dp"-->
+<!--        style="@style/selectCheckBox"-->
+<!--        android:checked="true"-->
+<!--        android:visibility="gone"-->
+<!--        />-->
 </com.google.android.material.card.MaterialCardView>
 

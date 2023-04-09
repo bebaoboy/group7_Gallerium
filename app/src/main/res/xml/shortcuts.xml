@@ -1,0 +1,60 @@
+<?xml version="1.0" encoding="utf-8"?>
+<shortcuts xmlns:android="http://schemas.android.com/apk/res/android">
+    <shortcut
+        android:shortcutId="camera"
+        android:enabled="true"
+        android:icon="@drawable/ic_camera"
+        android:shortcutShortLabel="@string/shortcut_camera_shortlabel"
+        android:shortcutLongLabel="@string/shortcut_camera_longlabel">
+        <intent
+            android:action="android.intent.action.VIEW"
+            android:targetPackage="com.group7.gallerium"
+            android:targetClass="com.group7.gallerium.activities.CameraActivity" />
+        <!-- If your shortcut is associated with multiple intents, include them
+             here. The last intent in the list determines what the user sees when
+             they launch this shortcut. -->
+        <categories android:name="android.shortcut.conversation" />
+        <capability-binding android:key="actions.intent.OPEN_APP_FEATURE" />
+    </shortcut>
+    <!-- Specify more shortcuts here. -->
+    <shortcut
+        android:shortcutId="share"
+        android:enabled="true"
+        android:icon="@drawable/ic_share"
+        android:shortcutShortLabel="@string/shortcut_share_shortlabel"
+        android:shortcutLongLabel="@string/shortcut_share_longlabel">
+        <intent
+            android:action="android.intent.action.SEND_MULTIPLE"
+            android:targetPackage="com.group7.gallerium"
+            android:targetClass="com.group7.gallerium.activities.ChooserActivity" />
+        <categories android:name="android.shortcut.conversation" />
+        <capability-binding android:key="actions.intent.GET_THING" />
+    </shortcut>
+    <shortcut
+        android:shortcutId="edit"
+        android:enabled="true"
+        android:icon="@drawable/ic_edit"
+        android:shortcutShortLabel="@string/shortcut_edit_shortlabel"
+        android:shortcutLongLabel="@string/shortcut_edit_shortlabel">
+        <intent
+            android:action="android.intent.action.EDIT"
+            android:targetPackage="com.group7.gallerium"
+            android:targetClass="com.group7.gallerium.activities.SettingsActivity" />
+        <categories android:name="android.shortcut.conversation" />
+        <capability-binding android:key="actions.intent.GET_THING" />
+    </shortcut>
+
+    <shortcut
+        android:shortcutId="photoMap"
+        android:enabled="true"
+        android:icon="@drawable/ic_map"
+        android:shortcutShortLabel="@string/open_map"
+        android:shortcutLongLabel="@string/open_map">
+        <intent
+            android:action="android.intent.action.EDIT"
+            android:targetPackage="com.group7.gallerium"
+            android:targetClass="com.group7.gallerium.activities.PhotoMapActivity" />
+        <categories android:name="android.shortcut.conversation" />
+        <capability-binding android:key="actions.intent.GET_THING" />
+    </shortcut>
+</shortcuts>

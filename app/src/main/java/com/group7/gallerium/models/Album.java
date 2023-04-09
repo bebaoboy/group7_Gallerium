@@ -7,10 +7,18 @@ public class Album {
     ArrayList<Media> listMedia;
     String dateCreated;
     String name;
+    int type; // 1 -> he thong 2-> cua toi 3-> ung dung khac
+    String memoryTitle = "";
+    String memoryContent = "";
+    String memoryDate = "";
 
-    String memoryTitle;
-    String memoryContent;
-    String memoryDate;
+    public int getType() {
+        return type;
+    }
+
+    public void setType(int type) {
+        this.type = type;
+    }
 
     public String getMemoryTitle() {
         return memoryTitle;

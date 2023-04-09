@@ -76,4 +76,17 @@
     <string name="ok">Xác nhận</string>
     <string name="remove_fav">Xóa yêu thích</string>
     <string name="hide_media">Ẩn hình</string>
+    <string name="remove_secure">Chuyển về chỗ cũ</string>
+    <string name="shortcut_camera_shortlabel">Mở camera</string>
+    <string name="shortcut_camera_longlabel">Chụp ảnh và quay video</string>
+    <string name="shortcut_share_shortlabel">Gửi ảnh</string>
+    <string name="shortcut_share_longlabel">Chia sẻ ảnh và video</string>
+    <string name="shortcut_edit_shortlabel">Cài đặt</string>
+    <string name="restore">Khôi phục</string>
+    <string name="menu_refresh">Refresh</string>
+    <string name="search_hint">Nhập vào để tìm kiếm</string>
+    <string name="delete_album">Xóa album</string>
+    <string name="change_avatar_album">Đổi ảnh bìa album</string>
+    <string name="choose_month">Tháng / năm</string>
+    <string name="open_map">Mở map</string>
 </resources>

@@ -14,8 +14,9 @@
         android:enabled="true"
         android:icon="@drawable/ic_search"
         android:title="@string/search"
-        app:showAsAction="ifRoom|collapseActionView"
-        android:tooltipText="@string/search"/>
+        app:showAsAction="always|collapseActionView"
+        android:tooltipText="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView" />
 
     <item
         android:id="@+id/setting_menu_item"

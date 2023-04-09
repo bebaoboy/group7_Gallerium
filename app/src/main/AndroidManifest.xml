@@ -40,12 +40,10 @@
     <uses-permission android:name="android.permission.MANAGE_EXTERNAL_STORAGE" />
     <uses-permission android:name="android.permission.CAMERA" />
     <uses-permission android:name="android.permission.SET_WALLPAPER" />
-    <uses-permission android:name="android.permission.INTERNET" />
-    <!-- Always include this permission -->
-    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" />
-    <!-- Include only if your app benefits from precise location access. -->
+    <uses-permission android:name="android.permission.INTERNET" /> <!-- Always include this permission -->
+    <uses-permission android:name="android.permission.ACCESS_COARSE_LOCATION" /> <!-- Include only if your app benefits from precise location access. -->
     <uses-permission android:name="android.permission.ACCESS_FINE_LOCATION" />
-
+    <uses-permission android:name="android.permission.ACCESS_NETWORK_STATE" />
 
     <uses-feature
         android:name="android.hardware.camera"
@@ -67,9 +65,28 @@
         android:theme="@style/Theme.Group7_PhotoViewer"
         tools:targetApi="33">
         <activity
+            android:name=".activities.VideoTrimActivity"
+            android:exported="false" />
+        <activity
+            android:name=".activities.PhotoMapActivity"
+            android:exported="false" />
+
+        <provider
+            android:name=".utilities.MySuggestionProvider"
+            android:authorities="com.group7.MySuggestionProvider" />
+
+        <activity
+            android:name=".activities.SearchResultActivity"
+            android:exported="false">
+            <intent-filter>
+                <action android:name="android.intent.action.SEARCH" />
+            </intent-filter>
+        </activity>
+        <activity
             android:name=".activities.SettingsActivity"
             android:exported="false"
-            android:label="@string/title_activity_settings" />
+            android:label="@string/title_activity_settings"
+            android:theme="@style/Setting" />
         <activity
             android:name=".activities.CameraActivity"
             android:exported="true"
@@ -87,9 +104,6 @@
             </intent-filter>
         </activity>
         <activity
-            android:name=".activities.WallpaperPreview"
-            android:exported="false" />
-        <activity
             android:name=".activities.MediaDetails"
             android:exported="false" />
         <activity
@@ -97,8 +111,7 @@
             android:exported="false" />
         <activity
             android:name=".activities.ViewMedia"
-            android:exported="true"/>
-
+            android:exported="true" />
         <activity
             android:name=".activities.ViewMediaStandalone"
             android:exported="true"
@@ -106,10 +119,12 @@
             <intent-filter>
                 <action android:name="android.intent.action.EDIT" />
                 <action android:name="android.intent.action.VIEW" />
+
                 <category android:name="android.intent.category.DEFAULT" />
                 <category android:name="android.intent.category.BROWSABLE" />
-                <data android:scheme="content"/>
-                <data android:scheme="file"/>
+
+                <data android:scheme="content" />
+                <data android:scheme="file" />
                 <data android:mimeType="image/*" />
                 <data android:mimeType="video/*" />
             </intent-filter>
@@ -138,13 +153,33 @@
                 <data android:mimeType="video/*" />
             </intent-filter>
         </activity>
+        <activity
+            android:name=".activities.ViewMediaEdit"
+            android:exported="true"
+            android:label="Chỉnh sửa ảnh">
+            <intent-filter>
+                <action android:name="android.intent.action.SEND" />
 
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+            </intent-filter>
+            <intent-filter>
+                <action android:name="android.intent.action.SENDTO" />
+
+                <category android:name="android.intent.category.DEFAULT" />
+
+                <data android:mimeType="image/*" />
+                <data android:mimeType="video/*" />
+            </intent-filter>
+        </activity>
         <activity
             android:name=".activities.ChooserActivity"
             android:exported="true"
             android:label="Chọn ảnh / video">
             <intent-filter>
                 <action android:name="android.intent.action.PICK" />
+
                 <category android:name="android.intent.category.DEFAULT" />
 
                 <data android:mimeType="image/*" />
@@ -170,6 +205,13 @@
 
                 <category android:name="android.intent.category.LAUNCHER" />
             </intent-filter>
+
+            <meta-data
+                android:name="android.app.shortcuts"
+                android:resource="@xml/shortcuts" />
+            <meta-data
+                android:name="android.app.searchable"
+                android:resource="@xml/searchable" />
         </activity>
         <activity
             android:name="com.dsphotoeditor.sdk.activity.DsPhotoEditorActivity"

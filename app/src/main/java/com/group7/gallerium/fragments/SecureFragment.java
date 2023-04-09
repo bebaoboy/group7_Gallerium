@@ -1,31 +1,28 @@
 package com.group7.gallerium.fragments;
+
 import static android.os.storage.StorageManager.ACTION_MANAGE_STORAGE;
 
-import android.animation.Animator;
 import android.app.Activity;
 import android.content.Context;
-import android.content.DialogInterface;
-
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.content.res.Configuration;
-import android.media.Image;
 import android.os.Bundle;
+import android.os.CountDownTimer;
 import android.os.Environment;
 import android.os.storage.StorageManager;
-
+import android.preference.PreferenceManager;
 import android.util.Log;
 import android.view.LayoutInflater;
 import android.view.MenuItem;
-import android.preference.PreferenceManager;
 import android.view.View;
 import android.view.ViewGroup;
-import android.view.animation.DecelerateInterpolator;
 import android.webkit.MimeTypeMap;
 import android.widget.Button;
 import android.widget.EditText;
 import android.widget.GridLayout;
 import android.widget.ImageView;
+import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.result.ActivityResultLauncher;
@@ -34,28 +31,25 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 import androidx.annotation.Nullable;
 import androidx.appcompat.app.AlertDialog;
+import androidx.appcompat.content.res.AppCompatResources;
 import androidx.appcompat.widget.Toolbar;
 import androidx.core.widget.NestedScrollView;
 import androidx.exifinterface.media.ExifInterface;
-
 import androidx.fragment.app.Fragment;
 import androidx.recyclerview.widget.GridLayoutManager;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
-import com.bumptech.glide.Glide;
 import com.google.android.material.button.MaterialButton;
 import com.group7.gallerium.R;
 import com.group7.gallerium.activities.SettingsActivity;
 import com.group7.gallerium.adapters.MediaAdapter;
-import com.group7.gallerium.adapters.MediaCategoryAdapter;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 
 import java.io.File;
-import java.io.FileInputStream;
 import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
@@ -69,12 +63,14 @@ import java.util.UUID;
 
 public class SecureFragment extends Fragment implements SelectMediaInterface {
     private View view;
-    private Toolbar toolbar;
-    private Context context;
+    Toolbar toolbar;
+    Context context;
     private NestedScrollView scroll;
     private GridLayout numGrid;
-    private EditText txtPass;
+    EditText txtPass;
     private MaterialButton btnClear, btnEnter;
+
+    private Button createFolder;
 
     private MediaAdapter secureAdapter;
 
@@ -84,9 +80,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
     private ArrayList<Media> mediaList;
 
-    boolean isLandscape = false;
+    boolean isLandscape = false, isReset = false, lockable = true;
 
-    SharedPreferences sharedPreferences;
+    SharedPreferences sharedPreferences, sharedPref;
 
     FileUtils fileUtils;
     String password, question, answer;
@@ -94,13 +90,17 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     ImageView test;
     private  String secretPath;
     private ActivityResultLauncher<IntentSenderRequest> launcher;
-    private int spanCount = -1;
+    private int spanCount = 3;
     private int firstVisiblePosition;
     private int offset;
 
 
     // App needs 200 MB within internal storage.
     private static final long NUM_BYTES_NEEDED_FOR_MY_APP = 1024 * 1024 * 200L;
+    private MenuItem settingButton;
+
+    private ImageView lockIcon;
+    private TextView txtUnlocked;
 
     public SecureFragment() {}
 
@@ -135,11 +135,47 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         Log.d("password", password);
     }
 
+    CountDownTimer countDownTimer;
+    @Override
+    public void onPause() {
+        super.onPause();
+        countDownTimer = new CountDownTimer(10000,1000) {
+            @Override
+            public void onTick(long l) {
+                System.out.println(l);
+            }
+
+            @Override
+            public void onFinish() {
+                txtPass.setText("");
+                showViewLogic();
+            }
+        };
+        countDownTimer.start();
+
+    }
 
     @Override
     public void onResume() {
         super.onResume();
+        if(countDownTimer != null)
+            countDownTimer.cancel();
         view.invalidate();
+        if (txtPass.getText().toString().equals(password) && !password.isEmpty()) {
+            txtPass.setEnabled(false);
+            txtPass.setText(password);
+            txtPass.setVisibility(View.GONE);
+            txtUnlocked.setVisibility(View.VISIBLE);
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure_unlocked));
+        } else {
+            txtPass.setEnabled(true);
+            txtPass.setText("");
+            txtPass.setVisibility(View.VISIBLE);
+            txtUnlocked.setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure));
+        }
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
@@ -159,6 +195,12 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             }
         }
         refresh();
+
+        lockable = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
+        if (!txtPass.getText().toString().equals(password))
+        {
+            showViewLogic();
+        }
     }
 
     public void changeOrientation(int spanCount) {
@@ -166,13 +208,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         saveScroll();
         if (spanCount != this.spanCount) {
             this.spanCount = spanCount;
-            mediaList.clear();
-            createMediaList();
-            secureAdapter.setListImages(mediaList);
-            secureAdapter.setListCategory(null);
-            GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
-            secureRecyclerView.setAdapter(secureAdapter);
-            secureRecyclerView.setLayoutManager(layoutManager);
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(secureRecyclerView.getLayoutManager())).scrollToPositionWithOffset(firstVisiblePosition, offset);
 //            callback.onDestroyActionMode(mode);
@@ -188,8 +223,26 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     }
 
     public void refresh() {
+        File secureDir = new File(context.getFilesDir(), "secure-subfolder");
+        try {
+            paths.clear();
+            getPaths(secureDir);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+        mediaList.clear();
+        createMediaList();
+        secureAdapter.setListImages(mediaList);
+        secureAdapter.setListCategory(null);
+        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
+        secureRecyclerView.setAdapter(secureAdapter);
+        secureRecyclerView.setLayoutManager(layoutManager);
+        secureAdapter.setImageSize(calculateImageSize());
         Log.d("refresh", "");
 
+        password = sharedPreferences.getString("password", "");
+        question = sharedPreferences.getString("question", "");
+        answer = sharedPreferences.getString("answer", "");
     }
 
     public void refresh(boolean scroll) {
@@ -211,6 +264,16 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         btnClear = view.findViewById(R.id.secure_clear_button);
         btnEnter = view.findViewById(R.id.secure_enter_button);
 
+        createFolder = view.findViewById(R.id.create_folder_button);
+        secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
+        secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
+        context = requireContext();
+
+        lockIcon = view.findViewById(R.id.lock_icon);
+        txtUnlocked = view.findViewById(R.id.txtAlreadyUnlocked);
+        sharedPref = PreferenceManager.getDefaultSharedPreferences(context.getApplicationContext());
+        lockable =  sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
+
         //test = view.findViewById(R.id.preview);
         for(int i = 0; i < 10; i++)
         {
@@ -218,28 +281,43 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             b.setOnClickListener((view1 -> txtPass.setText(txtPass.getText() + "" + b.getText())));
         }
 
+        if (!lockable) {
+            txtPass.setEnabled(false);
+            txtPass.setText(password);
+            txtPass.setVisibility(View.GONE);
+            txtUnlocked.setVisibility(View.VISIBLE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure_unlocked));
+        } else {
+            txtPass.setEnabled(true);
+            txtPass.setText("");
+            txtPass.setVisibility(View.VISIBLE);
+            txtUnlocked.setVisibility(View.GONE);
+            lockIcon.setImageDrawable(AppCompatResources.getDrawable(context, R.drawable.ic_secure));
+        }
+
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
         btnEnter.setOnClickListener((view1) -> {
             Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
             try {
-                verifiedLogic();
-            } catch (FileNotFoundException e) {
-                throw new RuntimeException(e);
+                verifiedLogic(password, isReset);
+            } catch (Exception e){
+                Log.d("tag", e.getMessage());
             }
         });
-        context = requireContext();
+
+        createFolder.setOnClickListener((v)->{
+            try {
+                createSecuredDir();
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
+        });
 
         showViewLogic();
         toolbarSetting();
         return view;
     }
 
-    private void showViewLogic() {
-        if(txtPass.getText().toString().equals("")){
-            view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
-            view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
-        }
-    }
 
     private void showAlertDialog() {
         AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
@@ -289,9 +367,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
     private int calculateImageSize() {
         int screenWidth = context.getResources().getDisplayMetrics().widthPixels;
-        screenWidth -= dpToPx(10);
-        int spacing = dpToPx(5);
-        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(60));
+        screenWidth -= dpToPx(2);
+        int spacing = dpToPx(8);
+        var imageSize = Math.max((screenWidth - spacing * (spanCount - 1)) / (double)spanCount, dpToPx(50));
         return (int)Math.floor(imageSize);
     }
     
@@ -322,32 +400,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             throw new RuntimeException(e);
         }
     }
-    
-     private void showAlertDialog() {
-        AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
 
-        LayoutInflater inflater = requireActivity().getLayoutInflater();
-        View dialogView = inflater.inflate(R.layout.dialog_questionaire, null);
-
-        builder.setView(dialogView)
-                .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
-                    var editQuestion = (EditText)dialogView.findViewById(R.id.question);
-                    var editAnswer = (EditText)dialogView.findViewById(R.id.answer);
-                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
-                    myEdit.putString("question", editQuestion.getText().toString());
-                    myEdit.putString("answer", editAnswer.getText().toString());
-                    myEdit.apply();
-                    showViewLogic();
-                }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
-                     dialogInterface.dismiss();
-                }));
-        builder.create();
-        builder.show();
-    }
-
-    void verifiedLogic() throws FileNotFoundException {
-        password = sharedPreferences.getString("password", "");
-        if(password.equals("")){
+    void verifiedLogic(String pass, boolean isReset) {
+        if(pass.equals("") && !isReset){
             SharedPreferences.Editor myEdit = sharedPreferences.edit();
             myEdit.putString("password", txtPass.getText().toString());
             myEdit.apply();
@@ -363,27 +418,42 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
                 setUpView();
             }
         }
-        if(txtPass.getText().length() < 4){
+        if(txtPass.getText().length() < 4 && !isReset){
             Toast.makeText(requireContext(), "Password not valid", Toast.LENGTH_SHORT).show();
-        }else if(txtPass.getText().toString().equals(password)) {
+        }else if(txtPass.getText().toString().equals(password) && !isReset) {
             view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
             view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
             view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
             setUpView();
         }
+
+        if(isReset && txtPass.getText().length() == 4){
+            String tempPass = txtPass.getText().toString();
+            resetPasswordLogic(tempPass);
+        }
+
+        password = sharedPreferences.getString("password", "");
     }
 
-    void setUpView() throws FileNotFoundException {
+    void setUpView(){
         File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-        getPaths(secureDir);
+        try {
+            paths.clear();
+            getPaths(secureDir);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+        }
+
+        mediaList.clear();
         createMediaList();
 
         secureAdapter = new MediaAdapter(requireActivity().getApplicationContext(), this);
-
         secureRecyclerView = view.findViewById(R.id.secured_recycler_view);
         secureAdapter.setListImages(mediaList);
         secureAdapter.setListCategory(null);
-        GridLayoutManager layoutManager = new GridLayoutManager(context, 4);
+        secureAdapter.setImageSize(calculateImageSize());
+        // secureRecyclerView.setOnScrollChangeListener(new ToolbarScrollListener(toolbar, null));
+        GridLayoutManager layoutManager = new GridLayoutManager(context, spanCount);
         secureRecyclerView.setAdapter(secureAdapter);
         secureRecyclerView.setLayoutManager(layoutManager);
     }
@@ -393,6 +463,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         for (File f : files) {
             Log.d("file-path", f.getAbsolutePath());
             paths.add(f.getAbsolutePath());
+            //moveFile(f.getAbsolutePath());
         }
         // paths.remove(0);
         // Glide.with(context).load(paths.get(0)).into(test);
@@ -403,11 +474,13 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     String getMimeType(String path){
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension.isBlank()) {
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        }
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
-        }
-        Log.d("mime-type", type
-        );
+        } else
+        Log.d("mime-type", type);
         return type;
     }
 
@@ -457,7 +530,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             if(intf == null)
             {
                 Date lastModDate = new Date(file.lastModified());
-                Log.i("PHOTO DATE", "Dated : "+ lastModDate.toString());//Dispaly lastModDate. You can do/use it your own way
+                Log.i("PHOTO DATE", "Dated : "+ lastModDate);//Dispaly lastModDate. You can do/use it your own way
                 return lastModDate.getTime();
             }
         }
@@ -481,7 +554,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         }
     }
     
-    private void showViewLogic() {
+    void showViewLogic() {
         if(txtPass.getText().toString().equals("")){
             view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
             view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
@@ -492,6 +565,68 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
             view.findViewById(R.id.create_pass_page).setVisibility(View.VISIBLE);
         }
+
+        if(!lockable){
+            view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+            view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+            view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+        }
+    }
+
+    void resetPasswordLogic(String password){
+        isReset = false;
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.putString("password", password);
+        myEdit.apply();
+        view.findViewById(R.id.secure_scrollview).setVisibility(View.GONE);
+        view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+    }
+
+    void showResetPasswordView(){
+        isReset = true;
+        view.findViewById(R.id.secure_scrollview).setVisibility(View.VISIBLE);
+        view.findViewById(R.id.main_secured_page).setVisibility(View.GONE);
+        view.findViewById(R.id.create_pass_page).setVisibility(View.GONE);
+    }
+
+    void requestForAnswer() {
+        question = sharedPreferences.getString("question", "");
+        answer = sharedPreferences.getString("answer", "");
+        if (question.isBlank() && answer.isBlank()) {
+            Toast.makeText(context.getApplicationContext(), "Bạn chưa tạo mật khẩu", Toast.LENGTH_SHORT).show();
+        } else {
+            AlertDialog.Builder builder = new AlertDialog.Builder(requireContext());
+
+            LayoutInflater inflater = requireActivity().getLayoutInflater();
+            View dialogView = inflater.inflate(R.layout.dialog_questionaire, null);
+            var editQuestion = (EditText) dialogView.findViewById(R.id.question);
+            var editAnswer = (EditText) dialogView.findViewById(R.id.answer);
+            editQuestion.setText(question + "?");
+            builder.setView(dialogView)
+                    .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
+                        certifiedAnswer(editAnswer.getText().toString());
+                    }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
+                        dialogInterface.dismiss();
+                    }));
+            builder.create();
+            builder.show();
+        }
+    }
+
+    private void certifiedAnswer(String toString) {
+        if(answer.equals(toString)){
+            showResetPasswordView();
+        }
+    }
+
+    void resetEverything(){
+        SharedPreferences.Editor myEdit = sharedPreferences.edit();
+        myEdit.putString("question", "");
+        myEdit.putString("answer", "");
+        myEdit.putString("password","");
+        myEdit.apply();
+        txtPass.setText("");
     }
 
     void toolbarSetting(){
@@ -500,73 +635,94 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         toolbar.setTitle(R.string.secured);
         toolbar.setTitleTextAppearance(context, R.style.ToolbarTitle);
         
-         toolbar.getMenu().findItem(R.id.change_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
+         toolbar.getMenu().findItem(R.id.forget_pass_menu_item).setOnMenuItemClickListener(item -> {
+             requestForAnswer();
 
-                return false;
-            }
+             refresh();
+             return true;
+         });
+
+        settingButton = toolbar.getMenu().findItem(R.id.setting_menu_item);
+
+        settingButton.setOnMenuItemClickListener(menuItem -> {
+            openSetting();
+            return false;
         });
 
-        toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(new MenuItem.OnMenuItemClickListener() {
-            @Override
-            public boolean onMenuItemClick(MenuItem item) {
+        toolbar.getMenu().findItem(R.id.remove_pass_menu_item).setOnMenuItemClickListener(item -> {
+            if(!password.equals("")) {
                 AlertDialog.Builder builder = new AlertDialog.Builder(context);
                 builder.setTitle("Confirm");
                 builder.setMessage("Do you want to delete secured folder?");
                 builder.setPositiveButton("YES", (dialog, which) -> {
-                    File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-                    secureDir.delete();
+                    File secureDir = new File(context.getFilesDir()+"/secure-subfolder");
+                    if(secureDir.exists()) {
+                        fileUtils.deleteRecursiveInternal(secureDir);
+                        resetEverything();
+
+                        refresh();
+                        showViewLogic();
+                    }else{
+                        Toast.makeText(context, "Cant delete", Toast.LENGTH_SHORT).show();
+                    }
                     dialog.dismiss();
                 });
 
                 builder.setNegativeButton("NO", (dialog, which) -> {
                     dialog.dismiss();
                 });
-                return false;
+                builder.show();
+            }else{
+                Toast.makeText(context.getApplicationContext(), "Bạn chưa có tạo folder bảo mật", Toast.LENGTH_SHORT).show();
             }
+            return false;
         });
         
-        scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
-                .setListener(new Animator.AnimatorListener() {
-                    @Override
-                    public void onAnimationStart(@NonNull Animator animator) {
-                    }
+//        scroll.getViewTreeObserver().addOnScrollChangedListener(() -> toolbar.animate().translationY(-toolbar.getBottom()).setInterpolator(new DecelerateInterpolator())
+//                .setListener(new Animator.AnimatorListener() {
+//                    @Override
+//                    public void onAnimationStart(@NonNull Animator animator) {
+//                    }
+//
+//                    @Override
+//                    public void onAnimationEnd(@NonNull Animator animator) {
+//                        toolbar.setVisibility(View.INVISIBLE);
+//                        toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
+//                                .setListener(new Animator.AnimatorListener() {
+//                                    @Override
+//                                    public void onAnimationStart(@NonNull Animator animator) {
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationEnd(@NonNull Animator animator) {
+//                                        toolbar.setVisibility(View.VISIBLE);
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationCancel(@NonNull Animator animator) {
+//                                    }
+//
+//                                    @Override
+//                                    public void onAnimationRepeat(@NonNull Animator animator) {
+//                                    }
+//                                })
+//                                .start();
+//                    }
+//
+//                    @Override
+//                    public void onAnimationCancel(@NonNull Animator animator) {
+//                    }
+//
+//                    @Override
+//                    public void onAnimationRepeat(@NonNull Animator animator) {
+//                    }
+//                })
+//                .start());
+    }
 
-                    @Override
-                    public void onAnimationEnd(@NonNull Animator animator) {
-                        toolbar.setVisibility(View.INVISIBLE);
-                        toolbar.animate().translationY(0).setDuration(1000).setInterpolator(new DecelerateInterpolator())
-                                .setListener(new Animator.AnimatorListener() {
-                                    @Override
-                                    public void onAnimationStart(@NonNull Animator animator) {
-                                    }
-
-                                    @Override
-                                    public void onAnimationEnd(@NonNull Animator animator) {
-                                        toolbar.setVisibility(View.VISIBLE);
-                                    }
-
-                                    @Override
-                                    public void onAnimationCancel(@NonNull Animator animator) {
-                                    }
-
-                                    @Override
-                                    public void onAnimationRepeat(@NonNull Animator animator) {
-                                    }
-                                })
-                                .start();
-                    }
-
-                    @Override
-                    public void onAnimationCancel(@NonNull Animator animator) {
-                    }
-
-                    @Override
-                    public void onAnimationRepeat(@NonNull Animator animator) {
-                    }
-                })
-                .start());
+    private void openSetting(){
+        Intent intent = new Intent(getActivity(), SettingsActivity.class);
+        startActivity(intent);
     }
 
     @Override
@@ -593,5 +749,13 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     @Override
     public void moveMedia(@NonNull String albumPath) {
 
+    }
+
+    public void setLockable(boolean lockable) {
+        this.lockable = lockable;
+    }
+
+    public boolean isLockable() {
+        return lockable;
     }
 }

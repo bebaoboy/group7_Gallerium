@@ -1,0 +1,22 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/remove_from_secured_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_remove_secure"
+        android:title="@string/remove_secure"
+        android:tooltipText="@string/remove_secure"
+        />
+    <item
+        android:id="@+id/delete_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_delete"
+        android:title="@string/delete"
+        android:tooltipText="@string/delete"/>
+    <item
+        android:id="@+id/more_nav_item"
+        android:enabled="true"
+        android:icon="@drawable/ic_more"
+        android:title="@string/more"
+        android:tooltipText="@string/more"/>
+</menu>

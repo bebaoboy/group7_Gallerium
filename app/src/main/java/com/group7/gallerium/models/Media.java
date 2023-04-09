@@ -1,27 +1,37 @@
 package com.group7.gallerium.models;
 
+import android.util.Log;
+
+import androidx.loader.app.LoaderManager;
+
+import org.osmdroid.util.GeoPoint;
+
 import java.text.SimpleDateFormat;
 import java.util.Locale;
+import java.util.Random;
 
 public class Media {
-    private String path;
-
+    private String path = "";
+    private double[] location;
     private int type;
-    private String mimeType; // 1 is image 3 is video
-    private String thumbnail;
+    private String mimeType = ""; // 1 is image 3 is video
+    private String thumbnail = "";
     private long dateTaken;
 
     private long duration;
     private long size;
-    SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
+    static final SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, dd-MM-yyyy");
+    static final SimpleDateFormat timeFormat = new SimpleDateFormat("HH:mm");
 
-    SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy hh:mm");
+    static final SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy HH:mm");
 
-    private String title;
+    private String title = "";
     private int width;
     private int height;
     private int bitrate;
     private String resolution;
+    private String knownLocation = "";
+    private String address;
 
     public Media() {
 
@@ -49,11 +59,21 @@ public class Media {
     }
 
     public String getDateTaken() {
-        return dateFormat.format(dateTaken);
+        try {
+            return dateFormat.format(dateTaken);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+            return "";
+        }
     }
 
     public String getDateTimeTaken(){
-        return dateFormatWithTime.format(dateTaken);
+        try {
+            return dateFormatWithTime.format(dateTaken);
+        }catch (Exception e){
+            Log.d("tag", e.getMessage());
+            return "";
+        }
     }
 
     public long getRawDate() {
@@ -120,6 +140,10 @@ public class Media {
         this.size = size;
     }
 
+    public long getRealSize() {
+        return size;
+    }
+
     public String getSize() {
         String format = "%1$.2f ";
         if (size < 1024) {
@@ -148,5 +172,41 @@ public class Media {
 
     public String getResolution() {
         return resolution;
+    }
+
+    public String getTimeTaken() {
+        return timeFormat.format(dateTaken);
+    }
+
+    public GeoPoint getLocation() {
+        if (location == null) return null;
+        return new GeoPoint(location[0], location[1]);
+    }
+
+    public void setLocation(double lat, double longt) {
+        if (location == null) {
+            location = new double[2];
+        }
+        this.location[0] = lat;
+        this.location[1] = longt;
+    }
+
+    public void setKnownLocation(String address) {
+        if (address != null)
+        {
+            knownLocation = address;
+        }
+    }
+
+    public void setAddress(String a) {
+        address = a;
+    }
+
+    public String getKnownLocation() {
+        return knownLocation;
+    }
+
+    public String getAddress() {
+        return address;
     }
 }

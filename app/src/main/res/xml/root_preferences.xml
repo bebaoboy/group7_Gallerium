@@ -1,6 +1,8 @@
-<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto">
+<PreferenceScreen xmlns:app="http://schemas.android.com/apk/res-auto"
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    >
 
-    <PreferenceCategory app:title="@string/common_setting_header">
+    <PreferenceCategory app:title="@string/common_setting_header" app:iconSpaceReserved="false">
 
         <ListPreference
             app:defaultValue="0"
@@ -8,6 +10,7 @@
             app:entryValues="@array/ui_values"
             app:key="uiKey"
             app:title="@string/ui_title"
+            app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
@@ -16,6 +19,7 @@
             app:entryValues="@array/location_values"
             app:key="locationKey"
             app:title="@string/location_title"
+            app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
         <ListPreference
@@ -24,23 +28,28 @@
             app:entryValues="@array/num_grid_values"
             app:key="numGridKey"
             app:title="@string/grid_title"
+            app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="true" />
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/private_header">
+    <PreferenceCategory app:title="@string/private_header"
+        app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
             app:key="lockPrivateKey"
-            app:title="@string/lock_private_title" />
+            app:title="@string/lock_private_title"
+            app:iconSpaceReserved="false"/>
 
     </PreferenceCategory>
 
-    <PreferenceCategory app:title="@string/other_header">
+    <PreferenceCategory app:title="@string/other_header"
+        app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
             app:key="lockTrashKey"
-            app:title="@string/trash_title" />
+            app:title="@string/trash_title"
+            app:iconSpaceReserved="false"/>
 
     </PreferenceCategory>
 

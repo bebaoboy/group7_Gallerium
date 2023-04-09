@@ -6,9 +6,10 @@
         android:id="@+id/search_tb_item"
         android:enabled="true"
         android:icon="@drawable/ic_search"
-        android:title=""
-        app:showAsAction="ifRoom|collapseActionView"
-        android:tooltipText="@string/search"/>
+        android:title="@string/search"
+        app:showAsAction="always|collapseActionView"
+        android:tooltipText="@string/search"
+        app:actionViewClass="androidx.appcompat.widget.SearchView"/>
 
     <item
         android:id="@+id/sort_menu_item"

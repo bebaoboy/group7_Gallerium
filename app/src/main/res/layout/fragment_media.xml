@@ -20,20 +20,42 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toTopOf="parent" />
 
-    <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
-        style="@style/Fastscrollbar"
-        android:id="@+id/photo_recyclerview"
-        android:layout_width="match_parent"
-        android:layout_height="match_parent"
-        android:layout_marginStart="5dp"
-        android:layout_marginTop="10dp"
-        android:layout_marginEnd="5dp"
-        android:layout_marginBottom="10dp"
-        app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
-        android:overScrollMode="ifContentScrolls"
-        />
+        <androidx.swiperefreshlayout.widget.SwipeRefreshLayout
+            android:id="@+id/swipe_layout"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginTop="80dp"
+            android:layout_marginBottom="55dp"
+            >
+            <com.simplecityapps.recyclerview_fastscroll.views.FastScrollRecyclerView
+                style="@style/Fastscrollbar"
+                android:id="@+id/photo_recyclerview"
+                android:layout_width="match_parent"
+                android:layout_height="match_parent"
+                android:layout_marginStart="5dp"
+                android:layout_marginEnd="5dp"
+                app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
+                android:nestedScrollingEnabled="false"
+                android:overScrollMode="ifContentScrolls"
+                />
+        </androidx.swiperefreshlayout.widget.SwipeRefreshLayout>
 
-<!--        <com.wynneplaga.materialScrollBar2.MaterialScrollBar-->
+        <TextView
+            android:id="@+id/txtSizePopUp"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:layout_gravity="center_horizontal"
+            android:paddingVertical="10dp"
+            android:paddingHorizontal="20dp"
+            android:layout_marginTop="80dp"
+            android:textSize="20sp"
+            android:textStyle="bold"
+            android:textColor="@color/primary_color_light"
+            android:text="200MB"
+            android:visibility="gone"/>
+
+
+        <!--        <com.wynneplaga.materialScrollBar2.MaterialScrollBar-->
 <!--            android:id="@+id/dragScrollBar"-->
 <!--            android:layout_width="wrap_content"-->
 <!--            app:msb_recyclerView="@id/photo_recyclerview"-->

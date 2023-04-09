@@ -2,19 +2,20 @@
 <menu xmlns:android="http://schemas.android.com/apk/res/android">
 
     <item
-        android:id="@+id/take_photo_tb_item"
+        android:id="@+id/change_info_tb_item"
         android:enabled="true"
         android:title="@string/change_info"
         android:tooltipText="@string/change_info"/>
     <item
-        android:id="@+id/sort_menu_item"
-        android:enabled="true"
-        android:title="@string/sort"
-        android:tooltipText=""/>
-    <item
         android:id="@+id/add_media_item"
         android:enabled="true"
         android:title="@string/add_media_to_album"
+        />
+
+    <item
+        android:id="@+id/delete_album_item"
+        android:enabled="true"
+        android:title="@string/delete_album"
         />
 
 </menu>

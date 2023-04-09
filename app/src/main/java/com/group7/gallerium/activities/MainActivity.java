@@ -26,6 +26,7 @@ import androidx.appcompat.app.AppCompatDelegate;
 import androidx.coordinatorlayout.widget.CoordinatorLayout;
 import androidx.viewpager2.widget.ViewPager2;
 
+
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.group7.gallerium.BuildConfig;
 import com.group7.gallerium.R;
@@ -39,6 +40,9 @@ import com.group7.gallerium.utilities.BottomNavigationViewBehavior;
 import com.group7.gallerium.utilities.FileUtils;
 import com.karan.churi.PermissionManager.PermissionManager;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.util.HashSet;
 import java.util.Objects;
 
 public class MainActivity extends AppCompatActivity {
@@ -113,18 +117,19 @@ public class MainActivity extends AppCompatActivity {
             AccessMediaFile.setAllYourALbum(albList);
         }
 
-        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
-        layoutParams.setBehavior(new BottomNavigationViewBehavior());
-
+//        CoordinatorLayout.LayoutParams layoutParams = (CoordinatorLayout.LayoutParams) bottom_nav.getLayoutParams();
+//        layoutParams.setBehavior(new BottomNavigationViewBehavior());
         sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(this);
         getAllSettingValues();
         setUiMode();
+        createAlbumInfoFile();
     }
+
+
 
     void getAllSettingValues(){
         try{
-
             uiPref = sharedPref.getString
                     (SettingsActivity.KEY_PREF_UI, "0");
             if(uiPref.equals("0")){
@@ -147,9 +152,9 @@ public class MainActivity extends AppCompatActivity {
             lockPrivatePref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_PRIVATE, false);
             lockTrashPref = sharedPref.getBoolean(SettingsActivity.KEY_PREF_LOCK_TRASH, false);
 
-            Log.d("ui-pref", "" + uiPref);
-            Log.d("location-pref", "" + locationPref);
-            Log.d("num-grid", ""+numGridPref);
+//            Log.d("ui-pref", "" + uiPref);
+//            Log.d("location-pref", "" + locationPref);
+//            Log.d("num-grid", ""+numGridPref);
 
         }catch (Exception e){
             Log.d("tag-e", e.getMessage());
@@ -157,7 +162,7 @@ public class MainActivity extends AppCompatActivity {
     }
 
     void setUiMode(){
-        Toast.makeText(this, "in mode " + uiVal, Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this, "in mode " + uiVal, Toast.LENGTH_SHORT).show();
         if(Build.VERSION.SDK_INT >= 31){
             UiModeManager uiManager = (UiModeManager) getSystemService(Context.UI_MODE_SERVICE);
             if(uiVal == 0){
@@ -208,11 +213,28 @@ public class MainActivity extends AppCompatActivity {
         view_pager.setCurrentItem(page, false);
     }
 
+    private void createAlbumInfoFile(){
+        File albumInfo = new File(getFilesDir(), "albumsInfo.txt");
+//        if(albumInfo.exists()){
+//            if(albumInfo.isDirectory()){
+//                albumInfo.delete();
+//            }
+//            //albumInfo.delete();
+//        }
+        if(!albumInfo.exists()){
+            try {
+                albumInfo.createNewFile();
+            }catch (Exception e){
+                Log.d("tag", e.getMessage());
+            }
+        }
+    }
+
     private void changeOrientation(int orientation, boolean refresh) {
         getAllSettingValues();
         setUiMode();
         if(orientation == Configuration.ORIENTATION_LANDSCAPE){
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "landscape");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -234,6 +256,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(numGridVal * 2);
+                    if (refresh) myFragment.refresh();
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -246,7 +269,7 @@ public class MainActivity extends AppCompatActivity {
 
         }
         else {
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            // Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "portrait");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -268,6 +291,7 @@ public class MainActivity extends AppCompatActivity {
                 if (myFragment != null)
                 {
                     myFragment.changeOrientation(numGridVal);
+                    if (refresh) myFragment.refresh();
                 }
             } else if(view_pager.getCurrentItem() == 3){
                 var myFragment = (FavoriteFragment)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());

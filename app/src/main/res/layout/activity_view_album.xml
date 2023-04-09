@@ -24,18 +24,18 @@
             android:layout_height="match_parent"
             android:orientation="vertical">
 
-
             <TextView
                 android:id="@+id/album_memory_title"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
+                android:layout_marginTop="70dp"
+                android:layout_gravity="center"
+                android:gravity="center"
+                android:overScrollMode="ifContentScrolls"
                 android:text="@string/sample_album_memory_title"
                 android:textColor="@color/primary_color_light"
-                android:textSize="32sp"
-                android:textAlignment="textStart"
-                android:overScrollMode="ifContentScrolls"
-                android:layout_margin="10dp"
-                />
+                android:textSize="32sp" />
+
             <TextView
                 android:id="@+id/album_memory_time"
                 android:layout_width="wrap_content"
@@ -50,7 +50,7 @@
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content"
                 android:text="@string/sample_album_memory_content"
-                android:inputType="textMultiLine|none"
+                android:inputType="textMultiLine"
                 android:layout_marginStart="10dp"
                 android:textSize="15sp"
                 android:textStyle="italic"
@@ -61,7 +61,8 @@
                 android:id="@+id/rec_menu_item"
                 android:layout_width="match_parent"
                 android:layout_height="match_parent"
-                android:layout_marginBottom="5dp"
+                android:layout_marginTop="75dp"
+                android:layout_marginBottom="10dp"
                 app:layoutManager="androidx.recyclerview.widget.GridLayoutManager" />
         </LinearLayout>
         <include

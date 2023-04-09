@@ -1,8 +1,6 @@
 package com.group7.gallerium.activities;
 
 import android.app.Activity;
-import android.app.AlertDialog;
-import android.content.DialogInterface;
 import android.content.Intent;
 import android.content.SharedPreferences;
 import android.database.Cursor;
@@ -52,6 +50,7 @@ import com.group7.gallerium.utilities.AccessMediaFile;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MediaItemInterface;
 import com.group7.gallerium.utilities.SelectMediaInterface;
+import com.group7.gallerium.utilities.ViewMediaDataHolder;
 
 import java.io.File;
 import java.text.SimpleDateFormat;
@@ -70,7 +69,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     private Toolbar toolbar;
     MenuItem favBtn;
     MediaController videoController;
-    private int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg;
+    int mediaPos, viewType; // 1 là trong view secured, 2 là trong view thg, 3 là view trong album :))
     String mediaPath;
     private Intent intent;
 
@@ -99,9 +98,12 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 
     private  ActivityResultLauncher<IntentSenderRequest> launcher;
     private  ActivityResultLauncher<IntentSenderRequest> launcherModified;
+
+    ActivityResultLauncher<Intent> startForResult;
     private FileUtils fileUtils;
     ActionBottomDialogFragment renameBottomDialogFragment;
     SimpleDateFormat dateFormat = new SimpleDateFormat("EEE, d MMM (HH:mm)");
+    //FFmpeg ffmpeg;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -110,7 +112,11 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         albumCategories = new ArrayList<>();
         setContentView(R.layout.activity_view_media);
         toolbar = findViewById(R.id.toolbar_photo_view);
+
         bottom_nav = findViewById(R.id.view_photo_bottom_navigation);
+
+        applyData();
+
         viewPager = findViewById(R.id.viewPager_picture);
         videoController = new MediaController(this){
             public boolean dispatchKeyEvent(KeyEvent event)
@@ -121,9 +127,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 return super.dispatchKeyEvent(event);
             }
         };
-        applyData();
+
         toolbarSetting();
         setUpSlider();
+
+        if(viewType == 1){
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_media_secured);
+        }else{
+            bottom_nav.inflateMenu(R.menu.menu_bottom_view_photo);
+        }
         bottomNavCustom();
 
         bottomSheetConfig();
@@ -155,6 +167,7 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         renameBottomDialogFragment.renameAgain();
                     }
                 });
+        //loadFFMpegBinary();
 
     }
 
@@ -236,6 +249,30 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         albumAsyncTask.execute();
     }
 
+//    private void loadFFMpegBinary() {
+//        try {
+//            if (ffmpeg == null) {
+//                Log.d("tag", "ffmpeg : null");
+//                ffmpeg = FFmpeg.getInstance(this);
+//            }
+//            ffmpeg.loadBinary(new LoadBinaryResponseHandler() {
+//                @Override
+//                public void onFailure() {
+//                    Log.d("tag", "not supported");
+//                }
+//
+//                @Override
+//                public void onSuccess() {
+//                    Log.d("tag", "ffmpeg : correct Loaded");
+//                }
+//            });
+//        } catch (FFmpegNotSupportedException e) {
+//            Log.d("tag", "not supported");
+//        } catch (Exception e) {
+//            Log.d("tag", "Esception not supported : " + e.getMessage());
+//        }
+//    }
+
     void rename(){
         renameBottomDialogFragment =
                 ActionBottomDialogFragment.newInstance();
@@ -281,6 +318,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     void applyData() {
         intent = getIntent();
         listPath = intent.getStringArrayListExtra("data_list_path");
+        if (listPath == null) {
+            listPath = ViewMediaDataHolder.getList();
+        }
         mediaPos = intent.getIntExtra("pos", 0);
         viewType = intent.getIntExtra("view-type", 2);
         mediaItemInterface = this;
@@ -340,10 +380,17 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                     }
                 }
                 mediaPath = listPath.get(position);
-                final Media m = AccessMediaFile.getMediaWithPath(mediaPath);
+                Media m;
+                if(viewType == 1){
+                    m = createMediaFromFile(mediaPath);
+                }else {
+                    m = AccessMediaFile.getMediaWithPath(mediaPath);
+                }
                 if (m!=null) {
                     //assert m != null;
                     setTitleToolbar(m);
+                    if(viewType == 2)
+                        bottom_nav.getMenu().findItem(R.id.edit_nav_item).setVisible(true);
                 }
                 if (videoController != null) {
                     videoController.setVisibility(View.GONE);
@@ -373,6 +420,10 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                 favBtn.setIcon(AccessMediaFile.isExistedAnywhere(mediaPath) ? R.drawable.ic_fav_solid : R.drawable.ic_fav_empty);
                 behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                 bottomSheet.setVisibility(View.GONE);
+
+                if(viewType == 1){
+                    hideAllFuction();
+                }
             }
 
             @Override
@@ -386,8 +437,18 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         });
     }
 
+    private void hideAllFuction() {
+        favBtn.setVisible(false);
+        btnRename.setVisibility(View.GONE);
+        btnSetBackGround.setVisibility(View.GONE);
+        btnRename.setVisibility(View.GONE);
+
+
+    }
+
     public void setTitleToolbar(@NonNull Media m) {
         var name = mediaPath.substring(mediaPath.lastIndexOf('/') + 1);
+        Log.d("name", name);
         toolbar.setTitle(dateFormat.format(m.getRawDate()));
         toolbar.setSubtitle(name);
         if (AccessMediaFile.isExistedAnywhere(mediaPath)) {
@@ -409,26 +470,74 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         myEdit.apply();
     }
 
+
+//    private void execFFmpegBinary(final String[] command) {
+//        try {
+//            if (ffmpeg == null) {
+//                Log.d("tag", "ffmpeg : null");
+//                ffmpeg = FFmpeg.getInstance(this);
+//            }
+//            ffmpeg.execute(command, new ExecuteBinaryResponseHandler() {
+//                @Override
+//                public void onFailure(String s) {
+//                    Log.d("tag", "FAILED with output : " + s);
+//                }
+//
+//                @Override
+//                public void onSuccess(String s) {
+//                    Log.d("tag", "SUCCESS with output : " + s);
+////Perform action on success
+//                }
+//
+//
+//            @Override
+//            public void onProgress(String s) {
+//                Log.d("tag", "progress : " + s);
+//            }
+//
+//            @Override
+//            public void onStart() {
+//                Log.d("tag", "Started command : ffmpeg " + command);
+//            }
+//
+//            @Override
+//            public void onFinish() {
+//                Log.d("tag", "Finished command : ffmpeg " + command);
+//
+//            }
+//        });
+//    } catch (FFmpegCommandAlreadyRunningException e) {
+//        Log.d("tag", e.getMessage());
+//    }
+//}
     public void bottomNavCustom() {
         bottom_nav.setOnItemSelectedListener(item -> {
 
-            switch (item.getItemId()){
-                case R.id.edit_nav_item->{
-                    Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
+            switch (item.getItemId()) {
+                case R.id.edit_nav_item -> {
+                    if(AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1) {
+                        Intent editIntent = new Intent(ViewMedia.this, DsPhotoEditorActivity.class);
 
-                    if(mediaPath.contains("gif")){
-                        Toast.makeText(this,"Cannot edit GIF images",Toast.LENGTH_SHORT).show();
-                    } else{
-                        // Set data
-                        editIntent.setData(Uri.fromFile(new File(mediaPath)));
-                        // Set output directory
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "Gallerium");
-                        // Set toolbar color
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-                        // Set background color
-                        editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
-                        // Start activity
-                        startActivity(editIntent);
+                        if (mediaPath.contains("gif")) {
+                            Toast.makeText(this, "Cannot edit GIF images", Toast.LENGTH_SHORT).show();
+                        } else {
+                            // Set data
+                            editIntent.setData(Uri.fromFile(new File(mediaPath)));
+                            // Set output directory
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_PHOTO_EDITOR_OUTPUT_DIRECTORY, "Gallerium");
+                            // Set toolbar color
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_TOOL_BAR_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+                            // Set background color
+                            editIntent.putExtra(DsPhotoEditorConstants.DS_MAIN_BACKGROUND_COLOR, Color.parseColor("#FF000000"));
+                            // Start activity
+                            startActivity(editIntent);
+                        }
+                    }else{
+                        if (AccessMediaFile.getMediaWithPath(mediaPath).getMimeType().endsWith("mp4")) {
+                            intent = new Intent(this, VideoTrimActivity.class);
+                            intent.putExtra("path", mediaPath);
+                            startActivity(intent);
+                        }
                     }
                 }
 
@@ -445,9 +554,15 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
                         behavior.setPeekHeight(820);
                         behavior.setState(BottomSheetBehavior.STATE_COLLAPSED);
                     }
+
+                    if (viewType == 1) {
+                        btnRename.setVisibility(View.GONE);
+                        btnSetBackGround.setVisibility(View.GONE);
+                        btnAddToAlbum.setVisibility(View.GONE);
+                    }
                 }
 
-                case R.id.delete_nav_item ->{
+                case R.id.delete_nav_item -> {
                     //String type = AccessMediaFile.getMediaWithPath(mediaPath).getType() == 1 ? "Image" : "Video";
 //                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
 //
@@ -467,115 +582,96 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
 //                    AlertDialog alert = builder.create();
 //                    alert.show();
 
-                    if (fileUtils.delete(launcher, mediaPath, this) > 0) {
-                        Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
-                        AccessMediaFile.removeMediaFromAllMedia(mediaPath);
-                        slideAdapter.removePath(mediaPath);
-                        finish();
+                    if (viewType == 2) {
+                        if (fileUtils.delete(launcher, mediaPath, this) > 0) {
+                            Toast.makeText(getApplicationContext(), "deleted", Toast.LENGTH_SHORT).show();
+                            AccessMediaFile.removeMediaFromAllMedia(mediaPath);
+                            slideAdapter.removePath(mediaPath);
+                            finish();
+                        }
+                    } else {
+                        File mediaFile = new File(mediaPath);
+                        if (mediaFile.delete()) {
+                            slideAdapter.removePath(mediaPath);
+                            finish();
+                            Toast.makeText(getApplicationContext(), "Hình đã được xóa", Toast.LENGTH_SHORT).show();
+                        } else {
+                            Toast.makeText(getApplicationContext(), "Hình chưa được xóa", Toast.LENGTH_SHORT).show();
+                        }
                     }
                 }
 
                 case R.id.share_nav_item -> {
-                        var m = AccessMediaFile.getMediaWithPath(mediaPath);
-                        // Create intent to deliver some kind of result data
-                        Intent result = new Intent(Intent.ACTION_SEND_MULTIPLE);
-                        ArrayList<Uri> uris = new ArrayList<>();
-                        uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
-
-                        result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
-                        result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
-                        result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
-                        result.setType("*/*");
-                        startActivity(result);
+                    var m = AccessMediaFile.getMediaWithPath(mediaPath);
+                    // Create intent to deliver some kind of result data
+                    Intent result = new Intent(Intent.ACTION_SEND);
+                    result.putExtra(Intent.EXTRA_STREAM, new FileUtils().getUri(m.getPath(), m.getType(), this));
+//                    ArrayList<Uri> uris = new ArrayList<>();
+//                    uris.add(new FileUtils().getUri(m.getPath(), m.getType(), this));
+//
+//                    result.putParcelableArrayListExtra(Intent.EXTRA_STREAM, uris);
+                    result.putExtra(Intent.EXTRA_SUBJECT, "Pictures");
+                    result.putExtra(Intent.EXTRA_TEXT, "Pictures share");
+                    if (m.getType() == 1) {
+                        result.setType("image/*");
+                    } else {
+                        result.setType("video/*");
+                    }
+                    startActivity(result);
 
                 }
 
-                case R.id.view_photo_secured_nav_item->{
-//                    AlertDialog.Builder builder = new AlertDialog.Builder(this);
-//
-//                    builder.setTitle("Confirm");
-//                    builder.setMessage("Do you want to hide/show this image?");
-//
-//                    builder.setPositiveButton("YES", (dialog, which) -> {
-//                        String scrPath = Environment.getExternalStorageDirectory() + File.separator+".secret";
-//                        File scrDir = new File(scrPath);
-//                        if(!scrDir.exists()){
-//                            Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-//                        }
-//                        else{
-//                            FileUtility fu = new FileUtility();
-//                            File mediaFile = new File(mediaPath);
-//                            if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
-//                                fu.moveFile(mediaPath, mediaFile.getName(),scrPath);
-//                                Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-//                            }
-//                            else{
-//                                String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
-//                                File folder = new File(outputPath);
-//                                File file = new File(mediaFile.getPath());
-//                                File desImgFile = new File(outputPath,mediaFile.getName());
-//                                if(!folder.exists()) {
-//                                    folder.mkdir();
-//                                }
-//                                mediaFile.renameTo(desImgFile);
-//                                mediaFile.deleteOnExit();
-//                                desImgFile.getPath();
-//                                MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
-//                            }
-//                        }
-//                        Intent intentResult = new Intent();
-//                        intentResult.putExtra("path_media", mediaPath);
-//                        setResult(RESULT_OK, intentResult);
-//                        finish();
-//                        dialog.dismiss();
-//                    });
-//                    builder.setNegativeButton("NO", new DialogInterface.OnClickListener() {
-//
-//                        @Override
-//                        public void onClick(DialogInterface dialog, int which) {
-//
-//                            // Do nothing
-//                            dialog.dismiss();
-//                        }
-//                    });
-//
-//                    AlertDialog alert = builder.create();
-//                    alert.show();
-//
-//                    break;
-
-
-                    String scrPath =  getFilesDir().getAbsolutePath() + File.separator+ "secure-subfolder";
+                case R.id.view_photo_secured_nav_item -> {
+                    String scrPath = getFilesDir().getAbsolutePath() + File.separator + "secure-subfolder";
                     File scrDir = new File(scrPath);
-                    if(!scrDir.exists()){
+                    if (!scrDir.exists()) {
                         Toast.makeText(this, "You haven't created secret album", Toast.LENGTH_SHORT).show();
-                    }
-                    else{
+                    } else {
                         File mediaFile = new File(mediaPath);
-                        if(!(scrPath+File.separator+mediaFile.getName()).equals(mediaPath)){
+                        if (!(scrPath + File.separator + mediaFile.getName()).equals(mediaPath)) {
                             String[] subDirs = mediaPath.split("/");
-                            String name = subDirs[subDirs.length-1];
+                            String name = subDirs[subDirs.length - 1];
                             fileUtils.secureFile(getApplicationContext(), mediaPath, name, launcher);
                             Toast.makeText(this, "Your image is secured", Toast.LENGTH_SHORT).show();
-                        }
-                        else{
-                            String outputPath = Environment.getExternalStorageDirectory()+File.separator+"DCIM" + File.separator + "Restore";
+                        } else {
+                            String outputPath = Environment.getExternalStorageDirectory() + File.separator + "DCIM" + File.separator + "Restore";
                             File folder = new File(outputPath);
-                            File file = new File(mediaFile.getPath());
-                            File desImgFile = new File(outputPath,mediaFile.getName());
-                            if(!folder.exists()) {
+                            File desImgFile = new File(outputPath, mediaFile.getName());
+                            if (!folder.exists()) {
                                 folder.mkdir();
                             }
                             mediaFile.renameTo(desImgFile);
                             mediaFile.deleteOnExit();
                             desImgFile.getPath();
-                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath+File.separator+desImgFile.getName()}, null, null);
+                            MediaScannerConnection.scanFile(getApplicationContext(), new String[]{outputPath + File.separator + desImgFile.getName()}, null, null);
                         }
+                    }
+                }
+
+                case R.id.remove_from_secured_nav_item -> {
+                    if (AccessMediaFile.getMediaWithPath(mediaPath) != null && AccessMediaFile.getMediaWithPath(mediaPath).getTitle().startsWith(".gtrashed-")) {
+                        try {
+                            fileUtils.restoreFileMultiple(new ArrayList<>(List.of(AccessMediaFile.getMediaWithPath(mediaPath))));
+                            SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+                            SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                            myEdit.clear();
+                            // write all the data entered by the user in SharedPreference and apply
+                            myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                            myEdit.apply();
+                        } catch (Exception e) {
+                            Toast.makeText(this, "No permission!", Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        String mimeType = getMimeType(mediaPath);
+                        fileUtils.moveFromInternal(mediaPath, launcher, "Pictures/Gallerium", mimeType, getType(mimeType), getApplicationContext());
+                        slideAdapter.removePath(mediaPath);
+                        finish();
                     }
                 }
             }
             return true;
         });
+
     }
 
     @Override
@@ -755,6 +851,9 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
     String getMimeType(String path){
         String type = null;
         String extension = MimeTypeMap.getFileExtensionFromUrl(path);
+        if (extension.isBlank()) {
+            extension = path.substring(path.lastIndexOf(".") + 1);
+        }
         if (extension != null) {
             type = MimeTypeMap.getSingleton().getMimeTypeFromExtension(extension);
         }
@@ -768,6 +867,20 @@ public class ViewMedia extends AppCompatActivity implements MediaItemInterface, 
         if(mimeType.startsWith("image")){ mediaType = 1;}
         else mediaType = 3;
         return mediaType;
+    }
+
+    private Media createMediaFromFile(String path) {
+        String[] dirs = path.split("/");
+        Media media = new Media();
+        String mimeType = getMimeType(path);
+        int mediaType = getType(mimeType);
+        media.setMimeType(mimeType);
+        media.setType(mediaType);
+        media.setPath(path);
+        media.setTitle(dirs[dirs.length-1]);
+        media.setThumbnail(path);
+
+        return media;
     }
 
     public void rescanForUnAddedAlbum(){
