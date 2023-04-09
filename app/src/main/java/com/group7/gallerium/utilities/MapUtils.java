@@ -72,9 +72,9 @@ public class MapUtils {
                 String postalCode = addresses.get(0).getPostalCode();
                 String knownName = addresses.get(0).getFeatureName(); // Only if available else return NULL
                 if (address != null) {
-                    startMarker.setTitle(address);
+                    startMarker.setTitle(address + "\n" + media.getDateTimeTaken());
                 } else {
-                    startMarker.setTitle(String.join(", ", city, state, country));
+                    startMarker.setTitle(String.join(", ", city, state, country) + "\n" + media.getDateTimeTaken());
                 }
             }
 

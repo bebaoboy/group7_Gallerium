@@ -305,9 +305,9 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         btnCreative = findViewById(R.id.create_button);
         btnFav = findViewById(R.id.add_to_fav_button);
         btnRestore = findViewById(R.id.restore_button);
-        btnRestore.setVisibility(View.VISIBLE);
         btnRestore.setOnClickListener((v) -> restoreMedia());
         if (albumName.equals("Thùng rác")) {
+            btnRestore.setVisibility(View.VISIBLE);
             btnCopy.setVisibility(View.GONE);
             btnMove.setVisibility(View.GONE);
             btnFav.setVisibility(View.GONE);

@@ -8,7 +8,10 @@ import android.os.Build;
 import android.os.Environment;
 import android.provider.MediaStore;
 import android.util.Log;
+import android.util.Pair;
 import android.webkit.MimeTypeMap;
+
+import androidx.annotation.NonNull;
 
 import com.group7.gallerium.models.Media;
 
@@ -25,6 +28,32 @@ import java.util.Set;
 import java.util.stream.Collectors;
 
 public class AccessMediaFile {
+
+    @NonNull
+    public static HashMap<Pair<Double, Double>, Integer> allLocations = new HashMap<>();
+    private static ArrayList<String> locs = new ArrayList<>();
+    private static HashMap<String, Pair<Double, Double>> pathLocs = new HashMap<>();
+
+    public static void addToLoc(double lat, double longt, String s, String path) {
+        var i = locs.indexOf(s);
+        if (i == -1) {
+            locs.add(s);
+            i = locs.size() - 1;
+        }
+        var p = new Pair<>(lat, longt);
+        allLocations.put(p, i);
+        pathLocs.put(path, p);
+    }
+
+    public static Pair<Double, Double> getLocFromPath(String path) {
+        return pathLocs.get(path);
+    }
+
+    public static String getFromLoc(double lat, double longt) {
+        var t = allLocations.get(new Pair<>(lat, longt));
+        if (t == null) return null;
+        return locs.get(t);
+    }
     public static final int DATE_DESC = 0, DATE_ASC = 1, SIZE_DESC = 2, SIZE_ASC = 3,
             SIZE_DESC_NO_GROUP = 4,  SIZE_ASC_NO_GROUP = 5, LOC_GROUP = 6;
     public static final int SORT_MODE_COUNT = 7;
@@ -120,6 +149,7 @@ public class AccessMediaFile {
     }
 
     public static Media getMediaWithPath(String path){
+        if (!allMedia.containsKey(path)) return new Media();
         return allMedia.get(path);
     }
     public static void refreshAllMedia(){

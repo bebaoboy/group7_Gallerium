@@ -14,8 +14,8 @@ public class Media {
     private String path = "";
     private double[] location;
     private int type;
-    private String mimeType; // 1 is image 3 is video
-    private String thumbnail;
+    private String mimeType = ""; // 1 is image 3 is video
+    private String thumbnail = "";
     private long dateTaken;
 
     private long duration;
@@ -25,7 +25,7 @@ public class Media {
 
     static final SimpleDateFormat dateFormatWithTime = new SimpleDateFormat("EEE, dd-MM-yyyy HH:mm");
 
-    private String title;
+    private String title = "";
     private int width;
     private int height;
     private int bitrate;
