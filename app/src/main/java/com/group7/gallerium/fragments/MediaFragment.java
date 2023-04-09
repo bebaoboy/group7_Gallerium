@@ -543,7 +543,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
-
+            ArrayList<Bitmap> bitmaps = new ArrayList<>();
+            for(Media media: selectedMedia){
+                bitmaps.add(getBitmapFromAbsolutePath(media.getPath()));
+            }
+            fileUtils.saveImageToMediaStore(this.requireContext(), combineImages(bitmaps));
         });
         btnFav.setOnClickListener((v) -> addToFavorite());
         btnFav.setOnLongClickListener(view -> {
@@ -772,7 +776,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             switchSortMode();
             return false;
         });
-
+        
         toolbar.getMenu().findItem(R.id.set_display_menu_item).setOnMenuItemClickListener(menuItem -> {
             if(uiMode == UI_MODE_GRID){
                 uiMode = UI_MODE_LIST;
@@ -878,18 +882,18 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         return bitmap;
     }
 
-    public Bitmap combineImages(Bitmap[] bitmaps) {
+    public Bitmap combineImages(ArrayList<Bitmap> bitmaps) {
         Bitmap cs = null;
 
         int width= 0, height = 0;
 
-        for (int i = 0; i < bitmaps.length; i++) {
-            if (bitmaps[i].getWidth() > bitmaps[i].getWidth()) {
-                width += bitmaps[i].getWidth();
-                height = bitmaps[i].getHeight();
+        for (int i = 0; i < bitmaps.size(); i++) {
+            if (bitmaps.get(i).getWidth() > bitmaps.get(i).getWidth()) {
+                width += bitmaps.get(i).getWidth();
+                height = bitmaps.get(i).getHeight();
             } else {
-                width += bitmaps[i].getWidth();
-                height = bitmaps[i].getHeight();
+                width += bitmaps.get(i).getWidth();
+                height = bitmaps.get(i).getHeight();
             }
         }
 
@@ -899,9 +903,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
         int currentWidth = 0;
 
-        for (int i = 0; i < bitmaps.length; i++) {
-            comboImage.drawBitmap(bitmaps[i], currentWidth, 0f, null);
-            currentWidth += bitmaps[i].getWidth();
+        for (int i = 0; i < bitmaps.size(); i++) {
+            comboImage.drawBitmap(bitmaps.get(i), currentWidth, 0f, null);
+            currentWidth += bitmaps.get(i).getWidth();
         }
 
         return cs;
