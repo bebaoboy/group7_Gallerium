@@ -312,7 +312,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         });
         btnDelete.setOnClickListener((v) -> deleteMedia());
         btnCreative.setOnClickListener((v) -> {
-
+            ArrayList<Bitmap> bitmaps = new ArrayList<>();
+            for(Media media: selectedMedia){
+                bitmaps.add(getBitmapFromAbsolutePath(media.getPath()));
+            }
+            fileUtils.saveImageToMediaStore(this.requireContext(), combineImages(bitmaps));
         });
         btnFav.setOnClickListener((v) -> {
             addToFavorite();
@@ -454,6 +458,167 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             openSetting̣̣̣̣̣̣̣();
             return false;
         });
+<<<<<<< Updated upstream
+=======
+
+        sortButton = toolbar.getMenu().findItem(R.id.sort_menu_item);
+        sortButton.setTitle("Sắp xếp" + " (" + sortMode + ": " +
+                switch(sortMode) {
+                    case AccessMediaFile.DATE_DESC -> "Ngày giảm dần";
+                    case AccessMediaFile.SIZE_DESC -> "Size giảm dần theo ngày";
+                    case AccessMediaFile.SIZE_ASC -> "Size tăng dần theo ngày";
+                    case AccessMediaFile.SIZE_DESC_NO_GROUP -> "Size giảm dần";
+                    case AccessMediaFile.SIZE_ASC_NO_GROUP -> "Size tăng dần";
+                    case AccessMediaFile.LOC_GROUP -> "Vị trí";
+                    default -> "Ngày tăng dần";
+                }
+                + ")");
+        sortButton.setOnMenuItemClickListener(menuItem -> {
+            switchSortMode();
+            return false;
+        });
+
+        toolbar.getMenu().findItem(R.id.set_display_menu_item).setOnMenuItemClickListener(menuItem -> {
+            if(uiMode == UI_MODE_GRID){
+                uiMode = UI_MODE_LIST;
+            }else{
+                uiMode = UI_MODE_GRID;
+            }
+
+            SharedPreferences.Editor editor = sharedPreferences.edit();
+
+            editor.putInt("ui_mode", uiMode);
+            editor.apply();
+            refresh(false);
+
+            return false;
+        });
+
+        searchButton = toolbar.getMenu().findItem(R.id.search_tb_item);
+
+        SearchManager searchManager =
+                (SearchManager) context.getSystemService(Context.SEARCH_SERVICE);
+
+        searchView =
+                (SearchView) searchButton.getActionView();
+
+        searchView.setSuggestionsAdapter(cursorAdapter);
+        searchView.setOnSuggestionListener(new SearchView.OnSuggestionListener() {
+            @Override
+            public boolean onSuggestionSelect(int position) {
+                return false;
+            }
+
+            @Override
+            public boolean onSuggestionClick(int position) {
+                SQLiteCursor cursor = (SQLiteCursor) searchView.getSuggestionsAdapter().getItem(position);
+                int indexColumnSuggestion = cursor.getColumnIndex( SuggestionsDatabase.FIELD_SUGGESTION);
+
+                searchView.setQuery(cursor.getString(indexColumnSuggestion), false);
+                return true;
+            }
+        });
+
+        searchView.setSearchableInfo(
+                searchManager.getSearchableInfo(requireActivity().getComponentName()));
+
+        searchView.setIconifiedByDefault(false);
+
+        searchView.setSubmitButtonEnabled(true);
+        SearchView.SearchAutoComplete searchAutoComplete = searchView.findViewById(androidx.appcompat.R.id.search_src_text);
+        searchAutoComplete.setThreshold(0);
+
+
+        searchView.setOnQueryTextListener(new SearchView.OnQueryTextListener() {
+            @Override
+            public boolean onQueryTextSubmit(String query) {
+                //getSearchResults(query); Also tried
+                isSearching = false;
+                long result = database.insertSuggestion(query);
+                getSearchResults(searchView.getQuery().toString());
+                if( ! searchView.isIconified()) {
+                    searchView.setIconified(true);
+                }
+                searchButton.collapseActionView();
+                SearchRecentSuggestions suggestions = new SearchRecentSuggestions(context,
+                        MySuggestionProvider.AUTHORITY, MySuggestionProvider.MODE);
+                suggestions.saveRecentQuery(query, null);
+                return result != -1;
+            }
+
+            @Override
+            public boolean onQueryTextChange(String newText) {
+                if (newText.isBlank()) {
+                    isSearching = false;
+                    query = "";
+                } else {
+                    isSearching = true;
+                }
+                Cursor cursor = database.getSuggestions(newText);
+                String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
+                int[] columnTextId = new int[] { android.R.id.text1};
+                SuggestionSimpleCursorAdapter simple = new SuggestionSimpleCursorAdapter(context.getApplicationContext(),
+                        R.layout.search_suggestion_item, cursor,
+                        columns , columnTextId
+                        , 0);
+
+                searchView.setSuggestionsAdapter(simple);
+                refresh();
+                if(cursor.getCount() != 0)
+                {
+                    return true;
+                }
+                else
+                {
+                    return false;
+                }
+            }
+        });
+    }
+
+    public Bitmap getBitmapFromAbsolutePath(String path) {
+        BitmapFactory.Options options = new BitmapFactory.Options();
+        options.inPreferredConfig = Bitmap.Config.ARGB_8888;
+        Bitmap bitmap = BitmapFactory.decodeFile(path, options);
+        return bitmap;
+    }
+
+    public Bitmap combineImages(ArrayList<Bitmap> bitmaps) {
+        Bitmap cs = null;
+
+        int width= 0, height = 0;
+
+        for (int i = 0; i < bitmaps.size(); i++) {
+            if (bitmaps.get(i).getWidth() > bitmaps.get(i).getWidth()) {
+                width += bitmaps.get(i).getWidth();
+                height = bitmaps.get(i).getHeight();
+            } else {
+                width += bitmaps.get(i).getWidth();
+                height = bitmaps.get(i).getHeight();
+            }
+        }
+
+        cs = Bitmap.createBitmap(width, height, Bitmap.Config.ARGB_8888);
+
+        Canvas comboImage = new Canvas(cs);
+
+        int currentWidth = 0;
+
+        for (int i = 0; i < bitmaps.size(); i++) {
+            comboImage.drawBitmap(bitmaps.get(i), currentWidth, 0f, null);
+            currentWidth += bitmaps.get(i).getWidth();
+        }
+
+        return cs;
+    }
+
+
+    void getSearchResults(String toString) {
+        Intent intent = new Intent(this.getContext(), SearchResultActivity.class);
+        intent.setAction(Intent.ACTION_SEARCH);
+        intent.putExtra(SearchManager.QUERY, toString);
+        context.startActivity(intent);
+>>>>>>> Stashed changes
     }
 
     private void enableCamera() {
