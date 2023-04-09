@@ -17,7 +17,7 @@
         android:layout_height="match_parent"
         app:layoutManager="androidx.recyclerview.widget.GridLayoutManager"
         android:nestedScrollingEnabled="false"
-        android:layout_marginTop="60dp"
+        android:layout_marginTop="70dp"
         />
 
 </androidx.constraintlayout.widget.ConstraintLayout>
