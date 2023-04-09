@@ -396,18 +396,18 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         //saveScroll();
         if (albumName.equals("Thùng rác")) {
 //            if (1 == 1) {
-                try {
-                    fileUtils.deleteTrashMultiple(selectedMedia);
-                    SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
-                    SharedPreferences.Editor myEdit = sharedPreferences.edit();
-                    myEdit.clear();
-                    // write all the data entered by the user in SharedPreference and apply
-                    myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
-                    myEdit.apply();
-                } catch (Exception e) {
-                    Toast.makeText(this, "No permission", Toast.LENGTH_SHORT).show();
-                }
-                callback.onDestroyActionMode(mode);
+            try {
+                fileUtils.deleteTrashMultiple(selectedMedia);
+                SharedPreferences sharedPreferences = getSharedPreferences("trash_media", MODE_PRIVATE);
+                SharedPreferences.Editor myEdit = sharedPreferences.edit();
+                myEdit.clear();
+                // write all the data entered by the user in SharedPreference and apply
+                myEdit.putStringSet("path", AccessMediaFile.getAllTrashMedia());
+                myEdit.apply();
+            } catch (Exception e) {
+                Toast.makeText(this, "No permission", Toast.LENGTH_SHORT).show();
+            }
+            callback.onDestroyActionMode(mode);
 //            }
         } else {
             var trashEnabled = true;
@@ -592,19 +592,19 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         builder.setPositiveButton("YES", (dialog, which) -> {
 //            File albumFolder = new File(albumPath);
 //            if(albumFolder.exists()) {
-                fileUtils.deleteRecursive(launcher, listMedia, this.getApplicationContext(), albumPath);
-                AccessMediaFile.removeFromYourAlbum(albumPath);
-                var albList = AccessMediaFile.getAllYourAlbum();
-                //Log.d("fav", "fav amount pause = " + favList.size());
-                albList.forEach(x -> Log.d("alb", x));
-                SharedPreferences sharedPreferences = getSharedPreferences("your_album", MODE_PRIVATE);
-                SharedPreferences.Editor myEdit = sharedPreferences.edit();
-                myEdit.clear();
+            fileUtils.deleteRecursive(launcher, listMedia, this.getApplicationContext(), albumPath);
+            AccessMediaFile.removeFromYourAlbum(albumPath);
+            var albList = AccessMediaFile.getAllYourAlbum();
+            //Log.d("fav", "fav amount pause = " + favList.size());
+            albList.forEach(x -> Log.d("alb", x));
+            SharedPreferences sharedPreferences = getSharedPreferences("your_album", MODE_PRIVATE);
+            SharedPreferences.Editor myEdit = sharedPreferences.edit();
+            myEdit.clear();
 
-                // write all the data entered by the user in SharedPreference and apply
-                myEdit.putStringSet("path", albList);
-                myEdit.apply();
-                ViewAlbum.this.finish();
+            // write all the data entered by the user in SharedPreference and apply
+            myEdit.putStringSet("path", albList);
+            myEdit.apply();
+            ViewAlbum.this.finish();
 //            }else{
 //                Toast.makeText(this, "Không xóa được album " + albumName, Toast.LENGTH_SHORT).show();
 //            }
@@ -671,7 +671,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 if(!existed){
                     array.put(jsonObject);
                 }
-                
+
                 stream.write(array.toString().getBytes(StandardCharsets.UTF_8));
             }catch (Exception e){
                 Log.d("tag", e.getMessage());
@@ -777,7 +777,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 mode.setTitle("Đã chọn " +  selectedMedia.size() + " mục");
             }
         }
-       // Log.d("size outer", "" + selectedMedia.size());
+        // Log.d("size outer", "" + selectedMedia.size());
     }
 
     @NonNull
