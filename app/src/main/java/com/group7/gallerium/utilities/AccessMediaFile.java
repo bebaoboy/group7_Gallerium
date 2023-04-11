@@ -215,143 +215,146 @@ public class AccessMediaFile {
     }
 
     private static HashMap<String, Media> getAllMediaFromGallery(Context context) {
+        try {
+            if (!allMediaPresent) {
+                int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn,
+                        videoLengthColumn, widthColumn, heightColumn, sizeColumn, bitrateColumn, resColumn;
+                int count, type, width, height, bitrate;
+                String mimeType;
+                String absolutePath, id, title, res;
+                long dateTaken, videoLength = 0, size;
+                HashMap<String, Media> listMedia = new HashMap<>();
 
-        if (!allMediaPresent) {
-            int typeColumn, titleColumn, dateColumn, pathColumn, idColumn, mimeTypeColumn,
-                    videoLengthColumn, widthColumn, heightColumn, sizeColumn, bitrateColumn, resColumn;
-            int count, type, width, height, bitrate;
-            String mimeType;
-            String absolutePath, id, title, res;
-            long dateTaken, videoLength=0, size;
-            HashMap<String, Media> listMedia = new HashMap<>();
 
-
-            Cursor cursor = context.getContentResolver().query(queryUri,
-                    columns,
-                    selection,
-                    null, // Selection args (none).
-                    orderBy + " DESC" // Sort order.
-            );
-            count = cursor.getCount();
-            Log.d("Amount-pic", String.valueOf(count));
-            int multiplier = 1000;
-            if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
-                multiplier = 1;
-            }
-
-            idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
-            pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
-            typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
-            mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
-            videoLengthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION);
-            widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
-            heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
-            sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
-            bitrateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.BITRATE);
-            resColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.RESOLUTION);
-
-            dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
-            int dt = 0;
-            if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
-                dt = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN);
-            }
-            var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
-            titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
-            if (!allMediaPresent || cursor.getCount() != allMedia.size()) {
-                cached = false;
-                allMedia.clear();
-            }
-            while (cursor.moveToNext()) {
-                id = cursor.getString(idColumn);
-                absolutePath = cursor.getString(pathColumn);
-                if (allMedia.containsKey(absolutePath)) {
-                    addNewestMediaOnly = false;
-                    allMediaPresent = true;
-                    break;
+                Cursor cursor = context.getContentResolver().query(queryUri,
+                        columns,
+                        selection,
+                        null, // Selection args (none).
+                        orderBy + " DESC" // Sort order.
+                );
+                count = cursor.getCount();
+                Log.d("Amount-pic", String.valueOf(count));
+                int multiplier = 1000;
+                if (Build.VERSION.SDK_INT < Build.VERSION_CODES.Q) {
+                    multiplier = 1;
                 }
 
-                type = cursor.getInt(typeColumn);
-                mimeType = cursor.getString(mimeTypeColumn);
-                dateTaken = cursor.getLong(dateColumn);
-                title = cursor.getString(titleColumn);
+                idColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns._ID);
+                pathColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATA);
+                typeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MEDIA_TYPE);
+                mimeTypeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.MIME_TYPE);
+                videoLengthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DURATION);
+                widthColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.WIDTH);
+                heightColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.HEIGHT);
+                sizeColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.SIZE);
+                bitrateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.BITRATE);
+                resColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.RESOLUTION);
+
+                dateColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_MODIFIED);
+                int dt = 0;
+                if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.Q) {
+                    dt = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_TAKEN);
+                }
+                var da = cursor.getColumnIndex(MediaStore.Files.FileColumns.DATE_ADDED);
+                titleColumn = cursor.getColumnIndex(MediaStore.Files.FileColumns.TITLE);
+                if (!allMediaPresent || cursor.getCount() != allMedia.size()) {
+                    cached = false;
+                    allMedia.clear();
+                }
+                while (cursor.moveToNext()) {
+                    id = cursor.getString(idColumn);
+                    absolutePath = cursor.getString(pathColumn);
+                    if (allMedia.containsKey(absolutePath)) {
+                        addNewestMediaOnly = false;
+                        allMediaPresent = true;
+                        break;
+                    }
+
+                    type = cursor.getInt(typeColumn);
+                    mimeType = cursor.getString(mimeTypeColumn);
+                    dateTaken = cursor.getLong(dateColumn);
+                    title = cursor.getString(titleColumn);
 //                Log.d("gallerium", "reading " + dateText + ", date modified: " + dateTaken
 //                        + ", date taken: " + cursor.getLong(dt) + ", date added" + cursor.getLong(da));
-                try {
-                    if (mimeType != null && mimeType.startsWith("video")) {
-                        videoLength = cursor.getLong(videoLengthColumn);
+                    try {
+                        if (mimeType != null && mimeType.startsWith("video")) {
+                            videoLength = cursor.getLong(videoLengthColumn);
+                        }
+                    } catch (Exception e) {
+                        videoLength = 0;
                     }
-                } catch (Exception e) {
-                    videoLength = 0;
-                }
-                width = cursor.getInt(widthColumn);
-                height = cursor.getInt(heightColumn);
-                size = cursor.getLong(sizeColumn);
-                try {
-                    bitrate = cursor.getInt(bitrateColumn);
-                    res = cursor.getString(resColumn);
-                }  catch (Exception e) {
-                    bitrate = 0;
-                    res = "";
-                }
+                    width = cursor.getInt(widthColumn);
+                    height = cursor.getInt(heightColumn);
+                    size = cursor.getLong(sizeColumn);
+                    try {
+                        bitrate = cursor.getInt(bitrateColumn);
+                        res = cursor.getString(resColumn);
+                    } catch (Exception e) {
+                        bitrate = 0;
+                        res = "";
+                    }
 
-                Media media = new Media();
-                media.setPath(absolutePath);
-                media.setThumbnail(absolutePath);
-                media.setDateTaken(dateTaken * multiplier);
-                media.setType(type);
-                media.setMimeType(mimeType);
-                media.setTitle(title);
-                media.setDuration(videoLength);
-                media.setWidth(width);
-                media.setHeight(height);
-                media.setSize(size);
-                media.setBitrate(bitrate);
-                media.setResolution(res);
+                    Media media = new Media();
+                    media.setPath(absolutePath);
+                    media.setThumbnail(absolutePath);
+                    media.setDateTaken(dateTaken * multiplier);
+                    media.setType(type);
+                    media.setMimeType(mimeType);
+                    media.setTitle(title);
+                    media.setDuration(videoLength);
+                    media.setWidth(width);
+                    media.setHeight(height);
+                    media.setSize(size);
+                    media.setBitrate(bitrate);
+                    media.setResolution(res);
 
-                if (media.getPath().equals("")) {
-                    continue;
-                }
-                if (addNewestMediaOnly) {
-                    boolean iscontained = allMedia.containsKey(media.getPath()); // in the "all media database"
+                    if (media.getPath().equals("")) {
+                        continue;
+                    }
+                    if (addNewestMediaOnly) {
+                        boolean iscontained = allMedia.containsKey(media.getPath()); // in the "all media database"
 //                    for(Media m: allMedia){
 //                        if(m.getPath().equals(media.getPath())){
 //                            iscontained = true;
 //                            break;
 //                        }
 //                    }
-                    if (iscontained) {
-                        addNewestMediaOnly = false;
-                        allMediaPresent = true;
-                        break;
-                    } else {
-                        if (allMedia.size() == count) {
+                        if (iscontained) {
                             addNewestMediaOnly = false;
                             allMediaPresent = true;
-                            cursor.close();
-                            return getAllMedia();
+                            break;
+                        } else {
+                            if (allMedia.size() == count) {
+                                addNewestMediaOnly = false;
+                                allMediaPresent = true;
+                                cursor.close();
+                                return getAllMedia();
+                            }
+                            allMedia.put(media.getPath(), media);
+                            cached = false;
+                            //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
                         }
-                        allMedia.put(media.getPath(), media);
+                    } else {
+                        listMedia.put(media.getPath(), media);
                         cached = false;
-                        //Log.d("gallerium", "adding " + dateText + ", real date: " + dateTaken);
-                    }
-                } else {
-                    listMedia.put(media.getPath(), media);
-                    cached = false;
 //                    paths.put(media.getPath(), true);
 //                    Log.d("gallerium", "adding new pic" + dateTaken);
-                }
+                    }
 //                if (listMedia.size() >= 2000) {
 //                    break;
 //                }
 
+                }
+                cursor.close(); // Android Studio suggestion
+                allMedia.putAll(listMedia);
+                addNewestMediaOnly = false;
+                allMediaPresent = true;
+                cached = false;
             }
-            cursor.close(); // Android Studio suggestion
-            allMedia.putAll(listMedia);
-            addNewestMediaOnly = false;
-            allMediaPresent = true;
-            cached = false;
+            return getAllMedia();
+        }  catch (Exception e) {
+            return new HashMap<>();
         }
-        return getAllMedia();
     }
 
     public static void setAllTrashMedia(Set<String> paths) {
