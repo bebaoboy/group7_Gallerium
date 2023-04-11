@@ -64,21 +64,13 @@ public class SearchResultActivity extends AppCompatActivity {
 
             ArrayList<Media> allMedias = AccessMediaFile.getAllMedia(this);
             for(Media media: allMedias){
-                if(media.getTitle().toLowerCase().contains(query)){
+                if(media.getTitle().toLowerCase().contains(query)) {
                     mediaList.add(media);
                 }
-            }
-
-            if(mediaList.isEmpty()){
-                for(Media media: allMedias){
-                    if(media.getDateTaken().contains(query)){
-                        mediaList.add(media);
-                    }
+                else if(media.getDateTaken().toLowerCase().contains(query)){
+                    mediaList.add(media);
                 }
-            }
-
-            for(Media media: allMedias){
-                if(media.getDateTaken().contains(query) && !mediaList.contains(media)){
+                else if(media.getPath().toLowerCase().contains(query) && !mediaList.contains(media)){
                     mediaList.add(media);
                 }
             }
