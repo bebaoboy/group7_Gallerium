@@ -87,7 +87,6 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     FileUtils fileUtils;
     String password, question, answer;
 
-    ImageView test;
     private  String secretPath;
     private ActivityResultLauncher<IntentSenderRequest> launcher;
     private int spanCount = 3;
@@ -297,7 +296,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
 
         btnClear.setOnClickListener((view1 -> txtPass.setText("")));
         btnEnter.setOnClickListener((view1) -> {
-            Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
+            // Toast.makeText(this.getContext(), "Your pass: " + txtPass.getText(), Toast.LENGTH_SHORT).show();
             try {
                 verifiedLogic(password, isReset);
             } catch (Exception e){
@@ -373,9 +372,9 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         return (int)Math.floor(imageSize);
     }
     
-    private void createSecuredDir() throws FileNotFoundException {
+    private void createSecuredDir() {
         File secureDir = new File(context.getFilesDir(), "secure-subfolder");
-        Log.d("context-Filedir", context.getFilesDir().getAbsolutePath());
+        // Log.d("context-Filedir", context.getFilesDir().getAbsolutePath());
         if(!secureDir.exists()){
             secureDir.mkdirs();
             try {
@@ -458,10 +457,10 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         secureRecyclerView.setLayoutManager(layoutManager);
     }
     
-     private void getPaths(File file) throws FileNotFoundException {
+     private void getPaths(File file) {
         File[] files = file.listFiles();
         for (File f : files) {
-            Log.d("file-path", f.getAbsolutePath());
+            // Log.d("file-path", f.getAbsolutePath());
             paths.add(f.getAbsolutePath());
             //moveFile(f.getAbsolutePath());
         }
@@ -485,7 +484,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     }
 
     int getType(String mimeType){
-        int mediaType = -1;
+        int mediaType;
         if(mimeType.startsWith("image")){ mediaType = 1;}
         else mediaType = 3;
         return mediaType;

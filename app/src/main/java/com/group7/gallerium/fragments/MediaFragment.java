@@ -75,13 +75,18 @@ import com.group7.gallerium.models.AlbumCategory;
 import com.group7.gallerium.models.Media;
 import com.group7.gallerium.models.MediaCategory;
 import com.group7.gallerium.utilities.AccessMediaFile;
+import com.group7.gallerium.utilities.AnimatedGifEncoder;
 import com.group7.gallerium.utilities.FileUtils;
 import com.group7.gallerium.utilities.MySuggestionProvider;
 import com.group7.gallerium.utilities.SelectMediaInterface;
 import com.group7.gallerium.utilities.SuggestionsDatabase;
 import com.whiteelephant.monthpicker.MonthPickerDialog;
 
+import java.io.ByteArrayOutputStream;
 import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.IOException;
 import java.math.RoundingMode;
 import java.text.DecimalFormat;
 import java.util.ArrayList;
@@ -547,7 +552,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             for(Media media: selectedMedia){
                 bitmaps.add(getBitmapFromAbsolutePath(media.getPath()));
             }
-            fileUtils.saveImageToMediaStore(this.requireContext(), combineImages(bitmaps));
+            createGif(bitmaps);
+            refresh();
+            callback.onDestroyActionMode(mode);
         });
         btnFav.setOnClickListener((v) -> addToFavorite());
         btnFav.setOnLongClickListener(view -> {
@@ -911,6 +918,31 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         return cs;
     }
 
+    public void createGif(ArrayList<Bitmap> bitmaps){
+        ByteArrayOutputStream bos = new ByteArrayOutputStream();
+        AnimatedGifEncoder encoder = new AnimatedGifEncoder();
+        encoder.setDelay(500);
+        encoder.setRepeat(0);
+        encoder.start(bos);
+
+        for(Bitmap bitmap: bitmaps){
+            encoder.addFrame(bitmap);
+            bitmap.recycle();
+        }
+        encoder.finish();
+        File filePath = new File(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/", "sample.gif");
+        FileOutputStream outputStream;
+        try {
+            outputStream = new FileOutputStream(filePath);
+            outputStream.write(bos.toByteArray());
+            outputStream.close();
+        } catch (FileNotFoundException e) {
+        } catch (IOException e) {
+
+        }
+        fileUtils.insertMediaToMediaStore(this.requireContext(), Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", Environment.getExternalStorageDirectory().getPath()+ "/Pictures/");
+        //fileUtils.moveFile(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", launcher, Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", this.requireContext());
+    }
 
     void getSearchResults(String toString) {
         Intent intent = new Intent(this.getContext(), SearchResultActivity.class);
