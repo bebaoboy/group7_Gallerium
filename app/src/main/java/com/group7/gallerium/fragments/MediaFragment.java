@@ -153,7 +153,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     private MonthPickerDialog.Builder builder;
     String query = "", dateQuery = "";
     boolean booting = true;
-    CountDownTimer sliderCd = new CountDownTimer(1000, 500) {
+    CountDownTimer sliderCd = new CountDownTimer(600, 200) {
         @Override
         public void onTick(long l) {
 
@@ -550,7 +550,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         btnCreative.setOnClickListener((v) -> {
             ArrayList<Bitmap> bitmaps = new ArrayList<>();
             for(Media media: selectedMedia){
-                bitmaps.add(getBitmapFromAbsolutePath(media.getPath()));
+                var bm = getBitmapFromAbsolutePath(media.getPath());
+                if (bm != null)
+                {
+                    bitmaps.add(bm);
+                }
             }
             createGif(bitmaps);
             refresh();
@@ -929,8 +933,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             encoder.addFrame(bitmap);
             bitmap.recycle();
         }
+        var fileName = "sample- " + System.currentTimeMillis() + ".gif";
         encoder.finish();
-        File filePath = new File(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/", "sample.gif");
+        File filePath = new File(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/", fileName);
         FileOutputStream outputStream;
         try {
             outputStream = new FileOutputStream(filePath);
@@ -940,7 +945,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         } catch (IOException e) {
 
         }
-        fileUtils.insertMediaToMediaStore(this.requireContext(), Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", Environment.getExternalStorageDirectory().getPath()+ "/Pictures/");
+        fileUtils.moveFromInternal(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/" + fileName, launcher, Environment.getExternalStorageDirectory().getPath()+ "/Pictures/Gallerium/", "image/gif", 1, context);
+        AccessMediaFile.refreshAllMedia();
+//        fileUtils.moveFromInternal(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/" + fileName, launcher, Environment.getExternalStorageDirectory().getPath()+ "/Pictures/Gallerium/" + fileName, "image/gif", 1, context);
         //fileUtils.moveFile(Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", launcher, Environment.getExternalStorageDirectory().getPath()+ "/Pictures/sample.gif", this.requireContext());
     }
 

@@ -153,8 +153,8 @@ public class MediaCategoryAdapter extends ListAdapter<MediaCategory, RecyclerVie
             var holder = (ImageSlideViewHolder) viewHolder;
             if (imageList.size() != 0) {
                 ImageSliderAdapter adapter = new ImageSliderAdapter(context);
-                holder.slider.setSliderAdapter(adapter);
                 adapter.renewItems(imageList);
+                holder.slider.setSliderAdapter(adapter);
                 holder.slider.startAutoCycle();
             }
             var today = Calendar.getInstance();

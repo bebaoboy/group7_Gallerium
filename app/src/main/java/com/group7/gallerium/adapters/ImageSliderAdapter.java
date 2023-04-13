@@ -47,9 +47,9 @@ public class ImageSliderAdapter extends
                 }
             }
         }
-        this.mSliderViews = SliderViews;
         if (diff)
         {
+            this.mSliderViews = SliderViews;
             notifyDataSetChanged();
         }
     }
