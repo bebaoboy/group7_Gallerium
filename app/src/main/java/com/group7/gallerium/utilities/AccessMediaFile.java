@@ -300,7 +300,7 @@ public class AccessMediaFile {
                     media.setDateTaken(dateTaken * multiplier);
                     media.setType(type);
                     media.setMimeType(mimeType);
-                    media.setTitle(title);
+                    media.setTitle(title == null ? "" : title);
                     media.setDuration(videoLength);
                     media.setWidth(width);
                     media.setHeight(height);
