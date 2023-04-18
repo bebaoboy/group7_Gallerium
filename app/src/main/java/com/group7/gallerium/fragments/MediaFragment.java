@@ -1205,9 +1205,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             int partitionSize = numGrid == 3 ? 30 : numGrid == 4 ? 24 : 20;
             for (var cat : categoryList.values()) {
                 if (sortMode >= 4 && sortMode < 6) {
-                    if (uiMode == UI_MODE_LIST) {
-                        cat.setNameCategory("");
-                    }
+//                    if (uiMode == UI_MODE_LIST) {
+//                        cat.setNameCategory("");
+//                    }
                 }
                 // cat.getList().sort(Comparator.comparingLong(Media::getRawDate).reversed());
                 if (sortMode == AccessMediaFile.SIZE_DESC) {

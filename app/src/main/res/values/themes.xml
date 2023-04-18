@@ -6,7 +6,7 @@
         <item name="colorPrimaryVariant">@color/title_light</item>
         <item name="colorOnPrimary">@color/black</item>
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">@color/primary_color_light_20a</item>
+        <item name="colorSecondary">@color/primary_color_light</item>
         <item name="colorSecondaryVariant">@color/primary_color_light</item>
         <item name="colorOnSecondary">@color/black</item>
         <item name="iconTint">@color/black</item>
