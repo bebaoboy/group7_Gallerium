@@ -299,7 +299,7 @@ public class AccessMediaFile {
                     media.setThumbnail(absolutePath);
                     media.setDateTaken(dateTaken * multiplier);
                     media.setType(type);
-                    media.setMimeType(mimeType);
+                    media.setMimeType(mimeType == null ? "" : mimeType);
                     media.setTitle(title == null ? "" : title);
                     media.setDuration(videoLength);
                     media.setWidth(width);

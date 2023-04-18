@@ -222,7 +222,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         super.onPause();
         sliderCd.cancel();
         booting = true;
-        sliderCd = new CountDownTimer(1000, 500) {
+        sliderCd = new CountDownTimer(600, 200) {
             @Override
             public void onTick(long l) {
 
@@ -430,7 +430,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
                         // This method performs the actual data-refresh operation.
                         // The method calls setRefreshing(false) when it's finished.
-                        sliderCd  = new CountDownTimer(1000, 500) {
+                        sliderCd  = new CountDownTimer(600, 200) {
                             @Override
                             public void onTick(long l) {
 
@@ -439,6 +439,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                             @Override
                             public void onFinish() {
                                 booting = false;
+                                sliderImageList = new ArrayList<>(listMedia);
+                                Collections.shuffle(sliderImageList);
+                                if (sliderImageList.size() >= 10) {
+                                    sliderImageList = sliderImageList.stream().limit(10).collect(Collectors.toCollection(ArrayList::new));
+                                }
                                 adapter.setSliderImageList(sliderImageList);
                             }
                         };
@@ -714,6 +719,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             this.spanCount = spanCount;
             adapter = new MediaCategoryAdapter(context, spanCount, this);
             adapter.setHomepage(true);
+            booting = true;
             refresh();
             ((LinearLayoutManager) Objects.requireNonNull(recyclerView.getLayoutManager())).scrollToPosition(firstVisiblePosition);
             callback.onDestroyActionMode(mode);
@@ -1054,13 +1060,24 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 else if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
                     listMedia.add(media);
                 }
-                else if (sortMode >= 4) {
+                else if (sortMode >= 4 && sortMode < 6) {
                     String s = media.getSize();
                     var ext = s.substring(s.length() - 2);
                     s = s.substring(0, s.length() - 2);
                     double size = Double.parseDouble(s);
-                    int roundedSize = (int) Math.floor(size);
-                    var catName = roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
+                    int roundedSize = (int)Math.ceil(size);
+                    int tempSize = (int)size;
+                    String catName;
+                    if (roundedSize >= 10) {
+                        if (size - ((roundedSize / 10) * 10) > 5)
+                        {
+                            roundedSize += 10;
+                        }
+                        catName = ((roundedSize / 10) * 10) + ext;
+                    }
+                    else {
+                        catName = roundedSize + ext;
+                    }
                     if (catName.toLowerCase().contains(query)) {
                         listMedia.add(media);
                     }
@@ -1160,8 +1177,18 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     var ext = s.substring(s.length() - 2);
                     s = s.substring(0, s.length() - 2);
                     double size = Double.parseDouble(s);
-                    int roundedSize = (int)Math.floor(size);
-                    catName = roundedSize < 10 ? roundedSize + ext : (roundedSize / 10) * 10 + ext;
+                    int roundedSize = (int)Math.ceil(size);
+                    if (roundedSize >= 10) {
+                        if (size - ((roundedSize / 10) * 10) > 5)
+                        {
+                            roundedSize += 10;
+                        }
+                        catName = ((roundedSize / 10) * 10) + ext;
+                    }
+                    else {
+                        catName = roundedSize + ext;
+                    }
+
 
                 }
                 if (!categoryList.containsKey(catName)) {
@@ -1209,6 +1236,18 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 //                        if (i != 0) c.setBackup("  " + ad);
                         if (c.getNameCategory().isEmpty()) {
                             c.setNameCategory(ad);
+                        }
+                    } else if (sortMode >= 4 && c.getNameCategory().isEmpty()) {
+                        if (c.getList().size() > 0 ) {
+                            String s = c.getList().get(0).getSize();
+                            var ext = s.substring(s.length() - 2);
+                            s = s.substring(0, s.length() - 2);
+                            double size = Double.parseDouble(s);
+                            var catName = size < 10 ? size + ext : (int)size + ext;
+                            c.setNameCategory(catName);
+                        }
+                        else {
+                            c.setNameCategory("--");
                         }
                     }
                     newCatList.add(c);
@@ -1499,6 +1538,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             super.onPostExecute(unused);
             adapter.setUiMode(uiMode);
             if (!booting) {
+                sliderCd.cancel();
                 sliderCd.start();
             }
             adapter.setDateBuilder(builder);

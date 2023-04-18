@@ -495,7 +495,7 @@ public class CameraActivity extends AppCompatActivity {
             return;
         } else {
             try {
-                locationManager.requestLocationUpdates(provider, 1000, 0.0f, mLocationListener);
+                locationManager.requestLocationUpdates(provider, 500, 0.0f, mLocationListener);
             } catch (Exception e) {
 
             }
@@ -508,6 +508,7 @@ public class CameraActivity extends AppCompatActivity {
         {
             stop();
         }
+        locationManager.removeUpdates(mLocationListener);
         super.onDestroy();
     }
 }
