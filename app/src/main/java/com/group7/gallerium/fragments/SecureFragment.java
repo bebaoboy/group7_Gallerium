@@ -327,6 +327,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
         builder.setView(dialogView)
                 .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                     var editQuestion = (EditText)dialogView.findViewById(R.id.question);
+                    editQuestion.setEnabled(true);
                     var editAnswer = (EditText)dialogView.findViewById(R.id.answer);
                     SharedPreferences.Editor myEdit = sharedPreferences.edit();
                     myEdit.putString("question", editQuestion.getText().toString());
@@ -425,10 +426,13 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             view.findViewById(R.id.main_secured_page).setVisibility(View.VISIBLE);
             setUpView();
         }
-
+        if (!txtPass.getText().toString().equals(password) && !isReset) {
+            Toast.makeText(context, "Mật khẩu không đúng!", Toast.LENGTH_LONG).show();
+        }
         if(isReset && txtPass.getText().length() == 4){
             String tempPass = txtPass.getText().toString();
             resetPasswordLogic(tempPass);
+            view.findViewById(R.id.txtReset).setVisibility(View.GONE);
         }
 
         password = sharedPreferences.getString("password", "");
@@ -602,6 +606,7 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
             var editQuestion = (EditText) dialogView.findViewById(R.id.question);
             var editAnswer = (EditText) dialogView.findViewById(R.id.answer);
             editQuestion.setText(question + "?");
+            editQuestion.setEnabled(false);
             builder.setView(dialogView)
                     .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
                         certifiedAnswer(editAnswer.getText().toString());
@@ -616,6 +621,10 @@ public class SecureFragment extends Fragment implements SelectMediaInterface {
     private void certifiedAnswer(String toString) {
         if(answer.equals(toString)){
             showResetPasswordView();
+            view.findViewById(R.id.txtReset).setVisibility(View.VISIBLE);
+        }
+        else {
+            Toast.makeText(context, "Đáp án không đúng!", Toast.LENGTH_LONG).show();
         }
     }
 

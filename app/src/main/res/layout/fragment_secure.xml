@@ -63,6 +63,16 @@
             android:textAlignment="center"
             android:visibility="gone"/>
 
+        <TextView
+            android:id="@+id/txtReset"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:textSize="20dp"
+            android:text="Enter new password: "
+            style="@style/SecureButton"
+            android:textAlignment="center"
+            android:visibility="gone"/>
+
         <EditText
             android:id="@+id/txtPassword"
             android:layout_width="match_parent"

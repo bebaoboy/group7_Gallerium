@@ -5,6 +5,7 @@
         android:id="@+id/change_pass_menu_item"
         android:enabled="true"
         android:title="@string/change_pass"
+        android:visible="false"
         android:tooltipText=""/>
     <item
         android:id="@+id/remove_pass_menu_item"
