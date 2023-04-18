@@ -621,6 +621,7 @@ public class AlbumFragment extends Fragment{
 
     public void getAlbumInfo(){
         File albumInfoFile = new File(context.getFilesDir(), "albumsInfo.txt");
+        albumCustomContents.clear();
         String contents;
         if(albumInfoFile.exists()) {
             int length = (int) albumInfoFile.length();

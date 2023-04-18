@@ -77,7 +77,7 @@ public class MediaDetails extends AppCompatActivity {
         }
         else {
             MapUtils.openMap(location, map);
-            MapUtils.addMarker(location, map, mediaPath, this, 450);
+            MapUtils.addMarker(location, map, mediaPath, this, 250);
         }
     }
 
@@ -237,6 +237,13 @@ public class MediaDetails extends AppCompatActivity {
                 txtMediaPath.setText(mediaPath);
                 txtMediaTakenTime.setText(media.getDateTimeTaken());
                 txtExifData.setText("");
+            }
+            var sharedPref = android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+            var locEnabled =  sharedPref.getString(SettingsActivity.KEY_PREF_LOCATION, "0");
+            if (locEnabled.equals("1")) {
+                location = null;
+                txtLocation.setText("");
+                return;
             }
             if (media.getLocation() != null) {
                 txtLocation.setText("Lat: " + media.getLocation().getLatitude() + "\n" + "Long: " + media.getLocation().getLongitude());

@@ -166,16 +166,16 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
 
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(ViewMediaEdit.this, "Hidden sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(ViewMediaEdit.this, "Expand sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(ViewMediaEdit.this, "Collapsed sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(ViewMediaEdit.this, "Dragging sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(ViewMediaEdit.this, "Settling sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_HIDDEN ->
+//                            Toast.makeText(ViewMediaEdit.this, "Hidden sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_EXPANDED ->
+//                            Toast.makeText(ViewMediaEdit.this, "Expand sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_COLLAPSED ->
+//                            Toast.makeText(ViewMediaEdit.this, "Collapsed sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_DRAGGING ->
+//                            Toast.makeText(ViewMediaEdit.this, "Dragging sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_SETTLING ->
+//                            Toast.makeText(ViewMediaEdit.this, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 

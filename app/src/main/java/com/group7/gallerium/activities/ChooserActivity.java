@@ -115,7 +115,7 @@ public class ChooserActivity extends AppCompatActivity {
 
     private void changeOrientation(int orientation, boolean refresh) {
         if(orientation == Configuration.ORIENTATION_LANDSCAPE){
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "landscape");
             if(view_pager.getCurrentItem() == 0) {
                 var myFragment = (MediaFragmentChooser) this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());
@@ -127,7 +127,7 @@ public class ChooserActivity extends AppCompatActivity {
 
         }
         else {
-            Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
+            //Toast.makeText(this, "change orientation", Toast.LENGTH_LONG).show();
             Log.d("orientation-changing", "portrait");
             if(view_pager.getCurrentItem() == 0){
                 var myFragment = (MediaFragmentChooser)this.getSupportFragmentManager().findFragmentByTag("f" + view_pager.getCurrentItem());

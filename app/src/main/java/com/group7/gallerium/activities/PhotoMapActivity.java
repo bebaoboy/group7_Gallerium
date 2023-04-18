@@ -4,10 +4,12 @@ import android.content.Context;
 import android.net.Uri;
 import android.os.AsyncTask;
 import android.os.Bundle;
+import android.os.ParcelFileDescriptor;
 import android.util.Log;
 
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.widget.Toolbar;
+import androidx.exifinterface.media.ExifInterface;
 import androidx.preference.PreferenceManager;
 
 import com.drew.imaging.ImageMetadataReader;
@@ -24,6 +26,7 @@ import org.osmdroid.config.Configuration;
 import org.osmdroid.util.GeoPoint;
 import org.osmdroid.views.MapView;
 
+import java.io.FileDescriptor;
 import java.util.Arrays;
 
 public class PhotoMapActivity extends AppCompatActivity {
@@ -48,6 +51,9 @@ public class PhotoMapActivity extends AppCompatActivity {
         toolbar.setNavigationOnClickListener((view) -> finish());
 
         map = findViewById(R.id.mapview);
+
+        var sharedPref = android.preference.PreferenceManager.getDefaultSharedPreferences(this);
+        var locEnabled =  sharedPref.getString(SettingsActivity.KEY_PREF_LOCATION, "0");
         MapUtils.openMap(null, map);
         IMapController mapController = map.getController();
         mapController.setCenter(new GeoPoint(10.762730555555f, 106.6823694444f));
@@ -63,11 +69,28 @@ public class PhotoMapActivity extends AppCompatActivity {
 
             @Override
             protected Void doInBackground(Void... voids) {
+                if (locEnabled.equals("1")) return null;
+
                 for (var media : AccessMediaFile.getAllMedia(context)) {
                     if (!isRunning) break;
                     try {
                         if (media.getLocation() == null) {
                             Uri mediaUri = Uri.parse("file://" + media.getPath());
+                            if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg")) {
+                                try (ParcelFileDescriptor parcelFileDescriptor = getContentResolver().openFileDescriptor(mediaUri, "r")) {
+                                    FileDescriptor fileDescriptor = parcelFileDescriptor.getFileDescriptor();
+
+                                    ExifInterface exifInterface = new ExifInterface(fileDescriptor);
+                                    double[] latLong = exifInterface.getLatLong();
+                                    if (latLong != null) {
+                                        System.out.println("Latitude: " + latLong[0]);
+                                        System.out.println("Longitude: " + latLong[1]);
+                                        media.setLocation(latLong[0], latLong[1]);
+                                        MapUtils.addMarker(media.getLocation(), map, media.getPath(), context, 280);
+                                        continue;
+                                    }
+                                }
+                            }
                             var u = context.getContentResolver().openInputStream(mediaUri);
                             Metadata m = ImageMetadataReader.readMetadata(u);
                             if (media.getMimeType().endsWith("jpg") || media.getMimeType().endsWith("jpeg")) {

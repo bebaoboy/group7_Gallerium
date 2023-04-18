@@ -13,7 +13,7 @@ import java.util.Random;
 public class Media {
     private String path = "";
     private double[] location;
-    private int type;
+    private int type = 1;
     private String mimeType = ""; // 1 is image 3 is video
     private String thumbnail = "";
     private long dateTaken;

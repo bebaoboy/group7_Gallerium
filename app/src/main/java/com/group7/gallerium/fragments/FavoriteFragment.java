@@ -136,7 +136,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     @Override
     public void onResume() {
         super.onResume();
-        Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
@@ -177,7 +177,7 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
     @Override
     public void onStart() {
         super.onStart();
-        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -267,16 +267,16 @@ public class FavoriteFragment extends Fragment  implements SelectMediaInterface 
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_HIDDEN ->
+   //                         Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
+      //              case BottomSheetBehavior.STATE_EXPANDED ->
+         //                   Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
+            //        case BottomSheetBehavior.STATE_COLLAPSED ->
+               //             Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                  //  case BottomSheetBehavior.STATE_DRAGGING ->
+                     //       Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_SETTLING ->
+                       //     Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 

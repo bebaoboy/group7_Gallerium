@@ -27,5 +27,6 @@
         android:fontFamily="sans-serif"
         android:hint="@string/answer"
         android:minHeight="48dp"
+        android:minLines="3"
         tools:ignore="VisualLintTextFieldSize" />
 </LinearLayout>

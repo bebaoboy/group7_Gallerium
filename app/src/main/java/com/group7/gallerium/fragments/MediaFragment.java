@@ -251,7 +251,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onStart() {
         super.onStart();
-        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        // Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
         var today = Calendar.getInstance();
         MonthPickerDialog.Builder builder = new MonthPickerDialog.Builder(context,
                 new MonthPickerDialog.OnDateSetListener() {
@@ -473,16 +473,16 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_HIDDEN ->
+   //                         Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
+      //              case BottomSheetBehavior.STATE_EXPANDED ->
+         //                   Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
+            //        case BottomSheetBehavior.STATE_COLLAPSED ->
+               //             Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                  //  case BottomSheetBehavior.STATE_DRAGGING ->
+                     //       Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_SETTLING ->
+                       //     Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -971,6 +971,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     int sortMode = AccessMediaFile.DATE_DESC;
     private void switchSortMode() {
         sortMode = (sortMode + 1) % AccessMediaFile.SORT_MODE_COUNT;
+        var sharedPref = android.preference.PreferenceManager.getDefaultSharedPreferences(context);
+        var locEnabled =  sharedPref.getString(SettingsActivity.KEY_PREF_LOCATION, "0");
+        if (sortMode == 6 && locEnabled.equals("1")) sortMode = 0;
         sortButton.setTitle("Sắp xếp" + " (" + sortMode + ": " +
                 switch(sortMode) {
                     case AccessMediaFile.DATE_DESC -> "Ngày giảm dần";

@@ -62,6 +62,7 @@ import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileOutputStream;
 import java.nio.charset.StandardCharsets;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Comparator;
 import java.util.Date;
@@ -277,16 +278,16 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(getApplicationContext(), "Expand sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(getApplicationContext(), "Collapsed sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(getApplicationContext(), "Dragging sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(getApplicationContext(), "Settling sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_HIDDEN ->
+//                            Toast.makeText(getApplicationContext(), "Hidden sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_EXPANDED ->
+//                            Toast.makeText(getApplicationContext(), "Expand sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_COLLAPSED ->
+//                            Toast.makeText(getApplicationContext(), "Collapsed sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_DRAGGING ->
+//                            Toast.makeText(getApplicationContext(), "Dragging sheet", Toast.LENGTH_SHORT).show();
+//                    case BottomSheetBehavior.STATE_SETTLING ->
+//                            Toast.makeText(getApplicationContext(), "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 
@@ -498,7 +499,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
     @Override
     public void onResume() {
         super.onResume();
-        Toast.makeText(this, "Resuming", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this, "Resuming", Toast.LENGTH_SHORT).show();
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(this);
         var numGridPref = sharedPref.getString(SettingsActivity.KEY_PREF_NUM_GRID, "3");
@@ -582,6 +583,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
             });
         }else{
             toolbar.getMenu().findItem(R.id.delete_album_item).setEnabled(false).setVisible(false);
+            toolbar.getMenu().findItem(R.id.add_media_item).setEnabled(false).setVisible(false);
         }
     }
 
@@ -626,7 +628,9 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
         var editTitle = (EditText)dialogView.findViewById(R.id.question);
         var editContent = (EditText)dialogView.findViewById(R.id.answer);
         editTitle.setHint("Nhập tiêu đề cho album");
+        editTitle.setText(memoryTitle);
         editContent.setHint("Nhập nội dung cho album");
+        editContent.setText(memoryContent);
 
         builder.setView(dialogView)
                 .setPositiveButton(R.string.ok, (dialogInterface, i) -> {
@@ -635,6 +639,12 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                     var time = new Date().getTime();
 
                     writeToAlbumFile(title, content, time);
+                    memoryTitle = title;
+                    memoryContent = content;
+                    memoryDate = new SimpleDateFormat("EEE, dd-MM-yyyy").format(System.currentTimeMillis());
+                    txtContent.setText(memoryContent);
+                    txtDate.setText(memoryDate);
+                    txtTitle.setText(memoryTitle);
                 }).setNegativeButton(R.string.cancel, ((dialogInterface, i) -> {
                     dialogInterface.dismiss();
                 }));
@@ -661,7 +671,7 @@ public class ViewAlbum extends AppCompatActivity implements SelectMediaInterface
                 boolean existed = false;
 
                 for(int i=0;i< array.length();i++){
-                    if(array.getJSONObject(i).equals(jsonObject)){
+                    if(array.getJSONObject(i).getString("path").equals(jsonObject.getString("path"))){
                         array.put(i, jsonObject);
                         existed = true;
                         break;

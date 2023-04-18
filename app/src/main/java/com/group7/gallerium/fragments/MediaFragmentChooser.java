@@ -170,7 +170,7 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
     @Override
     public void onStart() {
         super.onStart();
-        Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
+        //Toast.makeText(this.getContext(), "Start", Toast.LENGTH_SHORT).show();
     }
 
     @Override
@@ -262,16 +262,16 @@ public class MediaFragmentChooser extends Fragment  implements SelectMediaInterf
             @Override
             public void onStateChanged(@NonNull View bottomSheet, int newState) {
                 switch (newState) {
-                    case BottomSheetBehavior.STATE_HIDDEN ->
-                            Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_EXPANDED ->
-                            Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_COLLAPSED ->
-                            Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_DRAGGING ->
-                            Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
-                    case BottomSheetBehavior.STATE_SETTLING ->
-                            Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_HIDDEN ->
+   //                         Toast.makeText(context, "Hidden sheet", Toast.LENGTH_SHORT).show();
+      //              case BottomSheetBehavior.STATE_EXPANDED ->
+         //                   Toast.makeText(context, "Expand sheet", Toast.LENGTH_SHORT).show();
+            //        case BottomSheetBehavior.STATE_COLLAPSED ->
+               //             Toast.makeText(context, "Collapsed sheet", Toast.LENGTH_SHORT).show();
+                  //  case BottomSheetBehavior.STATE_DRAGGING ->
+                     //       Toast.makeText(context, "Dragging sheet", Toast.LENGTH_SHORT).show();
+                    //case BottomSheetBehavior.STATE_SETTLING ->
+                       //     Toast.makeText(context, "Settling sheet", Toast.LENGTH_SHORT).show();
                 }
             }
 

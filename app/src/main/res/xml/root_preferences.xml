@@ -37,6 +37,7 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
+            app:defaultValue="true"
             app:key="lockPrivateKey"
             app:title="@string/lock_private_title"
             app:iconSpaceReserved="false"/>
@@ -47,6 +48,7 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
+            app:defaultValue="true"
             app:key="lockTrashKey"
             app:title="@string/trash_title"
             app:iconSpaceReserved="false"/>
