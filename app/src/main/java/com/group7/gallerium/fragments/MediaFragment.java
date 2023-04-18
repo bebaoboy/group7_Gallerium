@@ -270,7 +270,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 .setActivatedYear(today.get(Calendar.YEAR))
                 .setActivatedMonth(today.get(Calendar.MONTH))
                 .setMaxYear(2099)
-                .setTitle("Select trading month")
+                .setTitle("Chọn tháng / năm")
                 .setMonthRange(Calendar.JANUARY, Calendar.DECEMBER)
                 // .setMaxMonth(Calendar.OCTOBER)
                 // .setYearRange(1890, 1890)
@@ -1047,7 +1047,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         if (isSearching) {
             if (!searchView.getQuery().toString().isEmpty())
             {
-                query = searchView.getQuery().toString().toLowerCase();
+                query = searchView.getQuery().toString().toLowerCase().trim().strip();
             }
             listMedia.clear();
             for (Media media : allMedias) {
@@ -1055,6 +1055,9 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     listMedia.add(media);
                 }
                 else if (media.getDateTaken().toLowerCase().contains(query)) {
+                    listMedia.add(media);
+                }
+                else if (media.getMimeType() != null && media.getMimeType().contains(query)) {
                     listMedia.add(media);
                 }
                 else if (media.getPath().toLowerCase().contains(query) && !listMedia.contains(media)) {
@@ -1080,6 +1083,15 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     }
                     if (catName.toLowerCase().contains(query)) {
                         listMedia.add(media);
+                    }
+                }
+                else {
+                    var loc = AccessMediaFile.getLocFromPath(media.getPath());
+                    if (loc != null) {
+                        var add = AccessMediaFile.getFromLoc(loc.first, loc.second);
+                        if (add != null && add.toLowerCase().contains(query)) {
+                            listMedia.add(media);
+                        }
                     }
                 }
             }

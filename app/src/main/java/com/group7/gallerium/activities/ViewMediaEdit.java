@@ -286,7 +286,7 @@ public class ViewMediaEdit extends AppCompatActivity implements MediaItemInterfa
             // Toast.makeText(context, "Needed permission. \nPress 'Choose this folder' to continue. ", Toast.LENGTH_LONG).show();
         }
         for(var u : uriArrayList) {
-            if (AccessMediaFile.getMediaWithPath(u.getPath()) == null) {
+            if (AccessMediaFile.getMediaWithPath(u.getPath()).getPath().isEmpty()) {
                 var temp = getFileFromContentUri(this, u, true);
                 AccessMediaFile.refreshAllMedia();
                 AccessMediaFile.getAllMedia(this);

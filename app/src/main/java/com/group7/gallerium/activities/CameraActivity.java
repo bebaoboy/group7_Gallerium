@@ -449,8 +449,12 @@ public class CameraActivity extends AppCompatActivity {
 
     @Override
     protected void onPause() {
+        if (isRecording)
+        {
+            stop();
+        }
+        locationManager.removeUpdates(mLocationListener);
         super.onPause();
-        if (isRecording) recording.pause();
     }
 
     @Override
@@ -504,11 +508,7 @@ public class CameraActivity extends AppCompatActivity {
 
     @Override
     protected void onDestroy() {
-        if (isRecording)
-        {
-            stop();
-        }
-        locationManager.removeUpdates(mLocationListener);
+
         super.onDestroy();
     }
 }
