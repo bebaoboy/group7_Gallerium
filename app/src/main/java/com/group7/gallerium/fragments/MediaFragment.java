@@ -192,7 +192,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     @Override
     public void onResume() {
         super.onResume();
-        sliderCd.start();
         //Toast.makeText(this.getContext(), "Resuming", Toast.LENGTH_SHORT).show();
         var sharedPref =
                 PreferenceManager.getDefaultSharedPreferences(context);
@@ -213,6 +212,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         }
         if (selectedMedia.size() == 0) {
             refresh();
+            if (booting) sliderCd.start();
         }
     }
 
@@ -221,7 +221,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
     public void onPause() {
         super.onPause();
         sliderCd.cancel();
-        booting = true;
         sliderCd = new CountDownTimer(600, 200) {
             @Override
             public void onTick(long l) {
@@ -869,6 +868,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     query = "";
                 } else {
                     isSearching = true;
+                    sliderImageList.clear();
                 }
                 Cursor cursor = database.getSuggestions(newText);
                 String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
@@ -1549,10 +1549,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         protected void onPostExecute(Void unused) {
             super.onPostExecute(unused);
             adapter.setUiMode(uiMode);
-            if (!booting) {
-                sliderCd.cancel();
-                sliderCd.start();
-            }
             adapter.setDateBuilder(builder);
             if (mediaCategories.size() > 0 && !mediaCategories.get(0).getNameCategory().equals("null")) {
                 mediaCategories.add(0, new MediaCategory("null", new ArrayList<>()));
@@ -1585,7 +1581,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
 
             }
             mediaCategories = temp;
-            if ((scroll && !swipeLayout.isRefreshing()) || isSearching) sliderImageList.clear();
+            if ((scroll && !swipeLayout.isRefreshing())) sliderImageList.clear();
             if (sliderImageList.size() == 0) {
                 sliderImageList = new ArrayList<>(listMedia);
                 Collections.shuffle(sliderImageList);
@@ -1595,6 +1591,7 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 else {
                     sliderImageList.clear();
                 }
+                sliderCd.start();
             }
 
             return null;
