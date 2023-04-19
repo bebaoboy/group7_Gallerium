@@ -301,7 +301,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
         adapter.setHomepage(true);
         recyclerView = view.findViewById(R.id.photo_recyclerview);
         recyclerView.setItemViewCacheSize(10000);
-        recyclerView.setHasFixedSize(true);
         txtSize = view.findViewById(R.id.txtSizePopUp);
         txtSize.setVisibility(View.GONE);
         recyclerView.addOnScrollListener(new RecyclerView.OnScrollListener() {

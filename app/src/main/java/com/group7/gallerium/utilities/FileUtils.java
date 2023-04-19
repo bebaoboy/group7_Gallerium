@@ -358,9 +358,9 @@ public class FileUtils {
                     }
                     values.put(MediaStore.Video.Media.DISPLAY_NAME, name);
                     if(media != null)
-                        values.put(MediaStore.Images.Media.MIME_TYPE, media.getMimeType());
+                        values.put(MediaStore.Video.Media.MIME_TYPE, media.getMimeType());
                     else
-                        values.put(MediaStore.Images.Media.MIME_TYPE, getMimeType(inputPath));
+                        values.put(MediaStore.Video.Media.MIME_TYPE, getMimeType(inputPath));
                     values.put(MediaStore.Video.Media.RELATIVE_PATH, outputPath);
                     values.put(MediaStore.Video.Media.IS_PENDING, 0);
 

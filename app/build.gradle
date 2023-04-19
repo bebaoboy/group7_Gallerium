@@ -31,6 +31,9 @@ android {
         sourceCompatibility JavaVersion.VERSION_14
         targetCompatibility JavaVersion.VERSION_14
     }
+    packagingOptions {
+        exclude 'lib/*/libRSSupport.so'
+    }
 }
 
 dependencies {
