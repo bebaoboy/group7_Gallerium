@@ -867,7 +867,6 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                     query = "";
                 } else {
                     isSearching = true;
-                    sliderImageList.clear();
                 }
                 Cursor cursor = database.getSuggestions(newText);
                 String[] columns = new String[] {SuggestionsDatabase.FIELD_SUGGESTION };
@@ -1586,11 +1585,11 @@ public class MediaFragment extends Fragment  implements SelectMediaInterface {
                 Collections.shuffle(sliderImageList);
                 if (sliderImageList.size() >= 10) {
                     sliderImageList = sliderImageList.stream().limit(10).collect(Collectors.toCollection(ArrayList::new));
+                    sliderCd.start();
                 }
                 else {
                     sliderImageList.clear();
                 }
-                sliderCd.start();
             }
 
             return null;
