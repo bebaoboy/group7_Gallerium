@@ -1,4 +1,4 @@
-# group7_Gallerium: Thư viện ảnh
+# Gallerium: Thư viện ảnh
 
 
 ### Thành viên:
